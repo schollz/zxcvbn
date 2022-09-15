@@ -7,7 +7,10 @@
 --
 --    ▼ instructions below ▼
 
-
+if not string.find(package.cpath,"/home/we/dust/code/paracosms/lib/") then
+  package.cpath=package.cpath..";/home/we/dust/code/paracosms/lib/?.so"
+end
+json=require("cjson")
 sample_=include("lib/sample")
 sampler_=include("lib/sampler")
 -- grid_=include("lib/ggrid")

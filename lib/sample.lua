@@ -9,31 +9,29 @@ function Sample:new(o)
 end
 
 function Sample:init()
+  self.debounce_fn={}
   print("sample: init "..self.path)
   self.pathname,self.filename,self.ext=string.match(self.path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
-  self.filename=string.upper(self.filename)
   self.ch,self.samples,self.sample_rate=audio.file_info(self.path)
   if self.samples<10 or self.samples==nil then
     print("ERROR PROCESSING FILE: "..path)
     do return end
   end
-  self.duration=samples/samplerate
-  self.cursors={}
-  for i=1,16 do
-    table.insert(self.cursors,(i-1)*self.duration/16)
-  end
+  self.duration=self.samples/self.sample_rate
   self.ci=1
   self.view={0,self.duration}
   self.height=56
   self.width=128
   self.debounce_zoom=0
-  self.waveform_file=waveform_file or "waveform"
-  self.waveform_file=self.waveform_file..self.id
-  resolution=resolution or 2
-  print(path)
-  self.dat_path="/home/we/dust/data/break-ops/"..path:gsub("/","_")..".dat"
-  if not util.file_exists(self.dat_path) then
-    os.execute(string.format("/home/we/dust/code/break-ops/lib/audiowaveform -q -i %s -o %s -z %d -b 8",path,self.dat_path,resolution))
+
+  -- create dat file
+  os.execute("mkdir -p ".._path.dat.."break-ops/dats/")
+  os.execute("mkdir -p ".._path.dat.."break-ops/cursors/")
+  os.execute("mkdir -p ".._path.dat.."break-ops/pngs/")
+  self.path_to_dat=_path.dat.."break-ops/dats/"..self.filename..".dat"
+  self.path_to_pngs=_path.data.."break-ops/pngs/"
+  if not util.file_exists(self.path_to_dat) then
+    os.execute(string.format("/home/we/dust/code/break-ops/lib/audiowaveform -q -i %s -o %s -z %d -b 8",path,self.path_to_dat,2))
   end
 
   -- figure out the bpm
@@ -51,18 +49,55 @@ function Sample:init()
   end
   self.bpm=bpm
 
-  -- load slices or figure out the best number
-  self.path_slices=_path.data.."/break-ops/"..path:gsub("/","_")..".slices"
-  if util.file_exists(self.path_slices) then 
-    -- TODO: try to load slices
-  else
-    self.slices={}
-    for i=1,16 do 
-      table.insert(self.slices,(i-1)/16)
-    end
+  -- load cursors or figure out the best number
+  self.cursors={}
+  for i=1,16 do
+    table.insert(self.cursors,(i-1)*self.duration/16)
+  end
+  self.path_to_cursors=_path.data.."/break-ops/cursors/"..self.filename..".cursors"
+  if util.file_exists(self.path_to_cursors) then 
+    self:load_cursors()
   end
 
   self:render()
+end
+
+
+function Sample:debounce()
+  for k,v in pairs(self.debounce_fn) do
+    if v~=nil and v[1]~=nil and v[1]>0 then
+      v[1]=v[1]-1
+      if v[1]~=nil and v[1]==0 then
+        if v[2]~=nil then
+          local status,err=pcall(v[2])
+          if err~=nil then
+            print(status,err)
+          end
+        end
+        self.debounce_fn[k]=nil
+      else
+        self.debounce_fn[k]=v
+      end
+    end
+  end
+end
+
+function Sample:load_cursors()
+  local f=io.open(self.path_to_cursors,"rb")
+  local content=f:read("*all")
+  f:close()
+  if content==nil then
+    do return end
+  end
+  self.cursors=json.decode(content)
+end
+
+function Sample:save_cursors()
+  filename=filename..".json"
+  local file=io.open(self.path_to_cursors,"w+")
+  io.output(file)
+  io.write(self.cursors)
+  io.close(file)
 end
 
 function Sample:guess_bpm(fname)
@@ -91,12 +126,16 @@ end
 
 function Sample:do_zoom(d)
   -- zoom
-  self.debounce_zoom=(d>0 and 1 or-1)
+  if d>0 then 
+    self.debounce_fn["zoom"]={1, function() self:zoom(true) end}
+  else
+    self.debounce_fn["zoom"]={1, function() self:zoom(false) end}
+  end
 end
 
 function Sample:do_move(d)
   self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
-  -- TODO: debounce saving the cursor positions
+  self.debounce_fn["save_cursors"]={5, function() self:save_cursors() end}
 end
 
 function Sample:enc(k,d)
@@ -114,7 +153,7 @@ function Sample:key(k,z)
   if k==2 then
     self:sel_cursor(self.ci+1)
   elseif k==3 then
-    local cursors=self:get_cursors()
+    -- TODO: play
   end
 end
 
@@ -129,9 +168,7 @@ function Sample:sel_cursor(ci)
   local cursor=self.cursors[self.ci]
   if view_duration~=self.duration and cursor<self.view[1] or cursor>self.view[2] then
     local cursor_frac=0.5
-    self.view[1]=util.clamp(cursor-view_duration*cursor_frac,0,self.duration)
-    self.view[2]=util.clamp(self.view[1]+view_duration,0,self.duration)
-    self:render()
+    self.view={util.clamp(cursor-view_duration*cursor_frac,0,self.duration),util.clamp(self.view[1]+view_duration,0,self.duration)}
   end
 end
 
@@ -148,52 +185,40 @@ function Sample:zoom(zoom_in,zoom_amount)
     do return end
   end
   self.view={view_new[1],view_new[2]}
-  self:render()
 end
 
-function Sample:render()
-  os.execute(string.format("/home/we/dust/code/break-ops/lib/audiowaveform -q -i %s -o /dev/shm/%s.png -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0",self.dat_path,self.waveform_file,self.view[1],self.view[2],self.width,self.height))
+function Sample:get_render()
+  local rendered=string.format("%s%s_%3.3f_%3.3f_%d_%d.png",self.png_path,self.filename,self.view[1],self.view[2],self.width,self.height)
+  if not util.file_exists(rendered) then 
+    os.execute(string.format("audiowaveform -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0",self.path_to_dat,rendered,self.view[1],self.view[2],self.width,self.height))
+  end
+  return rendered
 end
 
-function Sample:redraw(x,y,show_cursor)
-  x=x or 0
-  y=y or 8
+function Sample:redraw()
+  local x=0
+  local y=8
   if show_cursor==nil then
     show_cursor=true
   end
-  if self.waveform_file==nil or not util.file_exists("/dev/shm/"..self.waveform_file..".png") then
-    do return "NOTHING LOADED" end
-  end
-  if self.debounce_zoom~=0 then
-    if self.debounce_zoom<0 then
-      self.debounce_zoom=self.debounce_zoom+1
-      if self.debounce_zoom==0 then
-        self:zoom(false)
-      end
-    else
-      self.debounce_zoom=self.debounce_zoom-1
-      if self.debounce_zoom==0 then
-        self:zoom(true)
-      end
-    end
-  end
+  self:debounce()
   screen.aa(1)
-  screen.display_png("/dev/shm/"..self.waveform_file..".png",x,y)
+  screen.display_png(self:get_render(),x,y)
   screen.aa(0)
   screen.update()
-  if show_cursor then
-    local cursors=self:get_cursors()
-    for i=1,self:get_slice_num() do
-      local cursor=cursors[i]
-      if cursor>=self.view[1] and cursor<=self.view[2] then
-        local pos=util.linlin(self.view[1],self.view[2],1,128,cursor)
-        screen.level(i==self.ci and 15 or 1)
-        screen.move(pos,64-self.height)
-        screen.line(pos,64)
-        screen.stroke()
-      end
+  local cursors=self:get_cursors()
+
+  for i=1,self:get_cursor_num() do
+    local cursor=cursors[i]
+    if cursor>=self.view[1] and cursor<=self.view[2] then
+      local pos=util.linlin(self.view[1],self.view[2],1,128,cursor)
+      screen.level(i==self.ci and 15 or 1)
+      screen.move(pos,64-self.height)
+      screen.line(pos,64)
+      screen.stroke()
     end
   end
+
   if self.show~=nil and self.show>0 then
     self.show=self.show-1
     self.is_playing=true
@@ -211,7 +236,7 @@ function Sample:redraw(x,y,show_cursor)
   else
     self.is_playing=false
   end
-  return string.format("%02d",self.ci).."/"..self:get_slice_num().." "..self.filename
+  return string.format("%02d",self.ci).."/"..self:get_cursor_num().." "..self.filename
 end
 
 return Sample
