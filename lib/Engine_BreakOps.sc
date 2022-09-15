@@ -190,9 +190,8 @@ Engine_BreakOps : CroneEngine {
                     pos: pos,
                     duration: duration*gate,
                 ], syns.at("sliceFx"), \addBefore));
-
-                if (retrig>1,{
-                    Routine {
+                Routine {
+                    if (retrig>1,{
                         (retrig-1).do{
                             duration.wait;
                             syns.put(id,Synth.new(slice, [
@@ -204,10 +203,10 @@ Engine_BreakOps : CroneEngine {
                                 duration: duration*gate,
                             ], syns.at("sliceFx"), \addBefore));
                         };
-                    }.play;
-                });
-
-                NodeWatcher.register(syns.at(id));
+                    });
+                    // the last node played gets watched
+                    NodeWatcher.register(syns.at(id));
+                }.play;
             });
         });
 

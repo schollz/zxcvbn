@@ -154,6 +154,7 @@ end
 
 function Sample:do_move(d)
   self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
+
   -- update cursor durations
   local cursors={}
   for i,c in ipairs(self.cursors) do 
@@ -165,7 +166,7 @@ function Sample:do_move(d)
     self.cursor_durations[cursors[i].i]=cursors[i+1].c-cursors[i].c
   end
 
-  self.debounce_fn["save_cursors"]={5, function() self:save_cursors() end}
+  self.debounce_fn["save_cursors"]={30, function() self:save_cursors() end}
 end
 
 function Sample:enc(k,d)
@@ -183,7 +184,7 @@ function Sample:key(k,z)
   if k==2 then
     self:sel_cursor(self.ci+1)
   elseif k==3 then
-    -- TODO: play
+    self:play_cursor(1.0,1.0,1.0,1.0,self.ci)
   end
 end
 
