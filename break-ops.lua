@@ -12,8 +12,6 @@ grid__=include("lib/ggrid")
 MusicUtil = require "musicutil"
 lattice=require("lattice")
 
-engine.name="PolyPerc"
-
 function init()
   grid_=grid__:new()
 
