@@ -51,17 +51,32 @@ function Sample:init()
 
   -- load cursors or figure out the best number
   self.cursors={}
+  self.cursor_durations={}
   for i=1,16 do
     table.insert(self.cursors,(i-1)*self.duration/16)
+    table.insert(self.cursor_durations,self.duration/16)
   end
   self.path_to_cursors=_path.data.."/break-ops/cursors/"..self.filename..".cursors"
   if util.file_exists(self.path_to_cursors) then 
     self:load_cursors()
   end
 
+  self:load_buffer()
   self:render()
 end
 
+function Sample:load_buffer()
+  engine.load_buffer(self.path)
+end
+
+function Sample:play(amp,rate,pos,duration,gate,retrig)
+  duration=duration or 100000
+  engine.play(self.path,amp,rate,pos,duration)
+end
+
+function Sample:play_cursor(amp,rate,gate,retrig,ci)
+  self:play(amp,rate,self.cursors[ci],self.cursor_durations[ci],gate,retrig)
+end
 
 function Sample:debounce()
   for k,v in pairs(self.debounce_fn) do
@@ -89,14 +104,18 @@ function Sample:load_cursors()
   if content==nil then
     do return end
   end
-  self.cursors=json.decode(content)
+  local data=json.decode(content)
+  if data~=nil then 
+    self.cursors=data.cursors
+    self.cursor_durations=data.cursor_durations
+  end
 end
 
 function Sample:save_cursors()
   filename=filename..".json"
   local file=io.open(self.path_to_cursors,"w+")
   io.output(file)
-  io.write(self.cursors)
+  io.write({cursors=self.cursors,cursor_durations=self.cursor_durations})
   io.close(file)
 end
 
@@ -135,6 +154,17 @@ end
 
 function Sample:do_move(d)
   self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
+  -- update cursor durations
+  local cursors={}
+  for i,c in ipairs(self.cursors) do 
+    table.insert(cursors,{i=i,c=c})
+  end
+  table.insert(cursors,{i=17,c=self.duration})
+  table.sort(cursors,function(a,b) return a.c<b.c end)
+  for i=1,16 do 
+    self.cursor_durations[cursors[i].i]=cursors[i+1].c-cursors[i].c
+  end
+
   self.debounce_fn["save_cursors"]={5, function() self:save_cursors() end}
 end
 
