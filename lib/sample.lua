@@ -96,6 +96,7 @@ end
 
 function Sample:do_move(d)
   self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
+  -- TODO: debounce saving the cursor positions
 end
 
 function Sample:enc(k,d)
