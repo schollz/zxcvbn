@@ -8,95 +8,85 @@ function Sample:new(o)
   return o
 end
 
-function Sample:init(path,num_cursors,waveform_file,height,width,resolution)
-  print("Sample:init",path,num_cursors)
-  pathname,filename,ext=string.match(path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
-  self.path=path
-  self.filename=string.upper(filename)
-  local ch,samples,samplerate=audio.file_info(path)
-  if samples<10 or samples==nil then
+function Sample:init()
+  print("sample: init "..self.path)
+  self.pathname,self.filename,self.ext=string.match(self.path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
+  self.filename=string.upper(self.filename)
+  self.ch,self.samples,self.sample_rate=audio.file_info(self.path)
+  if self.samples<10 or self.samples==nil then
     print("ERROR PROCESSING FILE: "..path)
     do return end
   end
-  self.octave=4
   self.duration=samples/samplerate
   self.cursors={}
-  self.cursors[1]={}
-  for i=1,64 do
-    table.insert(self.cursors[1],(i-1)*self.duration/64)
+  for i=1,16 do
+    table.insert(self.cursors,(i-1)*self.duration/16)
   end
-  self.cursors[2]={0,self.duration*0.6,self.duration*0.9,self.duration}
   self.ci=1
   self.view={0,self.duration}
-  self.height=height or 56
-  self.width=width or 128
+  self.height=56
+  self.width=128
   self.debounce_zoom=0
   self.waveform_file=waveform_file or "waveform"
   self.waveform_file=self.waveform_file..self.id
   resolution=resolution or 2
   print(path)
-  self.dat_path="/home/we/dust/data/zxcvbn/"..path:gsub("/","_")..".dat"
+  self.dat_path="/home/we/dust/data/break-ops/"..path:gsub("/","_")..".dat"
   if not util.file_exists(self.dat_path) then
-    os.execute(string.format("/home/we/dust/code/zxcvbn/lib/audiowaveform -q -i %s -o %s -z %d -b 8",path,self.dat_path,resolution))
+    os.execute(string.format("/home/we/dust/code/break-ops/lib/audiowaveform -q -i %s -o %s -z %d -b 8",path,self.dat_path,resolution))
   end
-  self:render()
 
-  self.keyboard_fn={}
-  self.keyboard_fn.LEFT=function(x) self:do_move(x*-1) end
-  self.keyboard_fn.RIGHT=function(x) self:do_move(x) end
-  self.keyboard_fn.UP=function(x) self:do_zoom(1) end
-  self.keyboard_fn.DOWN=function(x) self:do_zoom(-1) end
-  self.keyboard_fn["SHIFT+UP"]=function(x) params:delta(self.id.."slices",self:is_drum_mode() and 1 or 0) end
-  self.keyboard_fn["SHIFT+DOWN"]=function(x) params:delta(self.id.."slices",self:is_drum_mode() and-1 or 0) end
-  self.keyboard_fn["SHIFT+LEFT"]=function(x) self:sel_cursor(self.ci-1) end
-  self.keyboard_fn["SHIFT+RIGHT"]=function(x) self:sel_cursor(self.ci+1)end
-  self.keyboard_fn.BACKSLASH=function(x) self:do_autosplice() end
-  self.keyboard_fn.SPACE=function(x) self:play(48) end
-  self.keyboard_fn.ESC=function(x)
-    if params:get(self.id.."sound")==1 then
-      params:set(self.id.."sound",2)
-    else
-      params:set(self.id.."sound",1)
+  -- figure out the bpm
+  local bpm=nil
+  for word in string.gmatch(self.path,'([^_]+)') do
+    if string.find(word,"bpm") then
+      bpm=tonumber(word:match("%d+"))
     end
-    show_message(params:string(self.id.."sound"):upper().." MODE")
   end
-  -- https://tutorials.renoise.com/wiki/Playing_Notes_with_the_Computer_Keyboard
-  self.keyboard_notes={
-    "Z","S","X","D","C","V","G","B","H","N","J","M","COMMA","L","DOT","SEMICOLON","SLASH",
-    "Q","2","W","3","E","R","5","T","6","Y","7","U","I","9","O","0","P","LEFTBRACE","EQUAL","RIGHTBRACE"
-  }
-  self.keyboard_nn={}
-  for i,kn in ipairs(self.keyboard_notes) do
-    self.keyboard_nn[kn]=function(x)
-      local val=i>17 and i-5 or i
-      if not self:is_drum_mode() then
-        local new_note=(val-1)+(self.octave*12)
-        if x==1 then
-          self:play(new_note)
-        elseif x==0 and not self:is_drum_mode() then
-          self:play_stop(new_note)
-        end
-      elseif x==1 then
-        local slice=(val-1)%self:get_slice_num()+1
-        self:sel_cursor(slice)
-        self:play()
+  if bpm==nil then
+    bpm=self:guess_bpm(path)
+  end
+  if bpm==nil then
+    bpm=clock.get_tempo()
+  end
+  self.bpm=bpm
+
+  -- load slices or figure out the best number
+  self.path_slices=_path.data.."/break-ops/"..path:gsub("/","_")..".slices"
+  if util.file_exists(self.path_slices) then 
+    -- TODO: try to load slices
+  else
+    self.slices={}
+    for i=1,16 do 
+      table.insert(self.slices,(i-1)/16)
+    end
+  end
+
+  self:render()
+end
+
+function Sample:guess_bpm(fname)
+  local ch,samples,samplerate=audio.file_info(fname)
+  if samples==nil or samples<10 then
+    print("ERROR PROCESSING FILE: "..self.path)
+    do return end
+  end
+  local duration=samples/samplerate
+  local closest={1,1000000}
+  for bpm=90,179 do
+    local beats=duration/(60/bpm)
+    local beats_round=util.round(beats)
+    -- only consider even numbers of beats
+    if beats_round%4==0 then
+      local dif=math.abs(beats-beats_round)/beats
+      if dif<closest[2] then
+        closest={bpm,dif,beats}
       end
     end
   end
-
-  self:do_autosplice()
-end
-
-function Sample:drum_or_melodic()
-  print("drum or melodic")
-  self:update_slices()
-end
-
-function Sample:do_autosplice()
-  local num_cursors=self:get_slice_num()
-  for i=1,num_cursors do
-    self.cursors[(params:get(self.id.."sound")-1)%2+1][i]=(i-1)*self.duration/num_cursors
-  end
+  print("bpm guessing for",fname)
+  tab.print(closest)
+  return closest[1]
 end
 
 function Sample:do_zoom(d)
@@ -105,79 +95,7 @@ function Sample:do_zoom(d)
 end
 
 function Sample:do_move(d)
-  self.cursors[(params:get(self.id.."sound")-1)%2+1][self.ci]=util.clamp(self.cursors[(params:get(self.id.."sound")-1)%2+1][self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
-end
-
-function Sample:get_cursors()
-  return self.cursors[(params:get(self.id.."sound")-1)%2+1]
-end
-
-function Sample:is_drum_mode()
-  return (params:get(self.id.."sound")-1)%2+1==1
-end
-
-function Sample:get_slice_num()
-  if (params:get(self.id.."sound")-1)%2+1==1 then
-    return params:get(self.id.."slices")
-  else
-    return 4
-  end
-end
-
-function Sample:get_sample_points(x)
-  local cursors=self:get_cursors()
-  local ci=(x-1)%self:get_slice_num()+1
-  print(ci)
-  if (params:get(self.id.."sound")-1)%2+1==1 then
-    local last=params:get(self.id.."slices")==ci and self.duration or cursors[ci+1]
-    if last==nil then last=self.duration end
-    if params:get(self.id.."sliceplay")==2 then last=self.duration end
-    return {cursors[ci],last}
-  else
-    return cursors
-  end
-end
-
-function Sample:update_slices()
-  if self.path==nil then
-    do return end
-  end
-  if self.ci>self:get_slice_num() then
-    self.ci=self:get_slice_num()
-  end
-end
-
-function Sample:play(note)
-  local cursors=self:get_cursors()
-  if self:is_drum_mode() then
-    local start=cursors[self.ci]
-    local stop=self.ci==self:get_slice_num() and self.duration or cursors[self.ci+1]
-    --print(self.path,start,stop)
-    -- engine.audition(self.path,start,stop)
-    engine.oneshot(self.id,self.path,"audition_1",48,48,0.5,start,stop,10,1)
-  elseif note~=nil then
-    engine.inandout(self.path,string.format("audition%d",note),note,48,1.0,cursors[1],cursors[2],cursors[3],cursors[4],15+self.id/100,0.005,0.5,0.9,0.1)
-  end
-end
-
-function Sample:play_stop(note)
-  engine.inandout_release(string.format("audition%d",note))
-end
-
-function Sample:play_all()
-  engine.audition(self.path,0,self.duration)
-end
-
-function Sample:keyboard(code,value)
-  print(code,value)
-  if value==1 then
-    print(code)
-  end
-  if value>0 and self.keyboard_fn[code]~=nil then
-    self.keyboard_fn[code](value)
-  elseif self.keyboard_nn[code]~=nil then
-    self.keyboard_nn[code](value)
-  end
+  self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
 end
 
 function Sample:enc(k,d)
@@ -196,24 +114,21 @@ function Sample:key(k,z)
     self:sel_cursor(self.ci+1)
   elseif k==3 then
     local cursors=self:get_cursors()
-    print(self.path,cursors[self.ci],cursors[self.ci+1] or self.duration)
-    engine.audition(self.path,cursors[self.ci],cursors[self.ci+1] or self.duration)
   end
 end
 
 function Sample:sel_cursor(ci)
   if ci<1 then
-    ci=ci+self:get_slice_num()
-  elseif ci>self:get_slice_num() then
-    ci=ci-self:get_slice_num()
+    ci=ci+16
+  elseif ci>16 then
+    ci=ci-16
   end
   self.ci=ci
   local view_duration=(self.view[2]-self.view[1])
-  local cursors=self:get_cursors()
-  if view_duration~=self.duration and cursors[self.ci]<self.view[1]
-    or cursors[self.ci]>self.view[2] then
+  local cursor=self.cursors[self.ci]
+  if view_duration~=self.duration and cursor<self.view[1] or cursor>self.view[2] then
     local cursor_frac=0.5
-    self.view[1]=util.clamp(cursors[self.ci]-view_duration*cursor_frac,0,self.duration)
+    self.view[1]=util.clamp(cursor-view_duration*cursor_frac,0,self.duration)
     self.view[2]=util.clamp(self.view[1]+view_duration,0,self.duration)
     self:render()
   end
@@ -223,10 +138,10 @@ function Sample:zoom(zoom_in,zoom_amount)
   zoom_amount=zoom_amount or 1.5
   local view_duration=(self.view[2]-self.view[1])
   local view_duration_new=zoom_in and view_duration/zoom_amount or view_duration*zoom_amount
-  local cursors=self:get_cursors()
-  local cursor_frac=(cursors[self.ci]-self.view[1])/view_duration
+  local cursor=self.cursors[self.ci]
+  local cursor_frac=(cursor-self.view[1])/view_duration
   local view_new={0,0}
-  view_new[1]=util.clamp(cursors[self.ci]-view_duration_new*cursor_frac,0,self.duration)
+  view_new[1]=util.clamp(cursor-view_duration_new*cursor_frac,0,self.duration)
   view_new[2]=util.clamp(view_new[1]+view_duration_new,0,self.duration)
   if (view_new[2]-view_new[1])<0.005 then
     do return end
@@ -236,7 +151,7 @@ function Sample:zoom(zoom_in,zoom_amount)
 end
 
 function Sample:render()
-  os.execute(string.format("/home/we/dust/code/zxcvbn/lib/audiowaveform -q -i %s -o /dev/shm/%s.png -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0",self.dat_path,self.waveform_file,self.view[1],self.view[2],self.width,self.height))
+  os.execute(string.format("/home/we/dust/code/break-ops/lib/audiowaveform -q -i %s -o /dev/shm/%s.png -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0",self.dat_path,self.waveform_file,self.view[1],self.view[2],self.width,self.height))
 end
 
 function Sample:redraw(x,y,show_cursor)

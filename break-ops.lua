@@ -8,12 +8,20 @@
 --    ▼ instructions below ▼
 
 
-grid__=include("lib/ggrid")
+track_=include("lib/track")
+sequence_=include("lib/sequence")
+sample_=include("lib/sample")
+sampler_=include("lib/sampler")
+grid_=include("lib/ggrid")
 MusicUtil = require "musicutil"
 lattice=require("lattice")
 
 function init()
-  grid_=grid__:new()
+  g_=grid_:new()
+  local op={}
+  for i=1,4 do
+    table.insert(op,track_:new())
+  end
 
   -- start lattice
   local sequencer=lattice:new{

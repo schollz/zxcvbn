@@ -1,6 +1,6 @@
-local Step={}
+local Sequence={}
 
-function Step:new(o)
+function Sequence:new(o)
   o=o or {}
   setmetatable(o,self)
   self.__index=self
@@ -8,7 +8,7 @@ function Step:new(o)
   return o
 end
 
-function Step:init()
+function Sequence:init()
     -- fx
     local zero_to_one={}
     local one_to_zero={}
@@ -45,8 +45,8 @@ function Step:init()
     self.fx_order={"db","filter","retrig","gate","pitch","decimate","stretch","other"}
 end
 
-function Step:emit()
+function Sequence:emit()
 
 end
 
-return Step
+return Sequence
