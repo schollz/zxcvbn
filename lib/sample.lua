@@ -59,30 +59,75 @@ function Sample:init()
   self.bpm=bpm
 
   -- load cursors or figure out the best number
-  self.cursors={}
-  self.cursor_durations={}
-  local organic_slices=util.round(self.duration/(60/self.bpm))
-  organic_slices=organic_slices>16 and 16 or organic_slices
-  for i=1,organic_slices do
-    table.insert(self.cursors,(i-1)*self.duration/organic_slices)
-    table.insert(self.cursor_durations,self.duration/organic_slices)
-  end
-  print(organic_slices)
-  if organic_slices<16 then
-    for i=organic_slices+1,16 do
-      table.insert(self.cursors,(i-1)*self.duration/16)
-      table.insert(self.cursor_durations,self.duration/16)
-    end
-  end
-  self:do_move(0)
-
   self.path_to_cursors=_path.data.."/break-ops/cursors/"..self.filename..".cursors"
-  if util.file_exists(self.path_to_cursors) then
+  if util.file_exists(self.path_to_cursors) then -- TODO debug
+    print("sample: loading existing cursors")
     self:load_cursors()
+  else
+    self.cursors={}
+    self.cursor_durations={}
+    local onsets=self:get_onsets(self.path,self.duration)
+    for i=1,16 do
+      table.insert(self.cursors,onsets[i])
+      if i<16 then
+        table.insert(self.cursor_durations,onsets[i+1]-onsets[i])
+      else
+        table.insert(self.cursor_durations,self.duration-onsets[i])
+      end
+    end
+    tab.print(self.cursors)
+    self:save_cursors()
   end
 
   -- engine.load_buffer(self.path)
   self.loaded=true
+end
+
+function Sample:get_onsets(fname,duration)
+  local average=function(t)
+    local sum=0
+    for _,v in pairs(t) do -- Get the sum of all numbers in t
+      sum=sum+v
+    end
+    return sum/#t
+  end
+  local onsets={}
+  for _,algo in ipairs({"energy","hfc","complex","kl","specdiff"}) do
+    for threshold=1.0,0.1,-0.1 do
+      local cmd=string.format("aubioonset -i %s -B 128 -H 128 -t %2.1f -O %s",fname,threshold,algo)
+      print(cmd)
+      local s=util.os_capture(cmd)
+      for w in s:gmatch("%S+") do
+        local wn=tonumber(w)
+        if math.abs(duration-wn)>0.1 then
+          local found=false
+          for i,o in ipairs(onsets) do
+            if math.abs(wn-average(o.onset))<0.01 then
+              found=true
+              onsets[i].count=onsets[i].count+1
+              table.insert(onsets[i].onset,wn)
+              break
+            end
+          end
+          if not found then
+            table.insert(onsets,{onset={wn},count=1})
+          end
+        end
+      end
+    end
+  end
+  table.sort(onsets,function(a,b) return a.count>b.count end)
+  local top16={}
+  local i=0
+  for _,o in ipairs(onsets) do
+    i=i+1
+    table.insert(top16,average(o.onset))
+    if i==16 then
+      break
+    end
+  end
+  table.sort(top16)
+  return top16
 end
 
 function Sample:play(amp,rate,pos,duration,gate,retrig)
@@ -121,6 +166,7 @@ function Sample:load_cursors()
   if content==nil then
     do return end
   end
+  print(content)
   local data=json.decode(content)
   if data~=nil then
     self.cursors=data.cursors
@@ -129,11 +175,12 @@ function Sample:load_cursors()
 end
 
 function Sample:save_cursors()
-  filename=filename..".json"
+  local filename=self.path_to_cursors
   local file=io.open(self.path_to_cursors,"w+")
   io.output(file)
-  io.write({cursors=self.cursors,cursor_durations=self.cursor_durations})
+  io.write(json.encode({cursors=self.cursors,cursor_durations=self.cursor_durations}))
   io.close(file)
+  print("sample: save_cursors done")
 end
 
 function Sample:guess_bpm(fname)
@@ -170,6 +217,7 @@ function Sample:do_zoom(d)
 end
 
 function Sample:do_move(d)
+  tab.print(self.cursors)
   self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
 
   -- update cursor durations
