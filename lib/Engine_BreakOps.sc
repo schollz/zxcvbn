@@ -6,7 +6,7 @@ Engine_BreakOps : CroneEngine {
     // BreakOps specific v0.1.0
     var buses;
     var syns;
-    var bufs;
+    var bufs; 
     // BreakOps ^
 
     *new { arg context, doneCallback;
@@ -15,6 +15,7 @@ Engine_BreakOps : CroneEngine {
 
     alloc {
         // BreakOps specific v0.0.1
+        var s=context.server;
 
         buses = Dictionary.new();
         syns = Dictionary.new();
@@ -165,7 +166,7 @@ Engine_BreakOps : CroneEngine {
         context.server.sync;
         syns.put("main",Synth.new(\main,[\in1,buses.at("compressing"),\in2,buses.at("compressible")]));
         context.server.sync;
-        syns.put("sliceFx",Synth.new(\fx, [\in, buses.at("sliceFx"), \out, buses.at("compressing")], syns.at("main"), \addBefore);)
+        syns.put("sliceFx",Synth.new(\fx, [\in, buses.at("sliceFx"), \out, buses.at("compressing")], syns.at("main"), \addBefore));
         context.server.sync;
 
         this.addCommand("play","sfffffi",{ arg msg;
@@ -182,7 +183,7 @@ Engine_BreakOps : CroneEngine {
                         syns.at(id).set(\gate,0);
                     });
                 });
-                syns.put(id,Synth.new(slice, [
+                syns.put(id,Synth.new(\slice, [
                     out: buses.at("sliceFx"),
                     buf: bufs.at(id),
                     amp: amp,
@@ -194,7 +195,7 @@ Engine_BreakOps : CroneEngine {
                     if (retrig>1,{
                         (retrig-1).do{
                             duration.wait;
-                            syns.put(id,Synth.new(slice, [
+                            syns.put(id,Synth.new(\slice, [
                                 out: buses.at("sliceFx"),
                                 buf: bufs.at(id),
                                 amp: amp,
