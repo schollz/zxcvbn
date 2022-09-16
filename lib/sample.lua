@@ -71,6 +71,7 @@ end
 
 function Sample:play(amp,rate,pos,duration,gate,retrig)
   duration=duration or 100000
+  rate = rate * clock.get_tempo() / bpm -- normalize tempo to bpm
   engine.play(self.path,amp,rate,pos,duration)
 end
 
