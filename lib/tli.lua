@@ -681,6 +681,204 @@ function TLI:parse_entity(s)
   return data
 end
 
+
+function TLI:get_arp(input,steps,shape,length)
+  local s={}
+  length=length or #input
+  shape=shape or "u"
+  for i=1,length do
+    table.insert(s,input[(i-1)%#input+1]+math.floor(i/#input-0.01)*12)
+  end
+
+
+  -- create reverse table
+  local s_reverse={}
+  for i=#s,1,-1 do
+    table.insert(s_reverse,s[i])
+  end
+
+  -- create the sequence based on the shapes
+  if shape=="d" then
+    -- down
+    -- 1 2 3 4 5 becomes
+    -- 5 4 3 2 1
+    s=s_reverse
+  elseif shape=="ud" then
+    -- ud
+    -- 1 2 3 4 5 becomes
+    -- 1 2 3 4 5 4 3 2
+    for i,n in ipairs(s_reverse) do
+      if i>1 and i<#s_reverse then
+        table.insert(s,n)
+      end
+    end
+  elseif shape=="du" then
+    -- du
+    -- 1 2 3 4 5 become
+    -- 5 4 3 2 1 2 3 4
+    local s2={}
+    for _,n in ipairs(s_reverse) do
+      table.insert(s2,n)
+    end
+    for i,n in ipairs(s) do
+      if i>1 and i<#s_reverse then
+        table.insert(s2,n)
+      end
+    end
+    s=s2
+  elseif shape=="co" then
+    -- con
+    -- 1 2 3 4 5 becomes
+    -- 5 1 4 2 3
+    local s2={}
+    for i,n in ipairs(s_reverse) do
+      if #s2<#s then
+        table.insert(s2,n)
+        if #s2~=#s then
+          table.insert(s2,s_reverse[#s_reverse-(i-1)])
+        end
+      end
+    end
+    s=s2
+  elseif shape=="di" then
+    -- div
+    -- 1 2 3 4 5 becomes
+    -- 1 5 2 4 3
+    local s2={}
+    for i,n in ipairs(s) do
+      if #s2<#s then
+        table.insert(s2,n)
+        if #s2~=#s then
+          table.insert(s2,s[#s-(i-1)])
+        end
+      end
+    end
+    s=s2
+  elseif shape=="codi" then
+    -- con-div
+    -- 1 2 3 4 5 becomes
+    -- 5 1 4 2 3 2 4 1
+    local s2={}
+    for i,n in ipairs(s_reverse) do
+      if #s2<#s_reverse then
+        table.insert(s2,n)
+        if #s2~=#s_reverse then
+          table.insert(s2,s_reverse[#s_reverse-(i-1)])
+        end
+      end
+    end
+    for i=#s2,1,-1 do
+      if i>1 and i<#s2 then
+        table.insert(s2,s2[i])
+      end
+    end
+    s=s2
+  elseif shape=="dico" then
+    -- div-con
+    -- 1 2 3 4 5 becomes
+    -- 1 5 2 4 3 4 2 5
+    local s2={}
+    for i,n in ipairs(s) do
+      if #s2<#s then
+        table.insert(s2,n)
+        if #s2~=#s then
+          table.insert(s2,s[#s-(i-1)])
+        end
+      end
+    end
+    for i=#s2,1,-1 do
+      if i>1 and i<#s2 then
+        table.insert(s2,s2[i])
+      end
+    end
+    s=s2
+  elseif shape=="pu" then
+    -- pinkyu
+    -- 1 2 3 4 5 becomes
+    -- 1 5 2 5 3 5 4 5
+    local s2={}
+    for i,n in ipairs(s) do
+      if i<#s then
+        table.insert(s2,n)
+        table.insert(s2,s[#s])
+      end
+    end
+    if #s2>1 then
+      s=s2
+    end
+  elseif shape=="pud" then
+    -- pinkyud
+    -- 1 2 3 4 5 becomes
+    -- 1 5 2 5 3 5 4 5 4 5 3 5 2 5
+    local s2={}
+    for i,n in ipairs(s) do
+      if i>1 and i<#s then
+        table.insert(s2,n)
+        table.insert(s2,s[#s])
+      end
+    end
+    for i,n in ipairs(s_reverse) do
+      if i>1 and i<#s_reverse then
+        table.insert(s2,n)
+        table.insert(s2,s[#s])
+      end
+    end
+    if #s2>1 then
+      s=s2
+    end
+  elseif shape=="tu" then
+    -- thumbu
+    -- 1 2 3 4 5 becomes
+    -- 1 2 1 3 1 4 1 5
+    local s2={}
+    for i,n in ipairs(s) do
+      if i>1 then
+        table.insert(s2,s[1])
+        table.insert(s2,n)
+      end
+    end
+    if #s2>1 then
+      s=s2
+    end
+  elseif shape=="tud" then
+    -- thumbud
+    -- 1 2 3 4 5 becomes
+    -- 1 2 1 3 1 4 1 5 1 4 1 3 1 2
+    local s2={}
+    for i,n in ipairs(s) do
+      if i>1 then
+        table.insert(s2,s[1])
+        table.insert(s2,n)
+      end
+    end
+    for i,n in ipairs(s_reverse) do
+      if i>1 and i<#s_reverse then
+        table.insert(s2,s[1])
+        table.insert(s2,n)
+      end
+    end
+    if #s2>1 then
+      s=s2
+    end
+  elseif shape=="r" then
+    -- random
+    -- 1 2 3 4 5 becomes
+    -- 2 3 1 5 4 or 3 1 2 4 5 or ...
+    math.randomseed(os.time())
+    for i,n in ipairs(s) do
+      local j=math.random(i)
+      s[i],s[j]=s[j],s[i]
+    end
+  end
+
+  local final={}
+  for i=1,steps do
+    table.insert(final,s[(i-1)%#s+1])
+  end
+  return final
+end
+
+
 function TLI:test()
   print("\n############ tests ############\n")
 
@@ -697,6 +895,8 @@ function TLI:test()
   do_test('tli.er(3,8,1)')
   do_test('tli:parse_entity("Cm7^4;v=40")')
   tli:parse_jumble("W X - . Y\n\n- - Z\nZ . ")
+
+  do_test('tli:get_arp({1,2,3},8,"ud",4)')
   print("\n###############################\n")
 
 end
