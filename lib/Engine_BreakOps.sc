@@ -171,10 +171,13 @@ Engine_BreakOps : CroneEngine {
         buses.put("compressing",Bus.audio(s,2));
         buses.put("compressible",Bus.audio(s,2));
         buses.put("sliceFx",Bus.audio(s,2));
+        buses.put("padFx",Bus.audio(s,2));
         context.server.sync;
         syns.put("main",Synth.new(\main,[\in1,buses.at("compressing"),\in2,buses.at("compressible")]));
         context.server.sync;
         syns.put("sliceFx",Synth.new(\fx, [\in, buses.at("sliceFx"), \out, buses.at("compressing")], syns.at("main"), \addBefore));
+        context.server.sync;
+        syns.put("padFx", Synth.new(\padFx, [in: buses.at("padFx"), out: buses.at("compressible"),  gate: 0], syns.at("main"), \addBefore));
         context.server.sync;
 
         this.addCommand("play","sfffffff",{ arg msg;
@@ -221,6 +224,39 @@ Engine_BreakOps : CroneEngine {
                 }.play;
             });
         });
+
+
+        this.addCommand("note_on","f",{ arg msg;
+            var note=msg[1];
+            2.do{ arg i;
+                var id=note.asString++"_"++i;
+                if (syns.at(id).notNil,{
+                    if (syns.at(id).isRunning,{
+                        syns.at(id).set(\gate,0);
+                    });
+                });
+                syns.put(id,Synth.new("pad"++i, [
+                    freq: note.midicps, 
+                    out: buses.at("padFx"),
+                ],
+                syns.at("padFx"),\addBefore));
+                NodeWatcher.register(syns.at(id));
+            };
+        });
+
+
+        this.addCommand("note_off","f",{ arg msg;
+            var note=msg[1];
+            2.do{ arg i;
+                var id=note.asString++"_"++i;
+                if (syns.at(id).notNil,{
+                    if (syns.at(id).isRunning,{
+                        syns.at(id).set(\gate,0);
+                    });
+                });
+            };
+        });
+
 
         this.addCommand("load_buffer","s",{ arg msg;
             var id=msg[1];

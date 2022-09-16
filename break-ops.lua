@@ -29,6 +29,7 @@ engine.name="BreakOps"
 function init()
   sampler=sampler_:new()
   sampler:select(_path.code.."break-ops/lib/amenbreak_bpm136.wav")
+  -- sampler:select("/home/we/dust/audio/seamlessloops/120/TL_Loop_Pad_Lo-Fi_01_Cm_120_keyCmin_bpm120_beats32_.flac")
 
   osc_fun={
     progress=function(args)
@@ -105,6 +106,13 @@ function enc(k,d)
 end
 
 function key(k,z)
+  -- if k==2 then
+  --   if z==1 then
+  --     engine.note_on(60);engine.note_on(65);engine.note_on(69);engine.note_on(60-12)
+  --   else
+  --     engine.note_off(60);engine.note_off(65);engine.note_off(69);engine.note_off(60-12)
+  --   end
+  -- end
   sampler:key(k,z)
 end
 
