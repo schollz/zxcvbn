@@ -389,7 +389,7 @@ function TLI:note_to_midi(n,midi_near)
     print(note_name)
     do return nil end
   end
-  return {m=midi_note,n=note_name}
+  return {{m=midi_note,n=note_name}}
 end
 
 function TLI:chord_to_midi(c,midi_near)
@@ -635,7 +635,7 @@ function TLI:parse_text(text,division)
   print(to_string(positions))
   local track={}
   for i=1,#lines*division do
-    table.insert(track,{})
+    table.insert(track,{on={},off={}})
   end
 
   for i,pos in ipairs(positions) do
@@ -648,10 +648,36 @@ function TLI:parse_text(text,division)
         pos.adj[foo[1]]=foo[2]
       end
     end
-    pos.parsed=self:to_midi(pos.el)
   end
 
-  print(to_string(positions))
+  -- adjustments
+  for _,p in ipairs(positions) do
+    print("----")
+    print(to_string(p))
+    if p.adj~=nil and p.adj.arp~=nil then
+      -- introduce as an arp
+      local notes={}
+      for _,note in ipairs(p.parsed) do
+        table.insert(notes,note.m)
+      end
+      --function TLI:get_arp(input,steps,shape,length)
+      local arp_notes=self:get_arp(notes,p.stop-p.start,p.adj.arp,p.adj.len)
+      local skip=p.adj.skip or 0
+      local j=0
+      for i=p.start,p.stop-1,skip+1 do
+        j=j+1
+        table.insert(track[i].on,{m=arp_notes[j],v=p.vel or 60})
+        table.insert(track[i+1+skip].off,{m=arp_notes[j]})
+      end
+    else
+      -- introduce normally
+      for _,note in ipairs(p.parsed) do
+        table.insert(track[p.start].on,{m=note.m,v=p.vel or 60})
+        table.insert(track[p.stop].off,{m=note.m})
+      end
+    end
+  end
+  print(to_string(track))
   return false
 end
 
@@ -677,10 +703,12 @@ function TLI:parse_positions(lines,division)
         end
         ei=ei+1
       end
-      print(ti,ele[ei])
     end
   end
-  print(to_string(entities))
+  if elast~=nil then
+    table.insert(entities,{el=elast.el,start=elast.start,stop=ti})
+    elast=nil
+  end
   return entities
 end
 
@@ -900,7 +928,7 @@ function TLI:test()
   --do_test('tli:parse_entity("Cm7^4;v=40")')
   --tli:parse_positions("W X - . Y\n\n- - Z\nZ . ")
   --do_test('tli:get_arp({1,2,3},8,"ud",4)')
-  tli:parse_text("Cm7;arp=ud\nc4 - . d4\n\n- - Em\nC . ")
+  tli:parse_text("Cm7;arp=ud;skip=1;len=6;vel=50\n-  - . d4\n ")
 
   print("\n###############################\n")
 
@@ -910,6 +938,8 @@ tli=TLI:new()
 tli:test()
 
 return TLI
+
+
 
 
 
