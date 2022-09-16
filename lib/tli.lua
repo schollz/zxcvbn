@@ -621,7 +621,7 @@ function TLI:chord_to_midi(c,midi_near)
   return p
 end
 
-function TLI:parse_jumble(text)
+function TLI:parse_positions(text)
   local lines={}
   for line in text:gmatch("[^\r\n]+") do
     if #line>0 then
@@ -894,7 +894,8 @@ function TLI:test()
   do_test('tli:to_midi("Am;7")')
   do_test('tli.er(3,8,1)')
   do_test('tli:parse_entity("Cm7^4;v=40")')
-  tli:parse_jumble("W X - . Y\n\n- - Z\nZ . ")
+  tli:parse_positions("W X - . Y\n\n- - Z\nZ . ")
+  tli:parse_text("W X - . Y\n\n- - Z\nZ . ")
 
   do_test('tli:get_arp({1,2,3},8,"ud",4)')
   print("\n###############################\n")
