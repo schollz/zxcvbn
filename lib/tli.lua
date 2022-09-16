@@ -621,15 +621,41 @@ function TLI:chord_to_midi(c,midi_near)
   return p
 end
 
-function TLI:parse_positions(text)
+function TLI:parse_text(text,division)
+  division=division or 16
+
   local lines={}
   for line in text:gmatch("[^\r\n]+") do
     if #line>0 then
       table.insert(lines,line)
     end
   end
-  self.division=16
 
+  local positions=self:parse_positions(lines,division)
+  print(to_string(positions))
+  local track={}
+  for i=1,#lines*division do
+    table.insert(track,{})
+  end
+
+  for i,pos in ipairs(positions) do
+    pos.adj={}
+    for j,v in ipairs(self.string_split(pos.el,";")) do
+      if j==1 then
+        pos.parsed=self:to_midi(v)
+      else
+        local foo=self.string_split(v,"=")
+        pos.adj[foo[1]]=foo[2]
+      end
+    end
+    pos.parsed=self:to_midi(pos.el)
+  end
+
+  print(to_string(positions))
+  return false
+end
+
+function TLI:parse_positions(lines,division)
   local elast=nil
   local entities={}
   for i,line in ipairs(lines) do
@@ -637,15 +663,16 @@ function TLI:parse_positions(text)
     for w in line:gmatch("%S+") do
       table.insert(ele,w)
     end
-    local pos=self.er(#ele,self.division,0)
+    local pos=self.er(#ele,division,0)
     local ei=0
     for pi,p in ipairs(pos) do
-      ti=pi+(i-1)*self.division
+      ti=pi+(i-1)*division
       if p then
         if elast~=nil and ele[ei+1]~="-" then
-          table.insert(entities,{el=elast.e,start=elast.start,stop=ti})
+          table.insert(entities,{el=elast.el,start=elast.start,stop=ti})
+          elast=nil
         end
-        if ele[ei+1]~="-" then
+        if ele[ei+1]~="-" and ele[ei+1]~="." then
           elast={el=ele[ei+1],start=ti}
         end
         ei=ei+1
@@ -654,32 +681,9 @@ function TLI:parse_positions(text)
     end
   end
   print(to_string(entities))
+  return entities
 end
 
-function TLI:parse_entity(s)
-  local data={}
-
-  if s=="-" then
-
-  elseif s=="." then
-    if self.note_on~=nil then
-      data={note_off=self.note_on}
-      self.note_on=nil
-    end
-  else
-    for i,v in ipairs(self.string_split(s,";")) do
-      if i==1 then
-        data={note_on=self:to_midi(v)}
-      else
-        local foo=self.string_split(v,"=")
-        data[foo[1]]=foo[2]
-      end
-    end
-  end
-
-
-  return data
-end
 
 
 function TLI:get_arp(input,steps,shape,length)
@@ -888,16 +892,16 @@ function TLI:test()
     print(string.format("%s ->\n%s",fn,to_string(val)))
   end
 
-  do_test('tli:note_to_midi("c4")')
-  do_test('tli:note_to_midi("d",72)')
-  do_test('tli:chord_to_midi("Cm/G")')
-  do_test('tli:to_midi("Am;7")')
-  do_test('tli.er(3,8,1)')
-  do_test('tli:parse_entity("Cm7^4;v=40")')
-  tli:parse_positions("W X - . Y\n\n- - Z\nZ . ")
-  tli:parse_text("W X - . Y\n\n- - Z\nZ . ")
+  --do_test('tli:note_to_midi("c4")')
+  --do_test('tli:note_to_midi("d",72)')
+  --do_test('tli:chord_to_midi("Cm/G")')
+  --do_test('tli:to_midi("Am;7")')
+  --do_test('tli.er(3,8,1)')
+  --do_test('tli:parse_entity("Cm7^4;v=40")')
+  --tli:parse_positions("W X - . Y\n\n- - Z\nZ . ")
+  --do_test('tli:get_arp({1,2,3},8,"ud",4)')
+  tli:parse_text("Cm7;arp=ud\nc4 - . d4\n\n- - Em\nC . ")
 
-  do_test('tli:get_arp({1,2,3},8,"ud",4)')
   print("\n###############################\n")
 
 end
@@ -906,5 +910,7 @@ tli=TLI:new()
 tli:test()
 
 return TLI
+
+
 
 
