@@ -31,6 +31,11 @@ function Sampler:key(k,z)
   self.samples[self.cur]:key(k,z)
 end
 
+function Sampler:show_position(pos)
+  self.samples[self.cur].show=1
+  self.samples[self.cur].show_pos=pos
+end
+
 function Sampler:redraw()
   if self.cur==nil then
     do return end
