@@ -9,6 +9,43 @@ function TLI:new(o)
 end
 
 function TLI:init()
+  table_print=function(tt,indent,done)
+    done=done or {}
+    indent=indent or 0
+    if type(tt)=="table" then
+      local sb={}
+      for key,value in pairs (tt) do
+        table.insert(sb,string.rep (" ",indent)) -- indent it
+        if type (value)=="table" and not done [value] then
+          done [value]=true
+          table.insert(sb,key.." = {\n");
+          table.insert(sb,table_print (value,indent+2,done))
+          table.insert(sb,string.rep (" ",indent)) -- indent it
+          table.insert(sb,"}\n");
+        elseif "number"==type(key) then
+          table.insert(sb,string.format("\"%s\"\n",tostring(value)))
+        else
+          table.insert(sb,string.format(
+          "%s = \"%s\"\n",tostring (key),tostring(value)))
+        end
+      end
+      return table.concat(sb)
+    else
+      return tt.."\n"
+    end
+  end
+
+  to_string=function(tbl)
+    if "nil"==type(tbl) then
+      return tostring(nil)
+    elseif "table"==type(tbl) then
+      return table_print(tbl)
+    elseif "string"==type(tbl) then
+      return tbl
+    else
+      return tostring(tbl)
+    end
+  end
   self.string_split=function(input_string,split_character)
     local s=split_character~=nil and split_character or "%s"
     local t={}
@@ -584,45 +621,68 @@ function TLI:chord_to_midi(c,midi_near)
   return p
 end
 
-function TLI:test()
-  print("\n############ tests ############\n")
-  table_print=function(tt,indent,done)
-    done=done or {}
-    indent=indent or 0
-    if type(tt)=="table" then
-      local sb={}
-      for key,value in pairs (tt) do
-        table.insert(sb,string.rep (" ",indent)) -- indent it
-        if type (value)=="table" and not done [value] then
-          done [value]=true
-          table.insert(sb,key.." = {\n");
-          table.insert(sb,table_print (value,indent+2,done))
-          table.insert(sb,string.rep (" ",indent)) -- indent it
-          table.insert(sb,"}\n");
-        elseif "number"==type(key) then
-          table.insert(sb,string.format("\"%s\"\n",tostring(value)))
-        else
-          table.insert(sb,string.format(
-          "%s = \"%s\"\n",tostring (key),tostring(value)))
+function TLI:parse_jumble(text)
+  local lines={}
+  for line in text:gmatch("[^\r\n]+") do
+    if #line>0 then
+      table.insert(lines,line)
+    end
+  end
+  self.division=16
+
+  local elast=nil
+  local entities={}
+  for i,line in ipairs(lines) do
+    local ele={}
+    for w in line:gmatch("%S+") do
+      table.insert(ele,w)
+    end
+    local pos=self.er(#ele,self.division,0)
+    local ei=0
+    for pi,p in ipairs(pos) do
+      ti=pi+(i-1)*self.division
+      if p then
+        if elast~=nil and ele[ei+1]~="-" then
+          table.insert(entities,{el=elast.e,start=elast.start,stop=ti})
         end
+        if ele[ei+1]~="-" then
+          elast={el=ele[ei+1],start=ti}
+        end
+        ei=ei+1
       end
-      return table.concat(sb)
-    else
-      return tt.."\n"
+      print(ti,ele[ei])
+    end
+  end
+  print(to_string(entities))
+end
+
+function TLI:parse_entity(s)
+  local data={}
+
+  if s=="-" then
+
+  elseif s=="." then
+    if self.note_on~=nil then
+      data={note_off=self.note_on}
+      self.note_on=nil
+    end
+  else
+    for i,v in ipairs(self.string_split(s,";")) do
+      if i==1 then
+        data={note_on=self:to_midi(v)}
+      else
+        local foo=self.string_split(v,"=")
+        data[foo[1]]=foo[2]
+      end
     end
   end
 
-  to_string=function(tbl)
-    if "nil"==type(tbl) then
-      return tostring(nil)
-    elseif "table"==type(tbl) then
-      return table_print(tbl)
-    elseif "string"==type(tbl) then
-      return tbl
-    else
-      return tostring(tbl)
-    end
-  end
+
+  return data
+end
+
+function TLI:test()
+  print("\n############ tests ############\n")
 
   do_test=function(fn)
     local f=load('return '..fn)
@@ -635,6 +695,8 @@ function TLI:test()
   do_test('tli:chord_to_midi("Cm/G")')
   do_test('tli:to_midi("Am;7")')
   do_test('tli.er(3,8,1)')
+  do_test('tli:parse_entity("Cm7^4;v=40")')
+  tli:parse_jumble("W X - . Y\n\n- - Z\nZ . ")
   print("\n###############################\n")
 
 end
@@ -643,3 +705,5 @@ tli=TLI:new()
 tli:test()
 
 return TLI
+
+
