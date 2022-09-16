@@ -79,7 +79,7 @@ function Sample:init()
     self:save_cursors()
   end
 
-  -- engine.load_buffer(self.path)
+  engine.load_buffer(self.path)
   self.loaded=true
 end
 
@@ -133,7 +133,8 @@ end
 function Sample:play(amp,rate,pos,duration,gate,retrig)
   duration=duration or 100000
   rate=rate*clock.get_tempo()/self.bpm -- normalize tempo to bpm
-  -- engine.play(self.path,amp,rate,pos,duration)
+  print("sample: play",amp,rate,pos,duration,gate,retrig)
+  engine.play(self.path,amp,rate,pos,duration,gate,retrig,sampler.cur==self.path and 1 or 0)
 end
 
 function Sample:play_cursor(amp,rate,gate,retrig,ci)
@@ -265,7 +266,15 @@ function Sample:sel_cursor(ci)
   local cursor=self.cursors[self.ci]
   if view_duration~=self.duration and cursor-self.cursor_durations[ci]<self.view[1] or cursor+self.cursor_durations[ci]>self.view[2] then
     local cursor_frac=0.5
-    self.view={util.clamp(cursor-self.cursor_durations[ci],0,self.duration),util.clamp(cursor+self.cursor_durations[ci],0,self.duration)}
+    local next_view=cursor+self.cursor_durations[ci]
+    if ci<16 then
+      next_view=next_view+self.cursor_durations[ci+1]/2
+    end
+    local prev_view=cursor-self.cursor_durations[ci]
+    if ci>1 then
+      prev_view=self.cursors[ci-1]+self.cursor_durations[ci-1]/3
+    end
+    self.view={util.clamp(prev_view,0,self.duration),util.clamp(next_view,0,self.duration)}
   end
 end
 
@@ -328,6 +337,7 @@ function Sample:redraw()
     self.is_playing=true
     screen.level(15)
     local cursor=self.show_pos
+    print(self.view[1],self.view[2],cursor)
     if cursor>=self.view[1] and cursor<=self.view[2] then
       local pos=util.linlin(self.view[1],self.view[2],1,128,cursor)
       screen.aa(1)

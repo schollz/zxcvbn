@@ -7,6 +7,7 @@ Engine_BreakOps : CroneEngine {
     var buses;
     var syns;
     var bufs; 
+    var oscs;
     // BreakOps ^
 
     *new { arg context, doneCallback;
@@ -20,13 +21,16 @@ Engine_BreakOps : CroneEngine {
         buses = Dictionary.new();
         syns = Dictionary.new();
         bufs = Dictionary.new();
+        oscs = Dictionary.new();
+
+        oscs.put("position",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("progress",msg[3],msg[3]); }, '/position'));
 
         context.server.sync;
 
         SynthDef(\main, {
             var in1=In.ar(\in1.kr(1),2); // drums
             var in2=In.ar(\in2.kr(1),2); // pad
-            var snd=Compander.ar(in2,in1*8,0.1,1,0.1,0.01,0.01)+(in1*MouseX.kr());
+            var snd=Compander.ar(in2,in1*8,0.1,1,0.1,0.01,0.01)+(in1);
             snd=Compander.ar(snd,snd,4,1,0.5,0.01,0.01);
             snd=LeakDC.ar(snd);
             Out.ar(\out.kr(0),snd);
@@ -81,15 +85,19 @@ Engine_BreakOps : CroneEngine {
         }).send(context.server);
 
         SynthDef(\slice,{
-            arg amp=0, buf, rate, pos, gate=1, duration=100000; 
+            arg out=0, amp=0, buf=0, rate=1, pos=0, gate=1, duration=100000, send_pos=0; 
             var snd;
-            snd = PlayBuf.ar(2,buf,
-                rate: rate * BufRateScale.ir(buf)
-                startPos: pos*BufFrames.ir(buf)
+            var snd_pos = Phasor.ar(
+                trig: Impulse.kr(0),
+                rate: rate * BufRateScale.ir(buf),
+                resetPos: pos / BufDur.ir(buf) * BufFrames.ir(buf),
+                end: BufFrames.ir(buf),
             );
+            SendReply.kr(Impulse.kr(10)*send_pos,'/position',[snd_pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
+            snd = BufRd.ar(2,buf,snd_pos,interpolation:4);
             snd = snd * Env.asr(0.001, 1, 0.001).ar(Done.freeSelf, gate * (1-TDelay.kr(Impulse.kr(0),duration)) );
             snd = snd * amp.dbamp;
-            Out.ar(\out.kr(0),snd);
+            Out.ar(out,snd);
         }).send(context.server);
 
         SynthDef(\sliceStretch,{
@@ -145,9 +153,9 @@ Engine_BreakOps : CroneEngine {
             var snd;
             snd = In.ar(\in.kr(0), 2);
             snd = (snd * 30.dbamp).tanh * -10.dbamp;
-            snd = SelectX.ar(\decimator.kr(1).lag(0.01), [snd, Latch.ar(snd, Impulse.ar(LFNoise2.kr(0.3).exprange(1000,16e3)))]);
-            snd = SelectX.ar(\pitch1.kr(1).lag(0.01), [snd, PitchShift.ar(snd, 0.2, 2)]);
-            snd = SelectX.ar(\pitch2.kr(1).lag(0.01), [snd, PitchShift.ar(snd, 0.03, 1.4)]);
+            snd = SelectX.ar(\decimator.kr(0).lag(0.01), [snd, Latch.ar(snd, Impulse.ar(LFNoise2.kr(0.3).exprange(1000,16e3)))]);
+            snd = SelectX.ar(\pitch1.kr(0).lag(0.01), [snd, PitchShift.ar(snd, 0.2, 2)]);
+            snd = SelectX.ar(\pitch2.kr(0).lag(0.01), [snd, PitchShift.ar(snd, 0.03, 1.4)]);
             snd = BHiShelf.ar(BLowShelf.ar(snd, 500, 1, -10), 3000, 1, -10);
             snd = (snd * 10.dbamp).tanh * -10.dbamp;
             snd = BHiShelf.ar(BLowShelf.ar(snd, 500, 1, 10), 3000, 1, 10);
@@ -169,7 +177,7 @@ Engine_BreakOps : CroneEngine {
         syns.put("sliceFx",Synth.new(\fx, [\in, buses.at("sliceFx"), \out, buses.at("compressing")], syns.at("main"), \addBefore));
         context.server.sync;
 
-        this.addCommand("play","sfffffi",{ arg msg;
+        this.addCommand("play","sfffffff",{ arg msg;
             var id=msg[1];
             var amp=msg[2];
             var rate=msg[3];
@@ -177,6 +185,7 @@ Engine_BreakOps : CroneEngine {
             var duration=msg[5]; // duration of the full slice
             var gate=msg[6]; // gate is between 0-1
             var retrig=msg[7];
+            var send_pos=msg[8];
             if (bufs.at(id).notNil,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
@@ -189,19 +198,21 @@ Engine_BreakOps : CroneEngine {
                     amp: amp,
                     rate: rate,
                     pos: pos,
-                    duration: duration*gate,
+                    duration: duration * gate / retrig,
+                    send_pos: send_pos,
                 ], syns.at("sliceFx"), \addBefore));
                 Routine {
                     if (retrig>1,{
                         (retrig-1).do{
-                            duration.wait;
+                            (duration/retrig).wait;
                             syns.put(id,Synth.new(\slice, [
                                 out: buses.at("sliceFx"),
                                 buf: bufs.at(id),
                                 amp: amp,
                                 rate: rate,
                                 pos: pos,
-                                duration: duration*gate,
+                                duration: duration * gate / retrig,
+                                send_pos: send_pos,
                             ], syns.at("sliceFx"), \addBefore));
                         };
                     });
@@ -233,8 +244,11 @@ Engine_BreakOps : CroneEngine {
 			val.free;
 		});
         buses.keysValuesDo({ arg buf, val;
-			val.free;
-		});
+            val.free;
+        });
+        oscs.keysValuesDo({ arg buf, val;
+            val.free;
+        });
         // ^ BreakOps specific
     }
 }

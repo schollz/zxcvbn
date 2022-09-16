@@ -21,11 +21,25 @@ lattice=require("lattice")
 
 debounce_fn={}
 
+engine.name="BreakOps"
+
 -- tab.print(sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"])
 -- print(sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"]:get_render())
+-- sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"]:play(1,1,0.5,1,1,1)
 function init()
   sampler=sampler_:new()
   sampler:select(_path.code.."break-ops/lib/amenbreak_bpm136.wav")
+
+  osc_fun={
+    progress=function(args)
+      sampler:show_position(tonumber(args[1]))
+    end,
+  }
+  osc.event=function(path,args,from)
+    if osc_fun[path]~=nil then osc_fun[path](args) else
+      print("osc.event: "..path.."?")
+    end
+  end
 
   opi=1
   -- g_=grid_:new()
