@@ -11,7 +11,8 @@ if not string.find(package.cpath,"/home/we/dust/code/break-ops/lib/") then
   package.cpath=package.cpath..";/home/we/dust/code/break-ops/lib/?.so"
 end
 json=require("cjson")
-tli=include("lib/tli")
+tli_=include("lib/tli")
+tli=tli_:new()
 sample_=include("lib/sample")
 sampler_=include("lib/sampler")
 -- grid_=include("lib/ggrid")
@@ -49,6 +50,26 @@ function init()
   --   for i=1,4 do
   --     table.insert(op,track_:new())
   --   end
+  pat=tli:parse_tli([[
+# ignore this
+ 
+chain a b a b c
+ 
+pattern=a
+Am/C
+C/G
+Dm
+F/C
+- 
+- - - .
+
+
+pattern=b division=8
+c4 d4 - - - - - . .
+e5 . . .
+ 
+]])
+
 
   -- start lattice
   local sequencer=lattice:new{}
@@ -58,6 +79,24 @@ function init()
     sequencer:new_pattern({
       action=function(t)
         step=step+1
+        if i==4 then
+          local notes=pat.patterns.a.parsed
+          print((step-1)%#notes+1)
+          local off=notes[(step-1)%#notes+1].off
+          if next(off)~=nil then 
+            for _, n in ipairs(off) do 
+              print("off",n.m)
+              engine.note_off(n.m)
+            end
+          end
+          local on=notes[(step-1)%#notes+1].on
+          if next(on)~=nil then 
+            for _, n in ipairs(on) do 
+              print("on",n.m)
+              engine.note_on(n.m)
+            end
+          end
+        end
       end,
       division=divisions[i],
     })
