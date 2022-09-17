@@ -49,21 +49,19 @@ function init()
   --     table.insert(op,track_:new())
   --   end
 
-  --   -- start lattice
-  --   local sequencer=lattice:new{
-  --     ppqn=96
-  --   }
-  --   divisions={1/2,1/4,1/8,1/16,1/2,1/4,1/8,1/16,1/2,1/4,1/8,1/16,1/2,1/4,1/8,1/16}
-  --   for i=1,16 do
-  --     local step=0
-  --     sequencer:new_pattern({
-  --       action=function(t)
-  --         step=step+1
-  --       end,
-  --       division=divisions[i],
-  --     })
-  --   end
-  --   sequencer:hard_restart()
+  -- start lattice
+  local sequencer=lattice:new{}
+  divisions={1/2,1/4,1/8,1/16,1/2,1/4,1/8,1/16,1/2,1/4,1/8,1/16,1/2,1/4,1/8,1/16}
+  for i=1,16 do
+    local step=0
+    sequencer:new_pattern({
+      action=function(t)
+        step=step+1
+      end,
+      division=divisions[i],
+    })
+  end
+  sequencer:hard_restart()
 
   clock.run(function()
     while true do
