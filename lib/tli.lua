@@ -992,14 +992,14 @@ Cm7^4
 Am
  
 pattern=b division=8
-c4 d4 . .
+c4 d4 - - - - - . .
 e5 . . .
  
 ]])
   -- print("OK")
-  -- for k,v in pairs(data.patterns.a.parsed) do
-  --   print(k)
-  -- end
+  for k,v in pairs(data.patterns.b.parsed) do
+    print(k,next(v.on) and v.on[1].m or "",next(v.off) and "off"..v.off[1].m or "")
+  end
 
   print("\n###############################\n")
 
