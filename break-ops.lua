@@ -20,6 +20,7 @@ sampler_=include("lib/sampler")
 -- sequence_=include("lib/sequence")
 MusicUtil=require "musicutil"
 lattice=require("lattice")
+sequins=require("sequins")
 
 debounce_fn={}
 
@@ -29,8 +30,10 @@ engine.name="BreakOps"
 -- print(sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"]:get_render())
 -- sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"]:play(1,1,0.5,1,1,1)
 function init()
+  params:set("clock_tempo",136)
   sampler=sampler_:new()
-  sampler:select(_path.code.."break-ops/lib/amenbreak_bpm136.wav")
+  sample1=_path.code.."break-ops/lib/amenbreak_bpm136.wav"
+  sampler:select(sample1)
   -- sampler:select("/home/we/dust/audio/seamlessloops/120/TL_Loop_Pad_Lo-Fi_01_Cm_120_keyCmin_bpm120_beats32_.flac")
 
   osc_fun={
@@ -62,43 +65,49 @@ Dm
 F/C
 - 
 - - - .
-
-
+ 
+ 
 pattern=b division=8
 c4 d4 - - - - - . .
 e5 . . .
  
 ]])
 
-
   -- start lattice
   local sequencer=lattice:new{}
-  divisions={1/2,1/4,1/8,1/16,1/2,1/4,1/8,1/16,1/2,1/4,1/8,1/16,1/2,1/4,1/8,1/16}
-  for i=1,16 do
+  seq={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}
+  ss=sequins{1,1,2,1,1,1,2,4,1,1,2,1,1,2,4,8}
+  pitches=sequins{0,0,0,0,0,0,1,2,3,4,5,0,0,0,0,0,-2,-4,-6,-8}
+  gates=sequins{1,1,1,1,1,0.2,0.5,0.5,1,1,1,1}
+  divisions={1/32,1/24,1/16,1/12,1/8,1/6,1/4,1/3,1/2,1,2,4}
+  for _,division in ipairs(divisions) do
     local step=0
     sequencer:new_pattern({
       action=function(t)
         step=step+1
-        if i==4 then
+        if division==1/8 then
+          local slice=seq[(step-1)%#seq+1]
+          sampler.samples[sample1]:play_cursor(slice,1,pitches(),gates(),ss(),4)
+          
           local notes=pat.patterns.a.parsed
           print((step-1)%#notes+1)
           local off=notes[(step-1)%#notes+1].off
-          if next(off)~=nil then 
-            for _, n in ipairs(off) do 
+          if next(off)~=nil then
+            for _,n in ipairs(off) do
               print("off",n.m)
               engine.note_off(n.m)
             end
           end
           local on=notes[(step-1)%#notes+1].on
-          if next(on)~=nil then 
-            for _, n in ipairs(on) do 
+          if next(on)~=nil then
+            for _,n in ipairs(on) do
               print("on",n.m)
               engine.note_on(n.m)
             end
           end
         end
       end,
-      division=divisions[i],
+      division=division,
     })
   end
   sequencer:hard_restart()
