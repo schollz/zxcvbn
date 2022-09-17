@@ -11,6 +11,7 @@ if not string.find(package.cpath,"/home/we/dust/code/break-ops/lib/") then
   package.cpath=package.cpath..";/home/we/dust/code/break-ops/lib/?.so"
 end
 json=require("cjson")
+tli=include("lib/tli")
 sample_=include("lib/sample")
 sampler_=include("lib/sampler")
 -- grid_=include("lib/ggrid")
