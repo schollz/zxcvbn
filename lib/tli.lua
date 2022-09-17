@@ -621,10 +621,18 @@ function TLI:chord_to_midi(c,midi_near)
 end
 
 function TLI:parse_pattern(text,division)
+  print("--")
+  print(text)
+  print("--")
   division=division or 16
+
+  local trim_=function(s)
+    return (s:gsub("^%s*(.-)%s*$","%1"))
+  end
 
   local lines={}
   for line in text:gmatch("[^\r\n]+") do
+    line=trim_(line)
     if #line>0 then
       table.insert(lines,line)
     end
@@ -916,8 +924,14 @@ function TLI:get_arp(input,steps,shape,length)
 end
 
 function TLI:parse_tli(text)
+
+  local trim_=function(s)
+    return (s:gsub("^%s*(.-)%s*$","%1"))
+  end
+
   local lines={}
   for line in text:gmatch("[^\r\n]+") do
+    line=trim_(line)
     if #line>0 then
       table.insert(lines,line)
     end
@@ -988,24 +1002,37 @@ function TLI:test()
 chain a b a b c
  
 pattern=a
-Cm7^4
-Am
+Am/C
+C/G
+Dm
+F/C
  
 pattern=b division=8
 c4 d4 - - - - - . .
 e5 . . .
  
 ]])
+
+  -- if not string.find(package.cpath,"/home/zns/Documents/norns-docker/dust/code/break-ops/lib/") then
+  --   package.cpath=package.cpath..";/home/zns/Documents/norns-docker/dust/code/break-ops/lib/?.so"
+  -- end
+  -- json=require("cjson")
+  print(json.encode(data.patterns.a))
+
   -- print("OK")
-  for k,v in pairs(data.patterns.b.parsed) do
-    print(k,next(v.on) and v.on[1].m or "",next(v.off) and "off"..v.off[1].m or "")
+  for k,v in pairs(data.patterns.a.parsed) do
+    if next(v.on) then
+      print(k,json.encode(v.on))
+    else
+      print(k)
+    end
   end
 
   print("\n###############################\n")
 
 end
 
-tli=TLI:new()
-tli:test()
+-- tli=TLI:new()
+-- tli:test()
 
 return TLI
