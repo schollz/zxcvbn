@@ -15,18 +15,18 @@ function TLI:init()
     if type(tt)=="table" then
       local sb={}
       for key,value in pairs (tt) do
-        table.insert(sb,string.rep (" ",indent)) -- indent it
+        table.insert(sb,string.rep ("",indent)) -- indent it
         if type (value)=="table" and not done [value] then
           done [value]=true
-          table.insert(sb,key.." = {\n");
+          table.insert(sb,key.."={");
           table.insert(sb,table_print (value,indent+2,done))
           table.insert(sb,string.rep (" ",indent)) -- indent it
-          table.insert(sb,"}\n");
+          table.insert(sb,"} ");
         elseif "number"==type(key) then
-          table.insert(sb,string.format("\"%s\"\n",tostring(value)))
+          table.insert(sb,string.format("\"%s\"",tostring(value)))
         else
           table.insert(sb,string.format(
-          "%s = \"%s\"\n",tostring (key),tostring(value)))
+          "%s=\"%s\",",tostring (key),tostring(value)))
         end
       end
       return table.concat(sb)
@@ -354,7 +354,6 @@ function TLI:init()
     {"1P 4P 7m 10m","","4","quartal"},
     {"1P 5P 7m 9m 11P","","11b9"},
   }
-  print("init")
 end
 
 function TLI:to_midi(s,midi_near)
@@ -621,7 +620,7 @@ function TLI:chord_to_midi(c,midi_near)
   return p
 end
 
-function TLI:parse_text(text,division)
+function TLI:parse_pattern(text,division)
   division=division or 16
 
   local lines={}
@@ -632,7 +631,7 @@ function TLI:parse_text(text,division)
   end
 
   local positions=self:parse_positions(lines,division)
-  print(to_string(positions))
+
   local track={}
   for i=1,#lines*division do
     table.insert(track,{on={},off={}})
@@ -652,8 +651,6 @@ function TLI:parse_text(text,division)
 
   -- adjustments
   for _,p in ipairs(positions) do
-    print("----")
-    print(to_string(p))
     if p.adj~=nil and p.adj.arp~=nil then
       -- introduce as an arp
       local notes={}
@@ -677,8 +674,19 @@ function TLI:parse_text(text,division)
       end
     end
   end
-  print(to_string(track))
-  return false
+
+  -- for i,v in ipairs(track) do
+  --   local s=i.." "
+  --   if next(v.on) then
+  --     s=s..to_string(v.on)
+  --   end
+  --   if next(v.off) then
+  --     s=s.."off["..to_string(v.off).."]"
+  --   end
+  --   print(s)
+  -- end
+
+  return track
 end
 
 function TLI:parse_positions(lines,division)
@@ -712,8 +720,6 @@ function TLI:parse_positions(lines,division)
   return entities
 end
 
-
-
 function TLI:get_arp(input,steps,shape,length)
   local s={}
   length=length or #input
@@ -721,7 +727,6 @@ function TLI:get_arp(input,steps,shape,length)
   for i=1,length do
     table.insert(s,input[(i-1)%#input+1]+math.floor(i/#input-0.01)*12)
   end
-
 
   -- create reverse table
   local s_reverse={}
@@ -910,6 +915,54 @@ function TLI:get_arp(input,steps,shape,length)
   return final
 end
 
+function TLI:parse_tli(text)
+  local lines={}
+  for line in text:gmatch("[^\r\n]+") do
+    if #line>0 then
+      table.insert(lines,line)
+    end
+  end
+  local data={chain={},patterns={}}
+  local current_pattern={}
+  for _,line in ipairs(lines) do
+    if line=="" then
+    elseif string.sub(line,1,1)=="#" then
+      -- skip comments
+    elseif string.find(line,"pattern") then
+      -- save current pattern
+      if next(current_pattern)~=nil then
+        data.patterns[current_pattern.pattern]=current_pattern
+      end
+      current_pattern={text="",division=16}
+      for w in line:gmatch("%S+") do
+        local foo=self.string_split(w,"=")
+        current_pattern[foo[1]]=foo[2]
+      end
+      current_pattern.division=tonumber(current_pattern.division)
+    elseif string.find(line,"chain") then
+      -- save current pattern
+      in_pattern=false
+      for w in line:gmatch("%S+") do
+        if w~="chain" then
+          table.insert(data.chain,w)
+        end
+      end
+      if next(current_pattern)~=nil then
+        data.patterns[current_pattern.pattern]=current_pattern
+      end
+    elseif next(current_pattern)~=nil then
+      current_pattern.text=current_pattern.text..line.."\n"
+    end
+  end
+  if next(current_pattern)~=nil then
+    data.patterns[current_pattern.pattern]=current_pattern
+  end
+
+  for k,pattern in pairs(data.patterns) do
+    data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,pattern.division)
+  end
+  return data
+end
 
 function TLI:test()
   print("\n############ tests ############\n")
@@ -928,7 +981,25 @@ function TLI:test()
   --do_test('tli:parse_entity("Cm7^4;v=40")')
   --tli:parse_positions("W X - . Y\n\n- - Z\nZ . ")
   --do_test('tli:get_arp({1,2,3},8,"ud",4)')
-  tli:parse_text("Cm7;arp=ud;skip=1;len=6;vel=50\n-  - . d4\n ")
+  -- tli:parse_pattern("Cm7;arp=ud;skip=1;len=6;vel=50\n-  Am . d4\n ")
+  local data=tli:parse_tli([[
+# ignore this
+ 
+chain a b a b c
+ 
+pattern=a
+Cm7^4
+Am
+ 
+pattern=b division=8
+c4 d4 . .
+e5 . . .
+ 
+]])
+  -- print("OK")
+  -- for k,v in pairs(data.patterns.a.parsed) do
+  --   print(k)
+  -- end
 
   print("\n###############################\n")
 
@@ -938,9 +1009,3 @@ tli=TLI:new()
 tli:test()
 
 return TLI
-
-
-
-
-
-
