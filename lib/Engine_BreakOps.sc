@@ -81,7 +81,7 @@ Engine_BreakOps : CroneEngine {
             snd = MoogFF.ar(snd, 9000 * (1 - (0.5 *env)) + 100, 0);
             snd = snd + NHHall.ar(snd, 2);
             //snd = LPF.ar(snd, MouseY.kr(100,20000,1));
-            ReplaceOut.ar(\out.kr(0), snd * 6.dbamp);
+            ReplaceOut.ar(\out.kr(0), snd * -6.dbamp);
         }).send(context.server);
 
         SynthDef(\slice,{
@@ -180,15 +180,16 @@ Engine_BreakOps : CroneEngine {
         syns.put("padFx", Synth.new(\padFx, [in: buses.at("padFx"), out: buses.at("compressible"),  gate: 0], syns.at("main"), \addBefore));
         context.server.sync;
 
-        this.addCommand("play","sfffffff",{ arg msg;
+        this.addCommand("play","sffffffff",{ arg msg;
             var id=msg[1];
             var amp=msg[2];
             var rate=msg[3];
-            var pos=msg[4];
-            var duration=msg[5]; // duration of the full slice
-            var gate=msg[6]; // gate is between 0-1
-            var retrig=msg[7];
-            var send_pos=msg[8];
+            var pitch=msg[4];
+            var pos=msg[5];
+            var duration=msg[6]; // duration of the full slice
+            var gate=msg[7]; // gate is between 0-1
+            var retrig=msg[8];
+            var send_pos=msg[9];
             if (bufs.at(id).notNil,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
@@ -199,20 +200,20 @@ Engine_BreakOps : CroneEngine {
                     out: buses.at("sliceFx"),
                     buf: bufs.at(id),
                     amp: amp,
-                    rate: rate,
+                    rate: rate*pitch.midiratio,
                     pos: pos,
                     duration: duration * gate / retrig,
                     send_pos: send_pos,
                 ], syns.at("sliceFx"), \addBefore));
                 Routine {
                     if (retrig>1,{
-                        (retrig-1).do{
+                        (retrig-1).do{ arg i;
                             (duration/retrig).wait;
                             syns.put(id,Synth.new(\slice, [
                                 out: buses.at("sliceFx"),
                                 buf: bufs.at(id),
                                 amp: amp,
-                                rate: rate,
+                                rate: rate*((pitch.sign)*(i+1)+pitch).midiratio,
                                 pos: pos,
                                 duration: duration * gate / retrig,
                                 send_pos: send_pos,

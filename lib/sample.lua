@@ -130,15 +130,16 @@ function Sample:get_onsets(fname,duration)
   return top16
 end
 
-function Sample:play(amp,rate,pos,duration,gate,retrig)
+function Sample:play(amp,pitch,pos,duration,gate,retrig)
   duration=duration or 100000
-  rate=rate*clock.get_tempo()/self.bpm -- normalize tempo to bpm
+  rate=clock.get_tempo()/self.bpm -- normalize tempo to bpm
   print("sample: play",amp,rate,pos,duration,gate,retrig)
-  engine.play(self.path,amp,rate,pos,duration,gate,retrig,sampler.cur==self.path and 1 or 0)
+  engine.play(self.path,amp,rate,pitch,pos,duration,gate,retrig,sampler.cur==self.path and 1 or 0)
 end
 
-function Sample:play_cursor(amp,rate,gate,retrig,ci)
-  self:play(amp,rate,self.cursors[ci],self.cursor_durations[ci],gate,retrig)
+function Sample:play_cursor(ci,amp,pitch,gate,retrig,duration)
+  duration=duration or self.cursor_durations[ci]
+  self:play(amp,pitch,self.cursors[ci],self.cursor_durations[ci],gate,retrig)
 end
 
 function Sample:debounce()
@@ -251,7 +252,7 @@ function Sample:key(k,z)
   if k==2 then
     self:sel_cursor(self.ci+1)
   elseif k==3 then
-    self:play_cursor(1.0,1.0,1.0,1.0,self.ci)
+    self:play_cursor(self.ci,1.0,1.0,1.0,1.0)
   end
 end
 
