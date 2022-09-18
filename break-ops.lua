@@ -15,7 +15,7 @@ tli_=include("lib/tli")
 tli=tli_:new()
 sample_=include("lib/sample")
 sampler_=include("lib/sampler")
--- grid_=include("lib/ggrid")
+grid_=include("lib/ggrid")
 -- track_=include("lib/track")
 -- sequence_=include("lib/sequence")
 MusicUtil=require "musicutil"
@@ -33,8 +33,8 @@ function init()
   params:set("clock_tempo",136)
   sampler=sampler_:new()
   sample1=_path.code.."break-ops/lib/amenbreak_bpm136.wav"
+  sample1=_path.audio.."row1/HGAT_120_full_drum_loop_granular_key_bpm120_beats16_.flac"
   sampler:load(1,sample1)
-  -- sampler:select("/home/we/dust/audio/seamlessloops/120/TL_Loop_Pad_Lo-Fi_01_Cm_120_keyCmin_bpm120_beats32_.flac")
 
   -- setup osc
   osc_fun={
@@ -52,11 +52,10 @@ function init()
   params_kick()
 
   opi=1
-  -- g_=grid_:new()
-  --   local op={}
-  --   for i=1,4 do
-  --     table.insert(op,track_:new())
-  --   end
+
+  -- setup grid
+  g_=grid_:new()
+
   pat=tli:parse_tli([[
 # ignore this
  
@@ -89,27 +88,28 @@ e5 . . .
     sequencer:new_pattern({
       action=function(t)
         step=step+1
-        -- if division==1/8 then
-        --   local slice=seq[(step-1)%#seq+1]
-        --   sampler.samples[sample1]:play_cursor(slice,1,pitches(),gates(),ss(),4)
-
-        --   local notes=pat.patterns.a.parsed
-        --   print((step-1)%#notes+1)
-        --   local off=notes[(step-1)%#notes+1].off
-        --   if next(off)~=nil then
-        --     for _,n in ipairs(off) do
-        --       print("off",n.m)
-        --       engine.note_off(n.m)
-        --     end
-        --   end
-        --   local on=notes[(step-1)%#notes+1].on
-        --   if next(on)~=nil then
-        --     for _,n in ipairs(on) do
-        --       print("on",n.m)
-        --       engine.note_on(n.m)
-        --     end
-        --   end
-        -- end
+        sampler:emit(division,step)
+        if division==1/8 then
+          local notes=pat.patterns.a.parsed
+          local off=notes[(step-1)%#notes+1].off
+          local info=""
+          if next(off)~=nil then
+            info=info.."off["
+            for _,n in ipairs(off) do
+              info=info.." "..n.m
+              engine.note_off(n.m)
+            end
+          end
+          local on=notes[(step-1)%#notes+1].on
+          if next(on)~=nil then
+            info=info.." on ["
+            for _,n in ipairs(on) do
+              info=info.." "..n.m
+              engine.note_on(n.m)
+            end
+          end
+          if info~="" then print(info) end
+        end
       end,
       division=division,
     })
@@ -136,7 +136,9 @@ e5 . . .
     print("emitting")
     sampler.samples[1]:emit(1/16,1)
     clock.sleep(1)
-    sampler.samples[1].seq.kickdb.vals[1]=16
+    sampler.samples[1].seq.kickdb.vals[1]=10
+    sampler.samples[1].seq.kickdb.vals[2]=10
+    sampler.samples[1].seq.kickdb.vals[5]=10
     sampler.samples[1]:emit(1/16,1)
   end)
 end
@@ -213,6 +215,8 @@ end
 function redraw()
   screen.clear()
 
+  -- g_:redraw()
+
   local title=sampler:redraw()
   if title~=nil then
     screen.level(15)
@@ -228,6 +232,7 @@ function redraw()
   screen.level(15)
   screen.move(4,6)
   screen.text_center(string.format("%02d",opi))
+
   screen.update()
 end
 
