@@ -50,7 +50,7 @@ Engine_BreakOps : CroneEngine {
             snd = Saw.ar(\freq.kr(440) * ((-3..3) * 0.05).midiratio * [1, 2, 1, 4, 1, 2, 1]);
             snd = RLPF.ar(snd, LFNoise2.kr(0.3 ! snd.size).linexp(-1, 1, 100, 8000), 0.3);
             snd = Splay.ar(snd);
-            snd = snd * Env.asr(0.8, 1, 0.8).ar(Done.freeSelf, \gate.kr(1));
+            snd = snd * Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)).ar(Done.freeSelf, \gate.kr(1));
             snd = snd * -30.dbamp;
             Out.ar(\out.kr(0), snd);
         }).send(context.server);
@@ -60,7 +60,7 @@ Engine_BreakOps : CroneEngine {
             snd = Saw.ar(\freq.kr(440) * ((-3..3) * 0.05).midiratio * [1, 2, 1, 4, 1, 2, 1]);
             snd = Splay.ar(snd);
             snd = MoogFF.ar(snd, XLine.kr(100,rrand(6000,12000),8), 0);
-            snd = snd * Env.asr(0.8, 1, 0.8).ar(Done.freeSelf, \gate.kr(1));
+            snd = snd * Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)).ar(Done.freeSelf, \gate.kr(1));
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
             snd = snd * -10.dbamp;
             Out.ar(\out.kr(0), snd);
@@ -71,7 +71,7 @@ Engine_BreakOps : CroneEngine {
             snd = CombC.ar(PinkNoise.ar * -10.dbamp, \freq.kr(440).reciprocal, \freq.kr(440).reciprocal, 2.0);
             snd = snd ! 2;
             snd = LeakDC.ar(snd);
-            snd = snd * Env.asr(0.8, 1, 0.8).ar(Done.freeSelf, \gate.kr(1));
+            snd = snd * Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)).ar(Done.freeSelf, \gate.kr(1));
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
             snd = snd * -50.dbamp;
             Out.ar(\out.kr(0), snd);
@@ -263,8 +263,10 @@ Engine_BreakOps : CroneEngine {
         });
 
 
-        this.addCommand("note_on","f",{ arg msg;
+        this.addCommand("note_on","fff",{ arg msg;
             var note=msg[1];
+            var attack=msg[2];
+            var release=msg[3];
             2.do{ arg i;
                 var id=note.asString++"_"++i;
                 if (syns.at(id).notNil,{
@@ -274,6 +276,8 @@ Engine_BreakOps : CroneEngine {
                 });
                 syns.put(id,Synth.new("pad"++i, [
                     freq: note.midicps, 
+                    attack: attack,
+                    release: release,
                     out: buses.at("padFx"),
                 ],
                 syns.at("padFx"),\addBefore));
