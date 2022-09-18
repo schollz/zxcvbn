@@ -9,7 +9,50 @@ function Sample:new(o)
 end
 
 function Sample:init()
+  -- setup sequences
+  local zero_to_one={}
+  local one_to_zero={}
+  local one_to_sixteen={}
+  for i=0,15 do
+    table.insert(zero_to_one,i/15)
+    table.insert(one_to_sixteen,i+1)
+    table.insert(one_to_zero,1-i/15)
+  end
+  self.options={
+    db={-96,-72,-64,-48,-24,-20,-16,-8,-6,-4,-2,0,2,4,6,8},
+    decimate=zero_to_one,
+    filter=one_to_zero,
+    retrig=one_to_sixteen,
+    stretch=zero_to_one,
+    gate=zero_to_one,
+    pitch={-8,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,8,10},
+    other=one_to_sixteen,
+    pos={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  }
+  self.default={
+    db=12,
+    filter=1,
+    retrig=1,
+    gate=1,
+    pitch=8,
+    decimate=1,
+    stretch=1,
+    other=1,
+    pos=1,
+  }
+  self.seq={}
+  for k,v in pairs(self.default) do
+    self.seq[k]={start=1,stop=64,vals={},i=1,val=0}
+    for i=1,64 do
+      table.insert(self.seq[k].vals,self.default[k])
+    end
+  end
+  self.ordering={"pos","db","filter","retrig","gate","pitch","decimate","stretch","other"}
+  self.division=1/16
+
+  -- initialize debouncer
   self.debounce_fn={}
+
   -- choose audiowaveform binary
   self.audiowaveform="/home/we/dust/code/break-ops/lib/audiowaveform"
   local foo=util.os_capture(self.audiowaveform.." --help")
@@ -17,6 +60,7 @@ function Sample:init()
     self.audiowaveform="audiowaveform"
   end
 
+  -- load sample
   print("sample: init "..self.path)
   self.pathname,self.filename,self.ext=string.match(self.path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
   self.ch,self.samples,self.sample_rate=audio.file_info(self.path)
@@ -64,23 +108,57 @@ function Sample:init()
     print("sample: loading existing cursors")
     self:load_cursors()
   else
-    self.cursors={}
+    self.options.pos={}
     self.cursor_durations={}
     local onsets=self:get_onsets(self.path,self.duration)
     for i=1,16 do
-      table.insert(self.cursors,onsets[i])
+      table.insert(self.options.pos,onsets[i])
       if i<16 then
         table.insert(self.cursor_durations,onsets[i+1]-onsets[i])
       else
         table.insert(self.cursor_durations,self.duration-onsets[i])
       end
     end
-    tab.print(self.cursors)
     self:save_cursors()
   end
 
   engine.load_buffer(self.path)
   self.loaded=true
+
+end
+
+function Sample:emit(division,beat_division)
+  if division~=self.division then
+    do return end
+  end
+  for k,v in pairs(self.seq) do
+    self.seq[k].i=(beat_division-1)%(self.seq.stop-self.seq.start+1)+self.seq.start
+    self.seq[k].val=self.options[k][self.seq[k].vals[self.seq[k].i]]
+  end
+
+  local db=self.seq.db.val
+  self:play()
+
+end
+
+function Sample:play(data)
+  data.db=data.db or 0
+  data.pitch=data.pitch or 0
+  data.pos=data.pos or 0
+  data.duration=data.duration or 100
+  data.gate=data.gate or 1
+  data.retrig=data.retrig or 1
+  rate=clock.get_tempo()/self.bpm -- normalize tempo to bpm
+  engine.play(self.path,data.db,rate,data.pitch,data.pos,data.duration,data.gate,data.retrig,sampler.cur==self.id and 1 or 0)
+end
+
+function Sample:play_cursor(ci,duration)
+  duration=duration or self.cursor_durations[ci]
+  self:play({db=0,pos=self.options.pos[ci],duration=duration})
+end
+
+function Sample:emit(beat)
+
 end
 
 function Sample:get_onsets(fname,duration)
@@ -130,18 +208,6 @@ function Sample:get_onsets(fname,duration)
   return top16
 end
 
-function Sample:play(amp,pitch,pos,duration,gate,retrig)
-  duration=duration or 100000
-  rate=clock.get_tempo()/self.bpm -- normalize tempo to bpm
-  print("sample: play",amp,rate,pos,duration,gate,retrig)
-  engine.play(self.path,amp,rate,pitch,pos,duration,gate,retrig,sampler.cur==self.path and 1 or 0)
-end
-
-function Sample:play_cursor(ci,amp,pitch,gate,retrig,duration)
-  duration=duration or self.cursor_durations[ci]
-  self:play(amp,pitch,self.cursors[ci],self.cursor_durations[ci],gate,retrig)
-end
-
 function Sample:debounce()
   for k,v in pairs(self.debounce_fn) do
     if v~=nil and v[1]~=nil and v[1]>0 then
@@ -171,7 +237,7 @@ function Sample:load_cursors()
   print(content)
   local data=json.decode(content)
   if data~=nil then
-    self.cursors=data.cursors
+    self.options.pos=data.cursors
     self.cursor_durations=data.cursor_durations
   end
 end
@@ -180,7 +246,7 @@ function Sample:save_cursors()
   local filename=self.path_to_cursors
   local file=io.open(self.path_to_cursors,"w+")
   io.output(file)
-  io.write(json.encode({cursors=self.cursors,cursor_durations=self.cursor_durations}))
+  io.write(json.encode({cursors=self.options.pos,cursor_durations=self.cursor_durations}))
   io.close(file)
   print("sample: save_cursors done")
 end
@@ -219,12 +285,11 @@ function Sample:do_zoom(d)
 end
 
 function Sample:do_move(d)
-  tab.print(self.cursors)
-  self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
+  self.options.pos[self.ci]=util.clamp(self.options.pos[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
 
   -- update cursor durations
   local cursors={}
-  for i,c in ipairs(self.cursors) do
+  for i,c in ipairs(self.options.pos) do
     table.insert(cursors,{i=i,c=c})
   end
   table.insert(cursors,{i=17,c=self.duration})
@@ -252,7 +317,7 @@ function Sample:key(k,z)
   if k==2 then
     self:sel_cursor(self.ci+1)
   elseif k==3 then
-    self:play_cursor(self.ci,1.0,1.0,1.0,1.0)
+    self:play_cursor(self.ci)
   end
 end
 
@@ -264,7 +329,7 @@ function Sample:sel_cursor(ci)
   end
   self.ci=ci
   local view_duration=(self.view[2]-self.view[1])
-  local cursor=self.cursors[self.ci]
+  local cursor=self.options.pos[self.ci]
   if view_duration~=self.duration and cursor-self.cursor_durations[ci]<self.view[1] or cursor+self.cursor_durations[ci]>self.view[2] then
     local cursor_frac=0.5
     local next_view=cursor+self.cursor_durations[ci]
@@ -273,7 +338,7 @@ function Sample:sel_cursor(ci)
     end
     local prev_view=cursor-self.cursor_durations[ci]
     if ci>1 then
-      prev_view=self.cursors[ci-1]+self.cursor_durations[ci-1]/3
+      prev_view=self.options.pos[ci-1]+self.cursor_durations[ci-1]/3
     end
     self.view={util.clamp(prev_view,0,self.duration),util.clamp(next_view,0,self.duration)}
   end
@@ -283,7 +348,7 @@ function Sample:zoom(zoom_in,zoom_amount)
   zoom_amount=zoom_amount or 1.5
   local view_duration=(self.view[2]-self.view[1])
   local view_duration_new=zoom_in and view_duration/zoom_amount or view_duration*zoom_amount
-  local cursor=self.cursors[self.ci]
+  local cursor=self.options.pos[self.ci]
   local cursor_frac=(cursor-self.view[1])/view_duration
   local view_new={0,0}
   view_new[1]=util.clamp(cursor-view_duration_new*cursor_frac,0,self.duration)
@@ -323,7 +388,7 @@ function Sample:redraw()
   screen.update()
 
   for i=1,16 do
-    local cursor=self.cursors[i]
+    local cursor=self.options.pos[i]
     if cursor>=self.view[1] and cursor<=self.view[2] then
       local pos=util.linlin(self.view[1],self.view[2],1,128,cursor)
       screen.level(i==self.ci and 15 or 1)

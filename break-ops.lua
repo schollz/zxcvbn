@@ -33,7 +33,7 @@ function init()
   params:set("clock_tempo",136)
   sampler=sampler_:new()
   sample1=_path.code.."break-ops/lib/amenbreak_bpm136.wav"
-  sampler:select(sample1)
+  sampler:load(1,sample1)
   -- sampler:select("/home/we/dust/audio/seamlessloops/120/TL_Loop_Pad_Lo-Fi_01_Cm_120_keyCmin_bpm120_beats32_.flac")
 
   osc_fun={
@@ -85,27 +85,27 @@ e5 . . .
     sequencer:new_pattern({
       action=function(t)
         step=step+1
-        if division==1/8 then
-          local slice=seq[(step-1)%#seq+1]
-          sampler.samples[sample1]:play_cursor(slice,1,pitches(),gates(),ss(),4)
-          
-          local notes=pat.patterns.a.parsed
-          print((step-1)%#notes+1)
-          local off=notes[(step-1)%#notes+1].off
-          if next(off)~=nil then
-            for _,n in ipairs(off) do
-              print("off",n.m)
-              engine.note_off(n.m)
-            end
-          end
-          local on=notes[(step-1)%#notes+1].on
-          if next(on)~=nil then
-            for _,n in ipairs(on) do
-              print("on",n.m)
-              engine.note_on(n.m)
-            end
-          end
-        end
+        -- if division==1/8 then
+        --   local slice=seq[(step-1)%#seq+1]
+        --   sampler.samples[sample1]:play_cursor(slice,1,pitches(),gates(),ss(),4)
+
+        --   local notes=pat.patterns.a.parsed
+        --   print((step-1)%#notes+1)
+        --   local off=notes[(step-1)%#notes+1].off
+        --   if next(off)~=nil then
+        --     for _,n in ipairs(off) do
+        --       print("off",n.m)
+        --       engine.note_off(n.m)
+        --     end
+        --   end
+        --   local on=notes[(step-1)%#notes+1].on
+        --   if next(on)~=nil then
+        --     for _,n in ipairs(on) do
+        --       print("on",n.m)
+        --       engine.note_on(n.m)
+        --     end
+        --   end
+        -- end
       end,
       division=division,
     })
