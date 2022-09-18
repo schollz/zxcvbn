@@ -182,7 +182,7 @@ Engine_BreakOps : CroneEngine {
 
         this.addCommand("play","sffffffff",{ arg msg;
             var id=msg[1];
-            var amp=msg[2];
+            var amp=msg[2].dbamp;
             var rate=msg[3];
             var pitch=msg[4];
             var pos=msg[5];
