@@ -24,10 +24,11 @@ function Sample:init()
     filter=one_to_zero,
     retrig=one_to_sixteen,
     stretch=zero_to_one,
-    gate=zero_to_one,
+    gate=one_to_zero,
     pitch={-8,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,8,10},
     other=one_to_sixteen,
     pos={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    kickdb={-96,-72,-64,-48,-24,-20,-16,-8,-6,-4,-2,0,2,4,6,8},
   }
   self.default={
     db=12,
@@ -39,6 +40,7 @@ function Sample:init()
     stretch=1,
     other=1,
     pos=1,
+    kickdb=1,
   }
   self.seq={}
   for k,v in pairs(self.default) do
@@ -128,20 +130,30 @@ function Sample:init()
 end
 
 function Sample:emit(division,beat_division)
+  print("sample:emit")
+  print(division,self.division,beat_division)
   if division~=self.division then
     do return end
   end
   for k,v in pairs(self.seq) do
-    self.seq[k].i=(beat_division-1)%(self.seq.stop-self.seq.start+1)+self.seq.start
+    print(k)
+    self.seq[k].i=(beat_division-1)%(self.seq[k].stop-self.seq[k].start+1)+self.seq[k].start
     self.seq[k].val=self.options[k][self.seq[k].vals[self.seq[k].i]]
   end
+  -- special is the kick which is based off the pos index
+  self.seq.kickdb.i=self.seq.pos.i
+  self.seq.kickdb.val=self.options.kickdb[self.seq.kickdb.vals[self.seq.kickdb.i]]
 
-  local db=self.seq.db.val
-  self:play()
-
+  local data={}
+  for k,v in pairs(self.seq) do
+    data[k]=v.val
+  end
+  data.duration=self.duration*division
+  self:play(data)
 end
 
 function Sample:play(data)
+  data.kickdb=data.kickdb or-96
   data.db=data.db or 0
   data.pitch=data.pitch or 0
   data.pos=data.pos or 0
@@ -149,16 +161,28 @@ function Sample:play(data)
   data.gate=data.gate or 1
   data.retrig=data.retrig or 1
   rate=clock.get_tempo()/self.bpm -- normalize tempo to bpm
+  print("sample:play ")
+  tab.print(data)
   engine.play(self.path,data.db,rate,data.pitch,data.pos,data.duration,data.gate,data.retrig,sampler.cur==self.id and 1 or 0)
+  if data.kickdb>-96 then
+    print("kick",data.kickdb)
+    engine.kick(
+      params:get("basefreq"),
+      params:get("ratio"),
+      params:get("sweeptime")/1000,
+      params:get("preamp"),
+      params:get("kick_db")+data.kickdb,
+      params:get("decay1")/1000,
+      params:get("decay1L")/1000,
+      params:get("decay2")/1000,
+    params:get("clicky")/1000)
+  end
+
 end
 
 function Sample:play_cursor(ci,duration)
   duration=duration or self.cursor_durations[ci]
   self:play({db=0,pos=self.options.pos[ci],duration=duration})
-end
-
-function Sample:emit(beat)
-
 end
 
 function Sample:get_onsets(fname,duration)

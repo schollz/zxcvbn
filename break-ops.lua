@@ -36,6 +36,7 @@ function init()
   sampler:load(1,sample1)
   -- sampler:select("/home/we/dust/audio/seamlessloops/120/TL_Loop_Pad_Lo-Fi_01_Cm_120_keyCmin_bpm120_beats32_.flac")
 
+  -- setup osc
   osc_fun={
     progress=function(args)
       sampler:show_position(tonumber(args[1]))
@@ -46,6 +47,9 @@ function init()
       print("osc.event: "..path.."?")
     end
   end
+
+  -- setup params
+  params_kick()
 
   opi=1
   -- g_=grid_:new()
@@ -127,6 +131,14 @@ e5 . . .
   --     end,
   --   }
 
+  clock.run(function()
+    clock.sleep(1)
+    print("emitting")
+    sampler.samples[1]:emit(1/16,1)
+    clock.sleep(1)
+    sampler.samples[1].seq.kickdb.vals[1]=16
+    sampler.samples[1]:emit(1/16,1)
+  end)
 end
 
 function debounce_params()
@@ -145,6 +157,41 @@ function debounce_params()
         debounce_fn[k]=v
       end
     end
+  end
+end
+
+function params_kick()
+
+  -- kick
+  local params_menu={
+    {id="kick_db",name="db adj",min=-96,max=96,exp=false,div=1,default=0.0,unit="db"},
+    {id="preamp",name="preamp",min=0,max=4,exp=false,div=0.01,default=1,unit="amp"},
+    {id="basefreq",name="base freq",min=10,max=200,exp=false,div=0.1,default=32.7,unit="Hz"},
+    {id="ratio",name="ratio",min=1,max=20,exp=false,div=1,default=6},
+    {id="sweeptime",name="sweep time",min=0,max=200,exp=false,div=1,default=50,unit="ms"},
+    {id="decay1",name="decay1",min=5,max=2000,exp=false,div=10,default=300,unit="ms"},
+    {id="decay1L",name="decay1L",min=5,max=2000,exp=false,div=10,default=800,unit="ms"},
+    {id="decay2",name="decay2",min=5,max=2000,exp=false,div=10,default=150,unit="ms"},
+    {id="clicky",name="clicky",min=0,max=100,exp=false,div=1,default=0,unit="%"},
+  }
+  params:add_group("KICK",#params_menu)
+  for _,pram in ipairs(params_menu) do
+    params:add{
+      type="control",
+      id=pram.id,
+      name=pram.name,
+      controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
+      formatter=pram.formatter,
+    }
+    -- params:set_action(pram.id,function(x)
+    --   if string.find(pram.id,"euc")~=nil then
+    --     debounce_fn["euc"]={
+    --       1,function()
+    --         update_euclidean()
+    --       end
+    --     }
+    --   end
+    -- end)
   end
 end
 

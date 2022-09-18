@@ -27,6 +27,15 @@ Engine_BreakOps : CroneEngine {
 
         context.server.sync;
 
+        SynthDef("kick", { |basefreq = 40, ratio = 6, sweeptime = 0.05, preamp = 1, amp = 1,
+            decay1 = 0.3, decay1L = 0.8, decay2 = 0.15, clicky=0.0, out|
+            var    fcurve = EnvGen.kr(Env([basefreq * ratio, basefreq], [sweeptime], \exp)),
+            env = EnvGen.kr(Env([clicky,1, decay1L, 0], [0.0,decay1, decay2], -4), doneAction: Done.freeSelf),
+            sig = SinOsc.ar(fcurve, 0.5pi, preamp).distort * env ;
+            sig = (sig*amp).tanh!2;
+            Out.ar(out,sig);
+        }).send(context.server);
+
         SynthDef(\main, {
             var in1=In.ar(\in1.kr(1),2); // drums
             var in2=In.ar(\in2.kr(1),2); // pad
@@ -190,6 +199,7 @@ Engine_BreakOps : CroneEngine {
             var gate=msg[7]; // gate is between 0-1
             var retrig=msg[8];
             var send_pos=msg[9];
+            [id,amp,rate,pitch,pos,duration,gate,retrig,send_pos].postln;
             if (bufs.at(id).notNil,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
@@ -224,6 +234,32 @@ Engine_BreakOps : CroneEngine {
                     NodeWatcher.register(syns.at(id));
                 }.play;
             });
+        });
+
+
+
+        this.addCommand("kick","fffffffff",{arg msg;
+            var basefreq=msg[1];
+            var ratio=msg[2];
+            var sweeptime=msg[3];
+            var preamp=msg[4];
+            var amp=msg[5].dbamp;
+            var decay1=msg[6];
+            var decay1L=msg[7];
+            var decay2=msg[8];
+            var clicky=msg[9];
+            Synth.new("kick",[
+                \out,buses.at("compressing"),
+                \basefreq,basefreq,
+                \ratio,ratio,
+                \sweeptime,sweeptime,
+                \preamp,preamp,
+                \amp,amp,
+                \decay1,decay1,
+                \decay1L,decay1L,
+                \decay2,decay2,
+                \clicky,clicky,
+            ],syns.at("main"),\addBefore).onFree({"freed!"});
         });
 
 
