@@ -38,6 +38,12 @@ function GGrid:new(args)
   end
   m.grid_refresh:start()
 
+  m.binaries={}
+  m.recording={}
+  for i=1,9 do
+    table.insert(m.binaries,{0,0,0,0})
+    table.insert(m.recording,0)
+  end
   m.to_binary=function(num)
     -- returns a table of bits, least significant first.
     local t={0,0,0,0} -- will contain the bits
@@ -55,6 +61,9 @@ function GGrid:new(args)
     return t
   end
 
+  m.to_decimal=function(t)
+    return t[4]*1+t[3]*2+t[2]*4+t[1]*8
+  end
   return m
 end
 
@@ -74,28 +83,53 @@ function GGrid:key_press(row,col,on)
     self:set_start_stop()
   elseif col<5 then
     self:set_binaries(row,col,on)
+  elseif col>=5 and col<=8 and row>=3 and row<=6 then
+    self:set_pos(row,col,on)
   end
 end
 
+function GGrid:set_pos(row,col,on)
+  sampler:set_focus(1)
+  -- get current position id
+  local vali=(row-3)*4+col-4
+  local s=sampler:get_sample()
+  -- check if its recording
+  self.recording[1]=self.recording[1]+(on and 1 or-1)
+  s.seq.pos.live=self.recording[1]>0 and vali or 0
+end
+
 function GGrid:set_binaries(row,col,on)
+  -- get current binary
   local i=col+1
   if row>4 then
     i=i+4
   end
-  sampler:set_focus(i,on)
+  i=i+1
 
-  local inds={}
   for k,_ in pairs(self.pressed_buttons) do
     local r,c=k:match("(%d+),(%d+)")
-    if col==c then
+    local j=c+1
+    if r>4 then
+      j=j+4
+    end
+    j=j+1
+    if j==i then
+      self.binaries[i][(row-1)%4+1]=1-self.binaries[i][(row-1)%4+1]
     end
   end
-  if #inds<2 then
-    do return end
-  end
-  table.sort(inds)
+
+  -- skip the position
+  sampler:set_focus(i)
   local s=sampler:get_sample()
-  s:set_start_stop(inds[1],inds[#inds])
+  if not on then
+    self.recording[i]=self.recording[i]-1
+    if self.recording[i]==0 then
+      s.seq[s.ordering[i]].live=0
+    end
+  else
+    s.seq[s.ordering[i]].live=self.to_decimal(self.binaries[i][(row-1)%4+1])+1
+    self.recording[i]=self.recording[i]+1
+  end
 end
 
 function GGrid:set_start_stop()
@@ -155,7 +189,7 @@ function GGrid:get_visual()
     for col=9,16 do
       local i=(row-1)*8+col-8
       if i>=seq.start and i<=seq.stop then
-        self.visual[row][col]=seq.vals[i]-1
+        self.visual[row][col]=seq.valis[i]-1
         if i==seq.i then
           self.visual[row][col]=15
         end

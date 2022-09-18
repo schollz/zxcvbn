@@ -32,7 +32,7 @@ function Sample:init()
     kickdb={-96,-72,-64,-48,-24,-20,-16,-8,-6,-4,-2,0,2,4,6,8},
   }
   self.default={
-    db=12,
+    db=10,
     filter=1,
     retrig=1,
     gate=1,
@@ -45,14 +45,14 @@ function Sample:init()
   }
   self.seq={}
   for k,v in pairs(self.default) do
-    self.seq[k]={start=1,stop=64,vals={},i=1,val=self.options[self.default[k]],vali=self.default[k]}
+    self.seq[k]={start=1,stop=64,valis={},i=1,live=0,val=self.options[self.default[k]],vali=self.default[k]}
     for i=1,64 do
-      table.insert(self.seq[k].vals,self.default[k])
+      table.insert(self.seq[k].valis,self.default[k])
     end
   end
-  self.seq.pos.vals={}
+  self.seq.pos.valis={}
   for i=1,64 do
-    table.insert(self.seq.pos.vals,(i-1)%16+1)
+    table.insert(self.seq.pos.valis,(i-1)%16+1)
   end
 
   self.focus=1
@@ -145,12 +145,16 @@ function Sample:emit(division,beat_division)
   end
   for k,v in pairs(self.seq) do
     self.seq[k].i=(beat_division-1)%(self.seq[k].stop-self.seq[k].start+1)+self.seq[k].start
-    self.seq[k].vali=self.seq[k].vals[self.seq[k].i]
+    -- the "live" nubmer is the one being recorded and it takes the place
+    if self.seq[k].live>0 then
+      self.seq[k].valis[self.seq[k].i]=self.seq[k].live
+    end
+    self.seq[k].vali=self.seq[k].valis[self.seq[k].i]
     self.seq[k].val=self.options[k][self.seq[k].vali]
   end
   -- special is the kick which is based off the pos index
   self.seq.kickdb.i=self.seq.pos.vali
-  self.seq.kickdb.val=self.options.kickdb[self.seq.kickdb.vals[self.seq.kickdb.i]]
+  self.seq.kickdb.val=self.options.kickdb[self.seq.kickdb.valis[self.seq.kickdb.i]]
 
   local data={}
   for k,v in pairs(self.seq) do

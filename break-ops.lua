@@ -30,10 +30,10 @@ engine.name="BreakOps"
 -- print(sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"]:get_render())
 -- sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"]:play(1,1,0.5,1,1,1)
 function init()
-  params:set("clock_tempo",136)
+  params:set("clock_tempo",160)
   sampler=sampler_:new()
   sample1=_path.code.."break-ops/lib/amenbreak_bpm136.wav"
-  sample1=_path.audio.."row1/HGAT_120_full_drum_loop_granular_key_bpm120_beats16_.flac"
+  -- sample1=_path.audio.."row1/HGAT_120_full_drum_loop_granular_key_bpm120_beats16_.flac"
   sampler:load(1,sample1)
 
   -- setup osc
@@ -62,7 +62,7 @@ function init()
 chain a b a b c
  
 pattern=a
-Am/C
+Am/C;arp=ud;skip=0;len=6
 C/G
 Dm
 F/C
@@ -105,7 +105,7 @@ e5 . . .
             info=info.." on ["
             for _,n in ipairs(on) do
               info=info.." "..n.m
-              engine.note_on(n.m)
+              engine.note_on(n.m,0.01,0.1)
             end
           end
           if info~="" then print(info) end
