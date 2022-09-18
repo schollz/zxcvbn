@@ -18,6 +18,7 @@ function Sample:init()
     table.insert(one_to_sixteen,i+1)
     table.insert(one_to_zero,1-i/15)
   end
+  self.record={0,0,0,0,0,0,0,0,0}
   self.options={
     db={-96,-72,-64,-48,-24,-20,-16,-8,-6,-4,-2,0,2,4,6,8},
     decimate=zero_to_one,
@@ -27,7 +28,7 @@ function Sample:init()
     gate=one_to_zero,
     pitch={-8,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,8,10},
     other=one_to_sixteen,
-    pos={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    pos=zero_to_one,-- this gets filled in later
     kickdb={-96,-72,-64,-48,-24,-20,-16,-8,-6,-4,-2,0,2,4,6,8},
   }
   self.default={
@@ -44,13 +45,19 @@ function Sample:init()
   }
   self.seq={}
   for k,v in pairs(self.default) do
-    self.seq[k]={start=1,stop=64,vals={},i=1,val=0}
+    self.seq[k]={start=1,stop=64,vals={},i=1,val=self.options[self.default[k]],vali=self.default[k]}
     for i=1,64 do
       table.insert(self.seq[k].vals,self.default[k])
     end
   end
+  self.seq.pos.vals={}
+  for i=1,64 do
+    table.insert(self.seq.pos.vals,(i-1)%16+1)
+  end
+
+  self.focus=1
   self.ordering={"pos","db","filter","retrig","gate","pitch","decimate","stretch","other"}
-  self.division=1/16
+  self.division=1/8
 
   -- initialize debouncer
   self.debounce_fn={}
@@ -126,22 +133,23 @@ function Sample:init()
 
   engine.load_buffer(self.path)
   self.loaded=true
+end
 
+function Sample:set_focus(i)
+  self.focus=i
 end
 
 function Sample:emit(division,beat_division)
-  print("sample:emit")
-  print(division,self.division,beat_division)
   if division~=self.division then
     do return end
   end
   for k,v in pairs(self.seq) do
-    print(k)
     self.seq[k].i=(beat_division-1)%(self.seq[k].stop-self.seq[k].start+1)+self.seq[k].start
-    self.seq[k].val=self.options[k][self.seq[k].vals[self.seq[k].i]]
+    self.seq[k].vali=self.seq[k].vals[self.seq[k].i]
+    self.seq[k].val=self.options[k][self.seq[k].vali]
   end
   -- special is the kick which is based off the pos index
-  self.seq.kickdb.i=self.seq.pos.i
+  self.seq.kickdb.i=self.seq.pos.vali
   self.seq.kickdb.val=self.options.kickdb[self.seq.kickdb.vals[self.seq.kickdb.i]]
 
   local data={}
@@ -150,6 +158,10 @@ function Sample:emit(division,beat_division)
   end
   data.duration=self.duration*division
   self:play(data)
+end
+
+function Sample:get_seq()
+  return self.seq[self.ordering[self.focus]]
 end
 
 function Sample:play(data)
@@ -161,8 +173,7 @@ function Sample:play(data)
   data.gate=data.gate or 1
   data.retrig=data.retrig or 1
   rate=clock.get_tempo()/self.bpm -- normalize tempo to bpm
-  print("sample:play ")
-  tab.print(data)
+
   engine.play(self.path,data.db,rate,data.pitch,data.pos,data.duration,data.gate,data.retrig,sampler.cur==self.id and 1 or 0)
   if data.kickdb>-96 then
     print("kick",data.kickdb)
@@ -319,7 +330,6 @@ function Sample:do_move(d)
   table.insert(cursors,{i=17,c=self.duration})
   table.sort(cursors,function(a,b) return a.c<b.c end)
   for i=1,16 do
-    print(i)
     self.cursor_durations[cursors[i].i]=cursors[i+1].c-cursors[i].c
   end
 
@@ -427,7 +437,6 @@ function Sample:redraw()
     self.is_playing=true
     screen.level(15)
     local cursor=self.show_pos
-    print(self.view[1],self.view[2],cursor)
     if cursor>=self.view[1] and cursor<=self.view[2] then
       local pos=util.linlin(self.view[1],self.view[2],1,128,cursor)
       screen.aa(1)

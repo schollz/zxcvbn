@@ -23,6 +23,30 @@ function SequenceSample:select(i)
   end
 end
 
+function SequenceSample:emit(division,beat)
+  for _,s in ipairs(self.samples) do
+    s:emit(division,beat)
+  end
+end
+
+function SequenceSample:get_sample()
+  return self.samples[self.cur]
+end
+
+function SequenceSample:get_seq()
+  return self.samples[self.cur]:get_seq()
+end
+
+function SequenceSample:set_focus(i,rec)
+  self.samples[self.cur].focus=i
+  self.samples[self.cur].record[i]=self.samples[self.cur].record[i]+(rec and 1 or-1)
+end
+
+function SequenceSample:set_start_stop(start,stop)
+  self.samples[self.cur].seq[self.samples[self.cur].ordering[self.samples[self.cur].focus]].start=start
+  self.samples[self.cur].seq[self.samples[self.cur].ordering[self.samples[self.cur].focus]].start=stop
+end
+
 function SequenceSample:enc(k,d)
   self.samples[self.cur]:enc(k,d)
 end
