@@ -372,6 +372,13 @@ function Sample:enc(k,d)
     self:do_zoom(d)
   elseif k==2 then
     self:do_move(d)
+  elseif k==1 then
+    self.seq.kickdb.valis[self.ci]=self.seq.kickdb.valis[self.ci]+d
+    if self.seq.kickdb.valis[self.ci]>16 then
+      self.seq.kickdb.valis[self.ci]=self.seq.kickdb.valis[self.ci]-16
+    elseif self.seq.kickdb.valis[self.ci]<1 then
+      self.seq.kickdb.valis[self.ci]=self.seq.kickdb.valis[self.ci]+16
+    end
   end
 end
 
@@ -480,6 +487,10 @@ function Sample:redraw()
   else
     self.is_playing=false
   end
+
+  screen.level(15)
+  screen.move(126,64)
+  screen.text_right(self.options.kickdb[self.seq.kickdb.valis[self.ci]].." dB")
   return string.format("%02d",self.ci).."/16 "..self.filename
 end
 
