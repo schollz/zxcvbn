@@ -95,7 +95,8 @@ function SequenceTLI:init()
   self.cur=1
   self.tlis={{},{},{},{}}
   for i=1,4 do
-    params:add_group("TLI "..i,3)
+    params:add_group("TLI "..i,4)
+
     params:add_file(i.."tli_file","tli file",_path.data.."break-ops")
     params:set_action(i.."tli_file",function(x)
       if util.file_exists(x) and string.sub(x,-1)~="/" then
@@ -106,6 +107,8 @@ function SequenceTLI:init()
         self.tlis[i]=tli:parse_tli(content)
       end
     end)
+    params:add{type="binary",name="play",id=i.."tli_play",behavior="toggle",action=function(v)
+    end}
     params:add_option(i.."tli_division","division",possible_division_options,5)
     params:add_option(i.."output","output",self.output_list)
   end
@@ -117,7 +120,9 @@ end
 
 function SequenceTLI:emit(division,step)
   for i,t in ipairs(self.tlis) do
-    if division==possible_divisions[params:get(i.."tli_division")] and next(self.tlis[i])~=nil and next(self.tlis[i].track)~=nil then
+    if params:get(i.."tli_play")==1 and
+      division==possible_divisions[params:get(i.."tli_division")] and
+      next(self.tlis[i])~=nil and next(self.tlis[i].track)~=nil then
       local notes=t.track
       local notes_len=#notes
       local off=notes[(step-1)%notes_len+1].off

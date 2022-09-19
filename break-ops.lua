@@ -17,28 +17,25 @@ sample_=include("lib/sample")
 sampler_=include("lib/sampler")
 sequence_tli_=include("lib/sequence_tli")
 grid_=include("lib/ggrid")
--- track_=include("lib/track")
--- sequence_=include("lib/sequence")
 MusicUtil=require "musicutil"
 lattice=require("lattice")
 sequins=require("sequins")
 
+-- debouncer
 debounce_fn={}
 
+-- initialize the engine
 engine.name="BreakOps"
+
+-- global division definitions
 possible_divisions={1/32,1/24,1/16,1/12,1/8,1/6,1/4,1/3,1/2,1,2,4}
 possible_division_options={"1/32","1/24","1/16","1/12","1/8","1/6","1/4","1/3","1/2","1","2","4"}
 
--- tab.print(sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"])
--- print(sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"]:get_render())
--- sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"]:play(1,1,0.5,1,1,1)
 function init()
-  params:set("clock_tempo",160)
+  -- start the sampler
   sampler=sampler_:new()
-  sample1=_path.code.."break-ops/lib/amenbreak_bpm136.wav"
-  -- sample1=_path.audio.."row1/HGAT_120_full_drum_loop_granular_key_bpm120_beats16_.flac"
-  sampler:load(1,sample1)
 
+  -- start the TLI sequences
   tli_sequences=sequence_tli_:new()
 
   -- setup osc
@@ -55,8 +52,6 @@ function init()
 
   -- setup params
   params_kick()
-
-  opi=1
 
   -- setup grid
   g_=grid_:new()
@@ -84,18 +79,17 @@ function init()
     end
   end)
 
-  -- clock.run(function()
-  --   clock.sleep(1)
-  --   print("emitting")
-  --   sampler.samples[1]:emit(1/16,1)
-  --   clock.sleep(1)
-  --   sampler.samples[1].seq.kickdb.vals[1]=10
-  --   sampler.samples[1].seq.kickdb.vals[2]=10
-  --   sampler.samples[1].seq.kickdb.vals[5]=10
-  --   sampler.samples[1]:emit(1/16,1)
-  -- end)
+  clock.run(function()
+    clock.sleep(1)
+    print("DEBUG MODE")
+    params:set("clock_tempo",160)
 
-  params:set("1tli_file",_path.code.."break-ops/test.tli")
+    sample1=_path.code.."break-ops/lib/amenbreak_bpm136.wav"
+    params:set("1sample_file",sample1)
+
+    params:set("1tli_file",_path.code.."break-ops/test.tli")
+  end)
+
 end
 
 function debounce_params()
@@ -186,7 +180,7 @@ function redraw()
   end
   screen.level(15)
   screen.move(4,6)
-  screen.text_center(string.format("%02d",opi))
+  screen.text_center(string.format("%02d",111))
 
   screen.update()
 end
