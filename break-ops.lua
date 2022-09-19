@@ -1,7 +1,7 @@
 -- break ops
 --
 --
--- llllllll.co/t/lightsout
+-- llllllll.co/t/break ops
 --
 --
 --
@@ -15,6 +15,7 @@ tli_=include("lib/tli")
 tli=tli_:new()
 sample_=include("lib/sample")
 sampler_=include("lib/sampler")
+sequence_tli_=include("lib/sequence_tli")
 grid_=include("lib/ggrid")
 -- track_=include("lib/track")
 -- sequence_=include("lib/sequence")
@@ -25,6 +26,8 @@ sequins=require("sequins")
 debounce_fn={}
 
 engine.name="BreakOps"
+possible_divisions={1/32,1/24,1/16,1/12,1/8,1/6,1/4,1/3,1/2,1,2,4}
+possible_division_options={"1/32","1/24","1/16","1/12","1/8","1/6","1/4","1/3","1/2","1","2","4"}
 
 -- tab.print(sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"])
 -- print(sampler.samples["/home/we/dust/code/break-ops/lib/amenbreak_bpm136.wav"]:get_render())
@@ -35,6 +38,8 @@ function init()
   sample1=_path.code.."break-ops/lib/amenbreak_bpm136.wav"
   -- sample1=_path.audio.."row1/HGAT_120_full_drum_loop_granular_key_bpm120_beats16_.flac"
   sampler:load(1,sample1)
+
+  tli_sequences=sequence_tli_:new()
 
   -- setup osc
   osc_fun={
@@ -56,60 +61,15 @@ function init()
   -- setup grid
   g_=grid_:new()
 
-  pat=tli:parse_tli([[
-# ignore this
- 
-chain a b a b c
- 
-pattern=a
-Am/C;arp=ud;skip=0;len=6
-C/G
-Dm
-F/C
-- 
-- - - .
- 
- 
-pattern=b division=8
-c4 d4 - - - - - . .
-e5 . . .
- 
-]])
-
   -- start lattice
   local sequencer=lattice:new{}
-  seq={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}
-  ss=sequins{1,1,2,1,1,1,2,4,1,1,2,1,1,2,4,8}
-  pitches=sequins{0,0,0,0,0,0,1,2,3,4,5,0,0,0,0,0,-2,-4,-6,-8}
-  gates=sequins{1,1,1,1,1,0.2,0.5,0.5,1,1,1,1}
-  divisions={1/32,1/24,1/16,1/12,1/8,1/6,1/4,1/3,1/2,1,2,4}
-  for _,division in ipairs(divisions) do
+  for _,division in ipairs(possible_divisions) do
     local step=0
     sequencer:new_pattern({
       action=function(t)
         step=step+1
         sampler:emit(division,step)
-        if division==1/8 then
-          local notes=pat.patterns.a.parsed
-          local off=notes[(step-1)%#notes+1].off
-          local info=""
-          if next(off)~=nil then
-            info=info.."off["
-            for _,n in ipairs(off) do
-              info=info.." "..n.m
-              engine.note_off(n.m)
-            end
-          end
-          local on=notes[(step-1)%#notes+1].on
-          if next(on)~=nil then
-            info=info.." on ["
-            for _,n in ipairs(on) do
-              info=info.." "..n.m
-              engine.note_on(n.m,0.01,0.1)
-            end
-          end
-          if info~="" then print(info) end
-        end
+        tli_sequences:emit(division,step)
       end,
       division=division,
     })
@@ -124,23 +84,18 @@ e5 . . .
     end
   end)
 
-  -- debounce_fn[i.."crow"]={
-  --     5,function()
-  --       crow.output[i].action=string.format("adsr(%3.3f,%3.3f,%3.3f,%3.3f,'linear')",
-  --       params:get(i.."crow_attack"),params:get(i.."crow_sustain"),params:get(i.."crow_decay"),params:get(i.."crow_release"))
-  --     end,
-  --   }
+  -- clock.run(function()
+  --   clock.sleep(1)
+  --   print("emitting")
+  --   sampler.samples[1]:emit(1/16,1)
+  --   clock.sleep(1)
+  --   sampler.samples[1].seq.kickdb.vals[1]=10
+  --   sampler.samples[1].seq.kickdb.vals[2]=10
+  --   sampler.samples[1].seq.kickdb.vals[5]=10
+  --   sampler.samples[1]:emit(1/16,1)
+  -- end)
 
-  clock.run(function()
-    clock.sleep(1)
-    print("emitting")
-    sampler.samples[1]:emit(1/16,1)
-    clock.sleep(1)
-    sampler.samples[1].seq.kickdb.vals[1]=10
-    sampler.samples[1].seq.kickdb.vals[2]=10
-    sampler.samples[1].seq.kickdb.vals[5]=10
-    sampler.samples[1]:emit(1/16,1)
-  end)
+  params:set("1tli_file",_path.code.."break-ops/test.tli")
 end
 
 function debounce_params()

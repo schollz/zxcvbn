@@ -375,20 +375,21 @@ function TLI:note_to_midi(n,midi_near)
   success=false
   note_name="no note found"
   midi_note=0
-  for _,m in ipairs(self.database) do
-    for _,note in ipairs(m.y) do
-      if note:find(n)==1 and #note<=#note_name and math.abs(m.m-midi_near)<math.abs(midi_note-midi_near) then
-        note_name=m.i
-        midi_note=m.m
-        success=true
+  local notes={}
+  for i=1,20 do
+    if #n==0 then
+      break
+    end
+    for _,m in ipairs(self.database) do
+      for _,note in ipairs(m.y) do
+        if n:find(note)==1 and #note<=#note_name and math.abs(m.m-midi_near)<math.abs(midi_note-midi_near) then
+          table.insert(notes,{m=m.m,n=m.i})
+          n=string.sub(n,#note+1,#n)
+        end
       end
     end
   end
-  if not success then
-    print(note_name)
-    do return nil end
-  end
-  return {{m=midi_note,n=note_name}}
+  return #notes>0 and notes or nil
 end
 
 function TLI:chord_to_midi(c,midi_near)
@@ -975,6 +976,14 @@ function TLI:parse_tli(text)
   for k,pattern in pairs(data.patterns) do
     data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,pattern.division)
   end
+
+  -- combine the chain
+  data.track={}
+  for _,p in ipairs(data.chain) do
+    for _,v in ipairs(data.patterns[p].parsed) do
+      table.insert(data.track,v)
+    end
+  end
   return data
 end
 
@@ -990,37 +999,56 @@ function TLI:test()
   --do_test('tli:note_to_midi("c4")')
   --do_test('tli:note_to_midi("d",72)')
   --do_test('tli:chord_to_midi("Cm/G")')
-  --do_test('tli:to_midi("Am;7")')
+  do_test('tli:note_to_midi("c4b3c#4")')
+
   --do_test('tli.er(3,8,1)')
   --do_test('tli:parse_entity("Cm7^4;v=40")')
   --tli:parse_positions("W X - . Y\n\n- - Z\nZ . ")
   --do_test('tli:get_arp({1,2,3},8,"ud",4)')
   -- tli:parse_pattern("Cm7;arp=ud;skip=1;len=6;vel=50\n-  Am . d4\n ")
+  --   local data=tli:parse_tli([[
+  -- # ignore this
+
+  -- chain a b a b c
+
+  -- pattern=a
+  -- Am/C
+  -- C/G
+  -- Dm
+  -- F/C
+
+  -- pattern=b division=8
+  -- c4 d4 - - - - - . .
+  -- e5 . . .
+
+  -- ]])
+
+  if not string.find(package.cpath,"/home/zns/Documents/norns-docker/dust/code/break-ops/lib/") then
+    package.cpath=package.cpath..";/home/zns/Documents/norns-docker/dust/code/break-ops/lib/?.so"
+  end
+  json=require("cjson")
+
   local data=tli:parse_tli([[
 # ignore this
  
-chain a b a b c
+chain a b a c a
  
 pattern=a
-Am/C
-C/G
-Dm
-F/C
+c4
  
 pattern=b division=8
-c4 d4 - - - - - . .
-e5 . . .
+ 
+d4
+ 
+pattern=c
+e4
  
 ]])
 
-  -- if not string.find(package.cpath,"/home/zns/Documents/norns-docker/dust/code/break-ops/lib/") then
-  --   package.cpath=package.cpath..";/home/zns/Documents/norns-docker/dust/code/break-ops/lib/?.so"
-  -- end
-  -- json=require("cjson")
-  print(json.encode(data.patterns.a))
+  print(json.encode(data))
 
   -- print("OK")
-  for k,v in pairs(data.patterns.a.parsed) do
+  for k,v in pairs(data.track) do
     if next(v.on) then
       print(k,json.encode(v.on))
     else
