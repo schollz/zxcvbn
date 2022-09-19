@@ -32,7 +32,7 @@ function Sample:init()
     kickdb={-96,-72,-64,-48,-24,-20,-16,-8,-6,-4,-2,0,2,4,6,8},
   }
   self.default={
-    db=10,
+    db=5,
     filter=1,
     retrig=1,
     gate=1,
