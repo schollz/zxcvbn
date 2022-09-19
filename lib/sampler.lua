@@ -11,14 +11,13 @@ end
 function SequenceSample:init()
   self.cur=1
   self.samples={}
-end
-
-function SequenceSample:load(i,path)
-  self.samples[i]=sample_:new({id=i,path=path})
+  for i=1,4 do
+    table.insert(self.samples,sample_:new{id=i})
+  end
 end
 
 function SequenceSample:select(i)
-  if self.samples[i]~=nil then
+  if next(self.samples[i])~=nil then
     self.cur=i
   end
 end
@@ -61,7 +60,7 @@ function SequenceSample:show_position(pos)
 end
 
 function SequenceSample:redraw()
-  if self.cur==nil or self.samples[self.cur]==nil then
+  if self.cur==nil or next(self.samples[self.cur])==nil then
     do return end
   end
   return self.samples[self.cur]:redraw()

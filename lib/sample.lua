@@ -9,6 +9,17 @@ function Sample:new(o)
 end
 
 function Sample:init()
+  params:add_group("SAMPLE "..self.id,3)
+  params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
+  params:set_action(self.id.."sample_file",function(x)
+    if util.file_exists(x) and string.sub(x,-1)~="/" then
+      self:load(x)
+    end
+  end)
+  params:add{type="binary",name="play",id=self.id.."sample_play",behavior="toggle",action=function(v)
+  end}
+  params:add_option(self.id.."sample_division","division",possible_division_options,5)
+
   -- setup sequences
   local zero_to_one={}
   local one_to_zero={}
@@ -57,7 +68,6 @@ function Sample:init()
 
   self.focus=1
   self.ordering={"pos","db","filter","retrig","gate","pitch","decimate","stretch","other"}
-  self.division=1/8
 
   -- initialize debouncer
   self.debounce_fn={}
@@ -68,7 +78,10 @@ function Sample:init()
   if not string.find(foo,"Options") then
     self.audiowaveform="audiowaveform"
   end
+end
 
+function Sample:load(path)
+  self.path=path
   -- load sample
   print("sample: init "..self.path)
   self.pathname,self.filename,self.ext=string.match(self.path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
@@ -135,12 +148,26 @@ function Sample:init()
   self.loaded=true
 end
 
+function Sample:dump()
+  local data={}
+  data.seq=json.encode(seq)
+  return json.enode(data)
+end
+
+function Sample:load(s)
+  local data=json.decode(s)
+  if data==nil then
+    do return end
+  end
+  self.seq=json.decode(data.seq)
+end
+
 function Sample:set_focus(i)
   self.focus=i
 end
 
 function Sample:emit(division,beat_division)
-  if division~=self.division then
+  if division~=possible_divisions[params:get(self.id.."sample_division")] then
     do return end
   end
   for k,v in pairs(self.seq) do
