@@ -189,6 +189,11 @@ function Sample:emit(division,beat_division)
   end
   data.duration=self.duration*division
   self:play(data)
+
+  -- check the "others"
+  if self.seq.other.val==2 then
+    -- engine.glitch?
+  end
 end
 
 function Sample:get_seq()
