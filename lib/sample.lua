@@ -188,12 +188,13 @@ function Sample:emit(division,beat_division)
     data[k]=v.val
   end
   data.duration=self.duration*division
-  self:play(data)
 
   -- check the "others"
   if self.seq.other.val==2 then
-    -- engine.glitch?
+    data.kickdb=-96
+    data.path="glitch"
   end
+  self:play(data)
 end
 
 function Sample:get_seq()
@@ -201,6 +202,7 @@ function Sample:get_seq()
 end
 
 function Sample:play(data)
+  data.path=data.path or self.path
   data.kickdb=data.kickdb or-96
   data.db=data.db or 0
   data.pitch=data.pitch or 0
@@ -210,7 +212,7 @@ function Sample:play(data)
   data.retrig=data.retrig or 1
   rate=clock.get_tempo()/self.bpm -- normalize tempo to bpm
 
-  engine.play(self.path,data.db,rate,data.pitch,data.pos,data.duration,data.gate,data.retrig,sampler.cur==self.id and 1 or 0)
+  engine.play(data.path,data.db,rate,data.pitch,data.pos,data.duration,data.gate,data.retrig,sampler.cur==self.id and 1 or 0)
   if data.kickdb>-96 then
     print("kick",data.kickdb)
     engine.kick(
