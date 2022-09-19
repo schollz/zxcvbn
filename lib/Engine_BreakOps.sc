@@ -199,6 +199,15 @@ Engine_BreakOps : CroneEngine {
             var gate=msg[7]; // gate is between 0-1
             var retrig=msg[8];
             var send_pos=msg[9];
+            var synthDef=\slice;
+            var buf=0;
+            if (bufs.at(id).notNil,{
+                buf=bufs.at(id);
+            });
+            if (id=="glitch",{
+                synthDef=\glitch;
+            });
+
             [id,amp,rate,pitch,pos,duration,gate,retrig,send_pos].postln;
             if (bufs.at(id).notNil,{
                 if (syns.at(id).notNil,{
@@ -206,9 +215,9 @@ Engine_BreakOps : CroneEngine {
                         syns.at(id).set(\gate,0);
                     });
                 });
-                syns.put(id,Synth.new(\slice, [
+                syns.put(id,Synth.new(synthDef, [
                     out: buses.at("sliceFx"),
-                    buf: bufs.at(id),
+                    buf: buf,
                     amp: amp,
                     rate: rate*pitch.midiratio,
                     pos: pos,
@@ -219,9 +228,9 @@ Engine_BreakOps : CroneEngine {
                     if (retrig>1,{
                         (retrig-1).do{ arg i;
                             (duration/retrig).wait;
-                            syns.put(id,Synth.new(\slice, [
+                            syns.put(id,Synth.new(synthDef, [
                                 out: buses.at("sliceFx"),
-                                buf: bufs.at(id),
+                                buf: buf,
                                 amp: amp,
                                 rate: rate*((pitch.sign)*(i+1)+pitch).midiratio,
                                 pos: pos,
