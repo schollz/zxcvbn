@@ -120,16 +120,30 @@ function VTerm:keyboard(k,v)
       -- TODO: save
     elseif k=="Z" and v==1 then 
       -- TODO: undo
+    elseif tonumber(k)>0 and tonumber(k)<10 then 
+      -- TODO: switch?
     end
   elseif v==1 then
+    local unknown=false
     if k=="SPACE" then
       k=" "
     elseif k=="SEMICOLON" then
       k=";"
     elseif k=="DOT" then
       k="."
+    elseif k=="ENTER" then 
+      k="\n"
+    elseif k=="MINUS" a then 
+      k=self.shift and "_" or "-"
+    elseif k=="EQUAL" then 
+      k=self.shift and "+" or "="
+    elseif #k>1 then 
+      unknown=true 
+      print("vterm: unknown character: "..k)
     end
-    self:cursor_insert(self.shift and k or string.lower(k))
+    if not unknown then 
+      self:cursor_insert(self.shift and k or string.lower(k))
+    end
   end
 end
 
