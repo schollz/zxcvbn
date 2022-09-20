@@ -27,6 +27,62 @@ Engine_BreakOps : CroneEngine {
 
         context.server.sync;
 
+        (1..2).do({arg ch;
+        SynthDef("playerInOut"++ch,{
+            arg bufnum, id=0,db=0.0, rate=1.0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.02,
+            attack=0.001,decay=0.3,sustain=0.9,release=2.0;
+            
+            // vars
+            var snd,amp,pos,sampleDuration,sampleDurationInOut,imp,aOrB,posA,sndA,posB,sndB,trigA,trigB;
+            var duration=BufDur.ir(bufnum);
+            var frames=BufFrames.ir(bufnum);
+            
+            amp = db.dbamp;
+            rate = BufRateScale.ir(bufnum)*rate;
+            sampleDuration=(sampleEnd-sampleStart)/rate.abs;
+            sampleDurationInOut=(sampleOut-sampleIn)/rate.abs;
+            
+            trigB=Impulse.kr(0.5/sampleDurationInOut);
+            trigA=TDelay.kr(trigB,sampleDurationInOut);
+            trigB=DelayN.kr(trigB,sampleDuration,sampleDuration-xfade);
+            trigA=DelayN.kr(trigA,sampleDuration,sampleDuration-xfade);
+            aOrB=(1-ToggleFF.kr(trigA+trigB));
+            
+            posA=Phasor.ar(
+                trig:trigA,
+                rate:rate/context.server.sampleRate,
+                start:((sampleStart*(rate>0))+(sampleEnd*(rate<0))),
+                end:((sampleEnd*(rate>0))+(sampleStart*(rate<0))),
+                resetPos:sampleIn
+            );
+            sndA=BufRd.ar(ch,bufnum,posA/duration*frames,
+                loop:1,
+                interpolation:2
+            );
+            posB=Phasor.ar(
+                trig:trigB,
+                rate:rate/context.server.sampleRate,
+                start:((sampleStart*(rate>0))+(sampleEnd*(rate<0))),
+                end:((sampleEnd*(rate>0))+(sampleStart*(rate<0))),
+                resetPos:sampleIn
+            );
+            sndB=BufRd.ar(ch,bufnum,posB/duration*frames,
+                loop:1,
+                interpolation:2
+            );
+
+            pos=Select.kr(aOrB,[posB,posA]);
+            snd=SelectX.ar(Lag.kr(aOrB,xfade),[sndB,sndA],0)*amp;
+            snd=Pan2.ar(snd,0);
+            snd=snd*EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+            
+            SendTrig.kr(Impulse.kr(watch),id,A2K.kr(pos));
+            
+            Out.ar(0,snd);
+        }).add;
+        });
+
+
         SynthDef("kick", { |basefreq = 40, ratio = 6, sweeptime = 0.05, preamp = 1, amp = 1,
             decay1 = 0.3, decay1L = 0.8, decay2 = 0.15, clicky=0.0, out|
             var    fcurve = EnvGen.kr(Env([basefreq * ratio, basefreq], [sweeptime], \exp)),
@@ -93,7 +149,8 @@ Engine_BreakOps : CroneEngine {
             ReplaceOut.ar(\out.kr(0), snd * -6.dbamp);
         }).send(context.server);
 
-        SynthDef(\slice,{
+        (1..2).do({arg ch;
+        SynthDef("slice"++ch,{
             arg out=0, amp=0, buf=0, rate=1, pos=0, gate=1, duration=100000, send_pos=0; 
             var snd;
             var snd_pos = Phasor.ar(
@@ -103,11 +160,12 @@ Engine_BreakOps : CroneEngine {
                 end: BufFrames.ir(buf),
             );
             SendReply.kr(Impulse.kr(10)*send_pos,'/position',[snd_pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
-            snd = BufRd.ar(2,buf,snd_pos,interpolation:4);
+            snd = BufRd.ar(ch,buf,snd_pos,interpolation:4);
             snd = snd * Env.asr(0.001, 1, 0.001).ar(Done.freeSelf, gate * (1-TDelay.kr(Impulse.kr(0),duration)) );
             snd = snd * amp;
             Out.ar(out,snd);
         }).send(context.server);
+        });
 
         SynthDef(\sliceStretch,{
             var rate = BufRateScale.ir(\buf.kr(0)) * \rate.kr(1);
@@ -199,13 +257,14 @@ Engine_BreakOps : CroneEngine {
             var gate=msg[7]; // gate is between 0-1
             var retrig=msg[8];
             var send_pos=msg[9];
-            var synthDef=\slice;
+            var synthDef="slice1";
             var buf=0;
             if (bufs.at(id).notNil,{
                 buf=bufs.at(id);
+                synthDef="slice"++buf.numChannels;
             });
             if (id=="glitch",{
-                synthDef=\glitch;
+                synthDef="glitch";
             });
 
             [id,amp,rate,pitch,pos,duration,gate,retrig,send_pos].postln;
