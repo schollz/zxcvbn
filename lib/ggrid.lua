@@ -38,12 +38,6 @@ function GGrid:new(args)
   end
   m.grid_refresh:start()
 
-  m.binaries={}
-  m.recording={}
-  for i=1,9 do
-    table.insert(m.binaries,{0,0,0,0})
-    table.insert(m.recording,0)
-  end
   m.to_binary=function(num)
     -- returns a table of bits, least significant first.
     local t={0,0,0,0} -- will contain the bits
@@ -62,8 +56,19 @@ function GGrid:new(args)
   end
 
   m.to_decimal=function(t)
+    tab.print(t)
     return t[4]*1+t[3]*2+t[2]*4+t[1]*8
   end
+
+  m.binaries={}
+  m.recording={}
+  local s=sampler:get_sample()
+  for i=1,9 do
+    print(i,s.default[s.ordering[i]]-1)
+    table.insert(m.binaries,m.to_binary(s.default[s.ordering[i]]-1))
+    table.insert(m.recording,0)
+  end
+
   return m
 end
 
@@ -94,8 +99,11 @@ function GGrid:set_pos(row,col,on)
   local vali=(row-3)*4+col-4
   local s=sampler:get_sample()
   -- check if its recording
-  self.recording[1]=self.recording[1]+(on and 1 or-1)
-  s.seq.pos.live=self.recording[1]>0 and vali or 0
+  s.seq.pos.touched=vali
+  if params:get("record")==1 then
+    self.recording[1]=self.recording[1]+(on and 1 or-1)
+    s.seq.pos.live=self.recording[1]>0 and vali or 0
+  end
 end
 
 function GGrid:set_binaries(row,col,on)
@@ -104,39 +112,43 @@ function GGrid:set_binaries(row,col,on)
   if row>4 then
     i=i+4
   end
-  i=i+1
-
-  for k,_ in pairs(self.pressed_buttons) do
-    local r,c=k:match("(%d+),(%d+)")
-    local j=c+1
-    if r>4 then
-      j=j+4
-    end
-    j=j+1
-    if j==i then
-      self.binaries[i][(row-1)%4+1]=1-self.binaries[i][(row-1)%4+1]
-    end
+  if on then
+    self.binaries[i][(row-1)%4+1]=1-self.binaries[i][(row-1)%4+1]
   end
+  -- for k,_ in pairs(self.pressed_buttons) do
+  --   local r,c=k:match("(%d+),(%d+)")
+  --   r=tonumber(r)
+  --   c=tonumber(c)
+  --   local j=c
+  --   if r>4 then
+  --     j=j+4
+  --   end
+  --   if j==i then
+
+  --   end
+  -- end
 
   -- skip the position
   sampler:set_focus(i)
   local s=sampler:get_sample()
-  if not on then
+  s.seq[s.ordering[i]].touched=self.to_decimal(self.binaries[i])+1
+  if not on and params:get("record")==1then
     self.recording[i]=self.recording[i]-1
     if self.recording[i]==0 then
       s.seq[s.ordering[i]].live=0
     end
-  else
-    s.seq[s.ordering[i]].live=self.to_decimal(self.binaries[i][(row-1)%4+1])+1
+  elseif params:get("record")==1 then
+    s.seq[s.ordering[i]].live=s.seq[s.ordering[i]].touched
     self.recording[i]=self.recording[i]+1
   end
 end
 
 function GGrid:set_start_stop()
-  sampler:set_focus(1)
   local inds={}
   for k,_ in pairs(self.pressed_buttons) do
     local row,col=k:match("(%d+),(%d+)")
+    row=tonumber(row)
+    col=tonumber(col)
     if col>8 then
       table.insert(inds,(row-1)*8+col-8)
     end
@@ -145,8 +157,7 @@ function GGrid:set_start_stop()
     do return end
   end
   table.sort(inds)
-  local s=sampler:get_sample()
-  s:set_start_stop(inds[1],inds[#inds])
+  sampler:set_start_stop(inds[1],inds[#inds])
 end
 
 function GGrid:get_visual()
@@ -164,35 +175,58 @@ function GGrid:get_visual()
   local s=sampler:get_sample()
 
   -- illuminate binary options
-  for j,k in ipairs(s.ordering) do
-    if j>1 then
-      local col=(j-2)%4+1
-      local row_start=j<6 and 1 or 5
-      for ii,vv in ipairs(self.to_binary(s.seq[k].vali-1)) do
-        self.visual[row_start+ii-1][col]=(vv>0 and 5 or 1)*(s.focus==j and 2 or 1)
+  -- for j,k in ipairs(s.ordering) do
+  --   if j>1 then
+  --     local col=(j-2)%4+1
+  --     local row_start=j<6 and 1 or 5
+  --     for ii,vv in ipairs(self.to_binary(s.seq[k].vali-1)) do
+  --       self.visual[row_start+ii-1][col]=(vv>0 and 5 or 1)*(s.focus==j and 2 or 1)
+  --     end
+  --     for ii,vv in ipairs(self.to_binary(s.seq[k].vali-1)) do
+  --       self.visual[row_start+ii-1][col]=(vv>0 and 5 or 1)*(s.focus==j and 2 or 1)
+  --     end
+  --   end
+  -- end
+  for i_,t in ipairs(self.binaries) do
+    if i_>1 then
+      local i=i_-1
+      for j,vv in ipairs(t) do
+        local col=i>4 and i-4 or i
+        self.visual[i>4 and (j+4) or j][col]=(vv>0 and 5 or 1)*(s.focus-1==i and 2 or 1)
       end
     end
   end
 
   -- illuminate slices
-  for row=3,6 do
-    for col=5,8 do
-      self.visual[row][col]=s.focus==1 and 10 or 5
+  local seq=s:get_seq()
+  for col=5,8 do
+    for row=3,6 do
+      local vali=(row-3)*4+(col-4)
+      local v=3
+      if s.focus==1 then
+        v=5
+        if vali==s.seq.pos.touched then
+          v=v+5
+        end
+      end
+      self.visual[row][col]=v
     end
   end
 
   -- illuminate positions
-  -- sampler.samples[1].seq.pos.stop=8
-  -- sampler.samples[1].seq.pos.start=4
-  local seq=s:get_seq()
   for row=1,8 do
     for col=9,16 do
       local i=(row-1)*8+col-8
       if i>=seq.start and i<=seq.stop then
-        self.visual[row][col]=seq.valis[i]-1
+        self.visual[row][col]=4--seq.valis[i]-1
         if i==seq.i then
-          self.visual[row][col]=15
+          self.visual[row][col]=10
         end
+      else
+        self.visual[row][col]=2--seq.valis[i]-1
+      end
+      if seq.touched==seq.valis[i] then
+        self.visual[row][col]=self.visual[row][col]+5
       end
     end
   end
@@ -200,7 +234,11 @@ function GGrid:get_visual()
   -- illuminate currently pressed button
   for k,_ in pairs(self.pressed_buttons) do
     local row,col=k:match("(%d+),(%d+)")
-    self.visual[tonumber(row)][tonumber(col)]=15
+    row=tonumber(row)
+    col=tonumber(col)
+    if col>8 then
+      self.visual[tonumber(row)][tonumber(col)]=15
+    end
   end
 
   return self.visual

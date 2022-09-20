@@ -105,7 +105,7 @@ Engine_BreakOps : CroneEngine {
             SendReply.kr(Impulse.kr(10)*send_pos,'/position',[snd_pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
             snd = BufRd.ar(2,buf,snd_pos,interpolation:4);
             snd = snd * Env.asr(0.001, 1, 0.001).ar(Done.freeSelf, gate * (1-TDelay.kr(Impulse.kr(0),duration)) );
-            snd = snd * amp.dbamp;
+            snd = snd * amp;
             Out.ar(out,snd);
         }).send(context.server);
 

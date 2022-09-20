@@ -13,7 +13,7 @@ function Sample:init()
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
   params:set_action(self.id.."sample_file",function(x)
     if util.file_exists(x) and string.sub(x,-1)~="/" then
-      self:load(x)
+      self:load_sample(x)
     end
   end)
   params:add{type="binary",name="play",id=self.id.."sample_play",behavior="toggle",action=function(v)
@@ -56,7 +56,7 @@ function Sample:init()
   }
   self.seq={}
   for k,v in pairs(self.default) do
-    self.seq[k]={start=1,stop=64,valis={},i=1,live=0,val=self.options[self.default[k]],vali=self.default[k]}
+    self.seq[k]={start=1,stop=16,valis={},i=1,live=0,touched=self.default[k],val=self.options[self.default[k]],vali=self.default[k]}
     for i=1,64 do
       table.insert(self.seq[k].valis,self.default[k])
     end
@@ -80,7 +80,7 @@ function Sample:init()
   end
 end
 
-function Sample:load(path)
+function Sample:load_sample(path)
   self.path=path
   -- load sample
   print("sample: init "..self.path)
@@ -154,7 +154,7 @@ function Sample:dump()
   return json.enode(data)
 end
 
-function Sample:load(s)
+function Sample:load_dump(s)
   local data=json.decode(s)
   if data==nil then
     do return end
@@ -167,7 +167,7 @@ function Sample:set_focus(i)
 end
 
 function Sample:emit(division,beat_division)
-  if division~=possible_divisions[params:get(self.id.."sample_division")] then
+  if division~=possible_divisions[params:get(self.id.."sample_division")] or self.duration==nil then
     do return end
   end
   for k,v in pairs(self.seq) do
