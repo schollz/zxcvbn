@@ -9,6 +9,7 @@ function VTerm:new(o)
 end
 
 function VTerm:init()
+  self.history={}
   self.view={row=1,col=1}
   self.cursor={row=1,col=3}
   self:load_text[[abcdef
@@ -31,6 +32,7 @@ function VTerm:cursor_insert(s)
     self.lines[row]=self:insert(row,col,s)
   end
   self:move_cursor(0,1)
+  self:update_text()
 end
 
 function VTerm:cursor_delete()
@@ -42,6 +44,21 @@ function VTerm:cursor_delete()
   self.lines[row]=self.lines[row]:sub(1,col-1)..self.lines[row]:sub(col+1)
   print(col)
   self:move_cursor(0,-1)
+  self:update_text()
+end
+
+function VTerm:update_text()
+  if self.lines~=nil then 
+    self.text=table.concat(self.lines,"\n")  
+    self.unsaved=true -- used to add to the history
+   end
+end
+
+function VTerm:update_history()
+  if self.unsaved then 
+    self.unsaved=nil 
+    table.insert(self.history,self.text)
+  end
 end
 
 function VTerm:load_text(text)
@@ -88,6 +105,8 @@ function VTerm:keyboard(k,v)
     end
   elseif string.find(k,"SHIFT") then
     self.shift=v>0
+  elseif string.find(k,"CTRL") then
+    self.ctrl=v>0
   elseif k=="LEFT" then
     self:move_cursor(0,-1)
   elseif k=="RIGHT" then
@@ -96,6 +115,12 @@ function VTerm:keyboard(k,v)
     self:move_cursor(-1,0)
   elseif k=="UP" then
     self:move_cursor(1,0)
+  elseif self.ctrl then 
+    if k=="S" and v==1 then 
+      -- TODO: save
+    elseif k=="Z" and v==1 then 
+      -- TODO: undo
+    end
   elseif v==1 then
     if k=="SPACE" then
       k=" "
