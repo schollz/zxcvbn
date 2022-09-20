@@ -43,7 +43,7 @@ end
 
 function SequenceSample:set_start_stop(start,stop)
   self.samples[self.cur].seq[self.samples[self.cur].ordering[self.samples[self.cur].focus]].start=start
-  self.samples[self.cur].seq[self.samples[self.cur].ordering[self.samples[self.cur].focus]].start=stop
+  self.samples[self.cur].seq[self.samples[self.cur].ordering[self.samples[self.cur].focus]].stop=stop
 end
 
 function SequenceSample:enc(k,d)
