@@ -1,4 +1,4 @@
--- tli
+-- zxcvbn
 --
 --
 -- llllllll.co/t/break ops
@@ -17,6 +17,10 @@ function init()
       redraw()
     end
   end)
+end
+
+function keyboard.code(k,v)
+  vterm:keyboard(k,v)
 end
 
 function enc(k,d)

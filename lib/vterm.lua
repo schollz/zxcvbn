@@ -75,6 +75,39 @@ function VTerm:move_cursor(row,col)
   print("self.cursor.col",self.cursor.col)
 end
 
+function VTerm:keyboard(k,v)
+  print(k,v)
+  if k=="BACKSPACE" then
+    if v>0 then
+      self:cursor_delete()
+    end
+  elseif k=="DELETE" then
+    if v>0 then
+      self:move_cursor(0,1)
+      self:cursor_delete()
+    end
+  elseif string.find(k,"SHIFT") then
+    self.shift=v>0
+  elseif k=="LEFT" then
+    self:move_cursor(0,-1)
+  elseif k=="RIGHT" then
+    self:move_cursor(0,1)
+  elseif k=="DOWN" then
+    self:move_cursor(-1,0)
+  elseif k=="UP" then
+    self:move_cursor(1,0)
+  elseif v==1 then
+    if k=="SPACE" then
+      k=" "
+    elseif k=="SEMICOLON" then
+      k=";"
+    elseif k=="DOT" then
+      k="."
+    end
+    self:cursor_insert(self.shift and k or string.lower(k))
+  end
+end
+
 function VTerm:enc(k,d)
   if k==2 then
     self:move_cursor(0,d)
