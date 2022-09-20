@@ -1,21 +1,21 @@
-// Engine_BreakOps
+// Engine_Zxcvbn
 
 // Inherit methods from CroneEngine
-Engine_BreakOps : CroneEngine {
+Engine_Zxcvbn : CroneEngine {
 
-    // BreakOps specific v0.1.0
+    // Zxcvbn specific v0.1.0
     var buses;
     var syns;
     var bufs; 
     var oscs;
-    // BreakOps ^
+    // Zxcvbn ^
 
     *new { arg context, doneCallback;
         ^super.new(context, doneCallback);
     }
 
     alloc {
-        // BreakOps specific v0.0.1
+        // Zxcvbn specific v0.0.1
         var s=context.server;
 
         buses = Dictionary.new();
@@ -29,8 +29,8 @@ Engine_BreakOps : CroneEngine {
 
         (1..2).do({arg ch;
         SynthDef("playerInOut"++ch,{
-            arg bufnum, id=0,db=0.0, rate=1.0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.02,
-            attack=0.001,decay=0.3,sustain=0.9,release=2.0;
+            arg bufnum, id=0,db=0.0, rate=1.0,pitch=0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.02,
+            duration=100000,attack=0.001,decay=0.3,sustain=1.0,release=2.0;
             
             // vars
             var snd,amp,pos,sampleDuration,sampleDurationInOut,imp,aOrB,posA,sndA,posB,sndB,trigA,trigB;
@@ -38,18 +38,15 @@ Engine_BreakOps : CroneEngine {
             var frames=BufFrames.ir(bufnum);
             
             amp = db.dbamp;
-            rate = BufRateScale.ir(bufnum)*rate;
+            rate = BufRateScale.ir(bufnum)*rate*pitch.midiratio;
             sampleDuration=(sampleEnd-sampleStart)/rate.abs;
             sampleDurationInOut=(sampleOut-sampleIn)/rate.abs;
             
-            trigB=Impulse.kr(0.5/sampleDurationInOut);
-            trigA=TDelay.kr(trigB,sampleDurationInOut);
-            trigB=DelayN.kr(trigB,sampleDuration,sampleDuration-xfade);
-            trigA=DelayN.kr(trigA,sampleDuration,sampleDuration-xfade);
-            aOrB=(1-ToggleFF.kr(trigA+trigB));
+            trigger=DelayN.kr(Impulse.kr(1/sampleDurationInOut),sampleDuration-xfade,sampleDuration-xfade);
+            aOrB=ToggleFF.kr(trigger);
             
             posA=Phasor.ar(
-                trig:trigA,
+                trig:1-aOrB,
                 rate:rate/context.server.sampleRate,
                 start:((sampleStart*(rate>0))+(sampleEnd*(rate<0))),
                 end:((sampleEnd*(rate>0))+(sampleStart*(rate<0))),
@@ -57,10 +54,10 @@ Engine_BreakOps : CroneEngine {
             );
             sndA=BufRd.ar(ch,bufnum,posA/duration*frames,
                 loop:1,
-                interpolation:2
+                interpolation:4
             );
             posB=Phasor.ar(
-                trig:trigB,
+                trig:aOrB,
                 rate:rate/context.server.sampleRate,
                 start:((sampleStart*(rate>0))+(sampleEnd*(rate<0))),
                 end:((sampleEnd*(rate>0))+(sampleStart*(rate<0))),
@@ -68,15 +65,15 @@ Engine_BreakOps : CroneEngine {
             );
             sndB=BufRd.ar(ch,bufnum,posB/duration*frames,
                 loop:1,
-                interpolation:2
+                interpolation:4
             );
 
-            pos=Select.kr(aOrB,[posB,posA]);
-            snd=SelectX.ar(Lag.kr(aOrB,xfade),[sndB,sndA],0)*amp;
+            pos=Select.kr(aOrB,[posA,posB]);
+            snd=SelectX.ar(Lag.kr(aOrB,xfade),[sndA,sndB],0)*amp;
             snd=Pan2.ar(snd,0);
-            snd=snd*EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+            snd=snd*EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate * (1-TDelay.kr(Impulse.kr(0),duration)) ,doneAction:2);
             
-            SendTrig.kr(Impulse.kr(watch),id,A2K.kr(pos));
+            // TODO: use sendreply SendTrig.kr(Impulse.kr(watch),id,A2K.kr(pos));
             
             Out.ar(0,snd);
         }).add;
@@ -376,12 +373,12 @@ Engine_BreakOps : CroneEngine {
         });
 
 
-        // ^ BreakOps specific
+        // ^ Zxcvbn specific
 
     }
 
     free {
-        // BreakOps Specific v0.0.1
+        // Zxcvbn Specific v0.0.1
         bufs.keysValuesDo({ arg buf, val;
 			val.free;
 		});
@@ -394,6 +391,6 @@ Engine_BreakOps : CroneEngine {
         oscs.keysValuesDo({ arg buf, val;
             val.free;
         });
-        // ^ BreakOps specific
+        // ^ Zxcvbn specific
     }
 }
