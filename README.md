@@ -1,5 +1,7 @@
 # zxcvbn
 
+branch working well: https://github.com/schollz/zxcvbn/commit/c65c1fad06f9509b79ac1808113394c562a023a6
+
 too little information.
 
 tracker of limited input.
