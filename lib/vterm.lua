@@ -221,16 +221,18 @@ end
 
 function VTerm:redraw()
   screen.level(15)
+  local x_offset=7
+  local y_offset=-2
   for i,line in ipairs(self.lines) do
     if i>=self.view.row then
       screen.level(15)
-      screen.move(1,8*(i-self.view.row+1))
+      screen.move(1+x_offset,8*(i-self.view.row+1)+y_offset)
       screen.text(line:sub(self.view.col))
     end
     if self.cursor.row==i then
       screen.level(5)
-      screen.move(self.cursor.x,8*(i-self.view.row+1)-6)
-      screen.line(self.cursor.x,8*(i-self.view.row+1)+2)
+      screen.move(self.cursor.x+x_offset,8*(i-self.view.row+1)-6+y_offset)
+      screen.line(self.cursor.x+x_offset,8*(i-self.view.row+1)+2+y_offset)
       screen.stroke()
     end
   end
