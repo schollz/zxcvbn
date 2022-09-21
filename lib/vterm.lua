@@ -169,6 +169,7 @@ function VTerm:keyboard(k,v)
     end
   elseif self.ctrl then
     if k=="S" and v==1 then
+      show_message("saved",2)
       -- TODO: save
     elseif k=="Z" and v==1 then
       -- TODO: undo
