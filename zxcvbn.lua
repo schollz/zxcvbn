@@ -74,10 +74,10 @@ function redraw()
   vterm:redraw()
 
   screen.level(7)
-  screen.rect(122,0,8,66)
+  screen.rect(0,0,6,66)
   screen.fill()
   screen.level(0)
-  screen.move(125,8)
+  screen.move(3,8)
   screen.text_center("8")
 
   draw_message()
