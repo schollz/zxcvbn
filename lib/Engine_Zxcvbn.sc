@@ -30,11 +30,11 @@ Engine_Zxcvbn : CroneEngine {
         (1..2).do({arg ch;
         SynthDef("playerInOut"++ch,{
             arg bufnum, id=0,db=0.0, rate=1.0,pitch=0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.02,
-            duration=100000,attack=0.001,decay=0.3,sustain=1.0,release=2.0;
+            duration=10000,attack=0.001,decay=0.3,sustain=1.0,release=2.0;
             
             // vars
-            var snd,amp,pos,sampleDuration,sampleDurationInOut,imp,aOrB,posA,sndA,posB,sndB,trigA,trigB;
-            var duration=BufDur.ir(bufnum);
+            var snd,amp,pos,trigger,sampleDuration,sampleDurationInOut,imp,aOrB,posA,sndA,posB,sndB,trigA,trigB;
+            var durationBuffer=BufDur.ir(bufnum);
             var frames=BufFrames.ir(bufnum);
             
             amp = db.dbamp;
@@ -48,22 +48,22 @@ Engine_Zxcvbn : CroneEngine {
             posA=Phasor.ar(
                 trig:1-aOrB,
                 rate:rate/context.server.sampleRate,
-                start:((sampleStart*(rate>0))+(sampleEnd*(rate<0))),
-                end:((sampleEnd*(rate>0))+(sampleStart*(rate<0))),
+                start:sampleStart,
+                end:sampleEnd,
                 resetPos:sampleIn
             );
-            sndA=BufRd.ar(ch,bufnum,posA/duration*frames,
+            sndA=BufRd.ar(ch,bufnum,posA/durationBuffer*frames,
                 loop:1,
                 interpolation:4
             );
             posB=Phasor.ar(
                 trig:aOrB,
-                rate:rate/context.server.sampleRate,
-                start:((sampleStart*(rate>0))+(sampleEnd*(rate<0))),
-                end:((sampleEnd*(rate>0))+(sampleStart*(rate<0))),
-                resetPos:sampleIn
+                rate:rate.neg/context.server.sampleRate,
+                start:sampleStart,
+                end:sampleEnd,
+                resetPos:sampleOut
             );
-            sndB=BufRd.ar(ch,bufnum,posB/duration*frames,
+            sndB=BufRd.ar(ch,bufnum,posB/durationBuffer*frames,
                 loop:1,
                 interpolation:4
             );

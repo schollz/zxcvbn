@@ -9,78 +9,25 @@ function Sample:new(o)
 end
 
 function Sample:init()
-  params:add_group("SAMPLE "..self.id,3)
-  params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
-  params:set_action(self.id.."sample_file",function(x)
-    if util.file_exists(x) and string.sub(x,-1)~="/" then
-      self:load_sample(x)
-    end
-  end)
-  params:add{type="binary",name="play",id=self.id.."sample_play",behavior="toggle",action=function(v)
-  end}
-  params:add_option(self.id.."sample_division","division",possible_division_options,5)
-
-  -- setup sequences
-  local zero_to_one={}
-  local one_to_zero={}
-  local one_to_sixteen={}
-  for i=0,15 do
-    table.insert(zero_to_one,i/15)
-    table.insert(one_to_sixteen,i+1)
-    table.insert(one_to_zero,1-i/15)
+  if not util.file_exists(_path.data.."zxcvbn/dats/") then
+    os.execute("mkdir -p ".._path.data.."zxcvbn/dats/")
+    os.execute("mkdir -p ".._path.data.."zxcvbn/cursors/")
+    os.execute("mkdir -p ".._path.data.."zxcvbn/pngs/")
   end
-  self.record={0,0,0,0,0,0,0,0,0}
-  self.options={
-    db={-96,-72,-64,-48,-24,-20,-16,-8,-6,-4,-2,0,2,4,6,8},
-    decimate=zero_to_one,
-    filter=one_to_zero,
-    retrig=one_to_sixteen,
-    stretch=zero_to_one,
-    gate=one_to_zero,
-    pitch={-8,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,8,10},
-    other=one_to_sixteen,
-    pos=zero_to_one,-- this gets filled in later
-    kickdb={-96,-72,-64,-48,-24,-20,-16,-8,-6,-4,-2,0,2,4,6,8},
-  }
-  self.default={
-    db=5,
-    filter=1,
-    retrig=1,
-    gate=1,
-    pitch=8,
-    decimate=1,
-    stretch=1,
-    other=1,
-    pos=1,
-    kickdb=1,
-  }
-  self.seq={}
-  for k,v in pairs(self.default) do
-    self.seq[k]={start=1,stop=16,valis={},i=1,live=0,touched=self.default[k],val=self.options[self.default[k]],vali=self.default[k]}
-    for i=1,64 do
-      table.insert(self.seq[k].valis,self.default[k])
-    end
-  end
-  self.seq.pos.valis={}
-  for i=1,64 do
-    table.insert(self.seq.pos.valis,(i-1)%16+1)
-  end
-
-  self.focus=1
-  self.ordering={"pos","db","filter","retrig","gate","pitch","decimate","stretch","other"}
+  self.path_to_pngs=_path.data.."zxcvbn/pngs/"
 
   -- initialize debouncer
   self.debounce_fn={}
 
   -- choose audiowaveform binary
-  self.audiowaveform="/home/we/dust/code/break-ops/lib/audiowaveform"
+  self.audiowaveform="/home/we/dust/code/zxcvbn/lib/audiowaveform"
   local foo=util.os_capture(self.audiowaveform.." --help")
   if not string.find(foo,"Options") then
     self.audiowaveform="audiowaveform"
   end
 end
 
-function Sample:load_sample(path)
+function Sample:load_sample(path,cursor_type)
   self.path=path
   -- load sample
   print("sample: init "..self.path)
@@ -98,143 +45,38 @@ function Sample:load_sample(path)
   self.debounce_zoom=0
 
   -- create dat file
-  os.execute("mkdir -p ".._path.data.."break-ops/dats/")
-  os.execute("mkdir -p ".._path.data.."break-ops/cursors/")
-  os.execute("mkdir -p ".._path.data.."break-ops/pngs/")
-  self.path_to_dat=_path.data.."break-ops/dats/"..self.filename..".dat"
-  self.path_to_pngs=_path.data.."break-ops/pngs/"
+  self.path_to_dat=_path.data.."zxcvbn/dats/"..self.filename..".dat"
   if not util.file_exists(self.path_to_dat) then
     local cmd=string.format("%s -q -i %s -o %s -z %d -b 8",self.audiowaveform,self.path,self.path_to_dat,2)
-    print(cmd)
     os.execute(cmd)
   end
 
-  -- figure out the bpm
-  local bpm=nil
-  for word in string.gmatch(self.path,'([^_]+)') do
-    if string.find(word,"bpm") then
-      bpm=tonumber(word:match("%d+"))
-    end
-  end
-  if bpm==nil then
-    bpm=self:guess_bpm(path)
-  end
-  if bpm==nil then
-    bpm=clock.get_tempo()
-  end
-  self.bpm=bpm
-
-  -- load cursors or figure out the best number
-  self.path_to_cursors=_path.data.."/break-ops/cursors/"..self.filename..".cursors"
-  if util.file_exists(self.path_to_cursors) then -- TODO debug
-    print("sample: loading existing cursors")
-    self:load_cursors()
+  if cursor_type=="onsets" then
+    self.cursors=self:get_onsets(self.path,self.duration)
   else
-    self.options.pos={}
-    self.cursor_durations={}
-    local onsets=self:get_onsets(self.path,self.duration)
-    for i=1,16 do
-      table.insert(self.options.pos,onsets[i])
-      if i<16 then
-        table.insert(self.cursor_durations,onsets[i+1]-onsets[i])
-      else
-        table.insert(self.cursor_durations,self.duration-onsets[i])
-      end
-    end
-    self:save_cursors()
+    self.cursors={0,self.duration*0.6,self.duration*0.8,self.duration-0.1}
   end
-
   engine.load_buffer(self.path)
   self.loaded=true
 end
 
-function Sample:dump()
-  local data={}
-  data.seq=json.encode(seq)
-  return json.enode(data)
-end
-
-function Sample:load_dump(s)
-  local data=json.decode(s)
-  if data==nil then
-    do return end
-  end
-  self.seq=json.decode(data.seq)
-end
-
-function Sample:set_focus(i)
-  self.focus=i
-end
-
-function Sample:emit(division,beat_division)
-  if division~=possible_divisions[params:get(self.id.."sample_division")] or self.duration==nil then
-    do return end
-  end
-  for k,v in pairs(self.seq) do
-    self.seq[k].i=(beat_division-1)%(self.seq[k].stop-self.seq[k].start+1)+self.seq[k].start
-    -- the "live" nubmer is the one being recorded and it takes the place
-    if self.seq[k].live>0 then
-      self.seq[k].valis[self.seq[k].i]=self.seq[k].live
-    end
-    self.seq[k].vali=self.seq[k].valis[self.seq[k].i]
-    self.seq[k].val=self.options[k][self.seq[k].vali]
-  end
-  -- special is the kick which is based off the pos index
-  self.seq.kickdb.i=self.seq.pos.vali
-  self.seq.kickdb.val=self.options.kickdb[self.seq.kickdb.valis[self.seq.kickdb.i]]
-
-  local data={}
-  for k,v in pairs(self.seq) do
-    data[k]=v.val
-  end
-  data.duration=self.duration*division
-
-  -- check the "others"
-  if self.seq.other.val==2 then
-    data.kickdb=-96
-    data.path="glitch"
-  end
-  self:play(data)
-end
-
-function Sample:get_seq()
-  return self.seq[self.ordering[self.focus]]
-end
-
-function Sample:play(data)
-  data.path=data.path or self.path
-  data.kickdb=data.kickdb or-96
-  data.db=data.db or 0
-  data.pitch=data.pitch or 0
-  data.pos=data.pos or 0
-  data.duration=data.duration or 100
-  data.gate=data.gate or 1
-  data.retrig=data.retrig or 1
-  rate=clock.get_tempo()/self.bpm -- normalize tempo to bpm
-
-  engine.play(data.path,data.db,rate,data.pitch,data.pos,data.duration,data.gate,data.retrig,sampler.cur==self.id and 1 or 0)
-  if data.kickdb>-96 then
-    print("kick",data.kickdb)
-    engine.kick(
-      params:get("basefreq"),
-      params:get("ratio"),
-      params:get("sweeptime")/1000,
-      params:get("preamp"),
-      params:get("kick_db")+data.kickdb,
-      params:get("decay1")/1000,
-      params:get("decay1L")/1000,
-      params:get("decay2")/1000,
-    params:get("clicky")/1000)
-  end
-
-end
-
-function Sample:play_cursor(ci,duration)
-  duration=duration or self.cursor_durations[ci]
-  self:play({db=0,pos=self.options.pos[ci],duration=duration})
-end
-
 function Sample:get_onsets(fname,duration)
+  self.path_to_cursors=_path.data.."/zxcvbn/cursors/"..self.filename..".cursors"
+  -- try to load the cached cursors
+  if util.file_exists(self.path_to_cursors) then
+    print("sample: loading existing cursors")
+    local f=io.open(self.path_to_cursors,"rb")
+    local content=f:read("*all")
+    f:close()
+    if content~=nil then
+      local data=json.decode(content)
+      if data~=nil then
+        do return data.cursors end
+      end
+    end
+  end
+
+  -- define average function
   local average=function(t)
     local sum=0
     for _,v in pairs(t) do -- Get the sum of all numbers in t
@@ -242,6 +84,8 @@ function Sample:get_onsets(fname,duration)
     end
     return sum/#t
   end
+
+  -- gather the onsets
   local onsets={}
   for _,algo in ipairs({"energy","hfc","complex","kl","specdiff"}) do
     for threshold=1.0,0.1,-0.1 do
@@ -278,7 +122,29 @@ function Sample:get_onsets(fname,duration)
     end
   end
   table.sort(top16)
+
+  -- save the top16
+  local filename=self.path_to_cursors
+  local file=io.open(self.path_to_cursors,"w+")
+  io.output(file)
+  io.write(json.encode({cursors=top16}))
+  io.close(file)
+
   return top16
+end
+
+function Sample:dump()
+  local data={}
+  data.seq=json.encode(seq)
+  return json.enode(data)
+end
+
+function Sample:load_dump(s)
+  local data=json.decode(s)
+  if data==nil then
+    do return end
+  end
+  self.seq=json.decode(data.seq)
 end
 
 function Sample:debounce()
@@ -300,54 +166,6 @@ function Sample:debounce()
   end
 end
 
-function Sample:load_cursors()
-  local f=io.open(self.path_to_cursors,"rb")
-  local content=f:read("*all")
-  f:close()
-  if content==nil then
-    do return end
-  end
-  print(content)
-  local data=json.decode(content)
-  if data~=nil then
-    self.options.pos=data.cursors
-    self.cursor_durations=data.cursor_durations
-  end
-end
-
-function Sample:save_cursors()
-  local filename=self.path_to_cursors
-  local file=io.open(self.path_to_cursors,"w+")
-  io.output(file)
-  io.write(json.encode({cursors=self.options.pos,cursor_durations=self.cursor_durations}))
-  io.close(file)
-  print("sample: save_cursors done")
-end
-
-function Sample:guess_bpm(fname)
-  local ch,samples,samplerate=audio.file_info(fname)
-  if samples==nil or samples<10 then
-    print("ERROR PROCESSING FILE: "..self.path)
-    do return end
-  end
-  local duration=samples/samplerate
-  local closest={1,1000000}
-  for bpm=90,179 do
-    local beats=duration/(60/bpm)
-    local beats_round=util.round(beats)
-    -- only consider even numbers of beats
-    if beats_round%4==0 then
-      local dif=math.abs(beats-beats_round)/beats
-      if dif<closest[2] then
-        closest={bpm,dif,beats}
-      end
-    end
-  end
-  print("bpm guessing for",fname)
-  tab.print(closest)
-  return closest[1]
-end
-
 function Sample:do_zoom(d)
   -- zoom
   if d>0 then
@@ -358,11 +176,11 @@ function Sample:do_zoom(d)
 end
 
 function Sample:do_move(d)
-  self.options.pos[self.ci]=util.clamp(self.options.pos[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
+  self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
 
   -- update cursor durations
   local cursors={}
-  for i,c in ipairs(self.options.pos) do
+  for i,c in ipairs(self.cursors) do
     table.insert(cursors,{i=i,c=c})
   end
   table.insert(cursors,{i=17,c=self.duration})
@@ -375,17 +193,11 @@ function Sample:do_move(d)
 end
 
 function Sample:enc(k,d)
-  if k==3 and d~=0 then
-    self:do_zoom(d)
+  if k==1 then
   elseif k==2 then
     self:do_move(d)
-  elseif k==1 then
-    self.seq.kickdb.valis[self.ci]=self.seq.kickdb.valis[self.ci]+d
-    if self.seq.kickdb.valis[self.ci]>16 then
-      self.seq.kickdb.valis[self.ci]=self.seq.kickdb.valis[self.ci]-16
-    elseif self.seq.kickdb.valis[self.ci]<1 then
-      self.seq.kickdb.valis[self.ci]=self.seq.kickdb.valis[self.ci]+16
-    end
+  elseif k==3 and d~=0 then
+    self:do_zoom(d)
   end
 end
 
@@ -408,7 +220,7 @@ function Sample:sel_cursor(ci)
   end
   self.ci=ci
   local view_duration=(self.view[2]-self.view[1])
-  local cursor=self.options.pos[self.ci]
+  local cursor=self.cursors[self.ci]
   if view_duration~=self.duration and cursor-self.cursor_durations[ci]<self.view[1] or cursor+self.cursor_durations[ci]>self.view[2] then
     local cursor_frac=0.5
     local next_view=cursor+self.cursor_durations[ci]
@@ -417,7 +229,7 @@ function Sample:sel_cursor(ci)
     end
     local prev_view=cursor-self.cursor_durations[ci]
     if ci>1 then
-      prev_view=self.options.pos[ci-1]+self.cursor_durations[ci-1]/3
+      prev_view=self.cursors[ci-1]+self.cursor_durations[ci-1]/3
     end
     self.view={util.clamp(prev_view,0,self.duration),util.clamp(next_view,0,self.duration)}
   end
@@ -427,7 +239,7 @@ function Sample:zoom(zoom_in,zoom_amount)
   zoom_amount=zoom_amount or 1.5
   local view_duration=(self.view[2]-self.view[1])
   local view_duration_new=zoom_in and view_duration/zoom_amount or view_duration*zoom_amount
-  local cursor=self.options.pos[self.ci]
+  local cursor=self.cursors[self.ci]
   local cursor_frac=(cursor-self.view[1])/view_duration
   local view_new={0,0}
   view_new[1]=util.clamp(cursor-view_duration_new*cursor_frac,0,self.duration)
@@ -467,7 +279,7 @@ function Sample:redraw()
   screen.update()
 
   for i=1,16 do
-    local cursor=self.options.pos[i]
+    local cursor=self.cursors[i]
     if cursor>=self.view[1] and cursor<=self.view[2] then
       local pos=util.linlin(self.view[1],self.view[2],1,128,cursor)
       screen.level(i==self.ci and 15 or 1)
@@ -495,9 +307,6 @@ function Sample:redraw()
     self.is_playing=false
   end
 
-  screen.level(15)
-  screen.move(126,64)
-  screen.text_right(self.options.kickdb[self.seq.kickdb.valis[self.ci]].." dB")
   return string.format("%02d",self.ci).."/16 "..self.filename
 end
 
