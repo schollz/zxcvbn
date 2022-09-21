@@ -12,9 +12,17 @@ function VTerm:init()
   self.history={}
   self.view={row=1,col=1}
   self.cursor={row=1,col=3}
-  self:load_text[[abcdef
+  self:load_text[[file amenbreak_bpm136.wav
+bpm 136 
  
-jumped over the fence
+chain a b a a b
+ppq 4 -> pulses per quarter note (creates division of 1/(4*ppq))
+ 
+pattern a
+0
+1
+2
+3 3 3 3  
 ]]
   self:move_cursor(0,0)
 end
@@ -26,12 +34,27 @@ end
 function VTerm:cursor_insert(s)
   local row=self.cursor.row
   local col=self.cursor.col
-  if col==0 then
-    self.lines[row]=s..self.lines[row]
+  if s=="\n" then
+    print("enter")
+    local lines={}
+    for i,line in ipairs(self.lines) do
+      if i==row then
+        table.insert(lines,line:sub(1,col))
+        table.insert(lines,line:sub(col+1))
+      else
+        table.insert(lines,line)
+      end
+    end
+    self.lines=lines
+    self:move_cursor(1,-100)
   else
-    self.lines[row]=self:insert(row,col,s)
+    if col==0 then
+      self.lines[row]=s..self.lines[row]
+    else
+      self.lines[row]=self:insert(row,col,s)
+    end
+    self:move_cursor(0,1)
   end
-  self:move_cursor(0,1)
   self:update_text()
 end
 
@@ -39,6 +62,20 @@ function VTerm:cursor_delete()
   local row=self.cursor.row
   local col=self.cursor.col
   if col==0 then
+    if row>1 then
+      -- combine current line with previous line
+      local lines={}
+      for i,line in ipairs(self.lines) do
+        if i==row-1 then
+          table.insert(lines,line..self.lines[i+1])
+        elseif i==row then
+        else
+          table.insert(lines,line)
+        end
+      end
+      self.lines=lines
+      self:move_cursor(-1,10000)
+    end
     do return end
   end
   self.lines[row]=self.lines[row]:sub(1,col-1)..self.lines[row]:sub(col+1)
@@ -48,15 +85,15 @@ function VTerm:cursor_delete()
 end
 
 function VTerm:update_text()
-  if self.lines~=nil then 
-    self.text=table.concat(self.lines,"\n")  
+  if self.lines~=nil then
+    self.text=table.concat(self.lines,"\n")
     self.unsaved=true -- used to add to the history
-   end
+  end
 end
 
 function VTerm:update_history()
-  if self.unsaved then 
-    self.unsaved=nil 
+  if self.unsaved then
+    self.unsaved=nil
     table.insert(self.history,self.text)
   end
 end
@@ -89,7 +126,12 @@ function VTerm:move_cursor(row,col)
   if self.cursor.col==0 then
     self.cursor.x=1
   end
-  print("self.cursor.col",self.cursor.col)
+  if self.cursor.row>self.view.row+6 then
+    self.view.row=self.cursor.row-7
+  end
+  if self.cursor.row<self.view.row then
+    self.view.row=self.cursor.row
+  end
 end
 
 function VTerm:keyboard(k,v)
@@ -100,27 +142,37 @@ function VTerm:keyboard(k,v)
     end
   elseif k=="DELETE" then
     if v>0 then
-      self:move_cursor(0,1)
-      self:cursor_delete()
+      if self.cursor.col<#self.lines[self.cursor.row] then
+        self:move_cursor(0,1)
+        self:cursor_delete()
+      end
     end
   elseif string.find(k,"SHIFT") then
     self.shift=v>0
   elseif string.find(k,"CTRL") then
     self.ctrl=v>0
   elseif k=="LEFT" then
-    self:move_cursor(0,-1)
+    if v==1 then
+      self:move_cursor(0,-1)
+    end
   elseif k=="RIGHT" then
-    self:move_cursor(0,1)
+    if v==1 then
+      self:move_cursor(0,1)
+    end
   elseif k=="DOWN" then
-    self:move_cursor(-1,0)
+    if v==1 then
+      self:move_cursor(1,0)
+    end
   elseif k=="UP" then
-    self:move_cursor(1,0)
-  elseif self.ctrl then 
-    if k=="S" and v==1 then 
+    if v==1 then
+      self:move_cursor(-1,0)
+    end
+  elseif self.ctrl then
+    if k=="S" and v==1 then
       -- TODO: save
-    elseif k=="Z" and v==1 then 
+    elseif k=="Z" and v==1 then
       -- TODO: undo
-    elseif tonumber(k)>0 and tonumber(k)<10 then 
+    elseif tonumber(k)~=nil and tonumber(k)>0 and tonumber(k)<10 then
       -- TODO: switch?
     end
   elseif v==1 then
@@ -128,20 +180,24 @@ function VTerm:keyboard(k,v)
     if k=="SPACE" then
       k=" "
     elseif k=="SEMICOLON" then
-      k=";"
+      k=self.shift and ":" or ";"
+    elseif k=="SLASH" then
+      k=self.shift and "?" or "/"
     elseif k=="DOT" then
-      k="."
-    elseif k=="ENTER" then 
+      k=self.shift and ">" or "."
+    elseif k=="ENTER" then
       k="\n"
-    elseif k=="MINUS" a then 
+    elseif k=="MINUS" then
       k=self.shift and "_" or "-"
-    elseif k=="EQUAL" then 
+    elseif k=="COMMA" then
+      k=self.shift and "<" or ","
+    elseif k=="EQUAL" then
       k=self.shift and "+" or "="
-    elseif #k>1 then 
-      unknown=true 
+    elseif #k>1 then
+      unknown=true
       print("vterm: unknown character: "..k)
     end
-    if not unknown then 
+    if not unknown then
       self:cursor_insert(self.shift and k or string.lower(k))
     end
   end
