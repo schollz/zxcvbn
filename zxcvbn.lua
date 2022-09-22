@@ -7,39 +7,101 @@
 --
 --    ▼ instructions below ▼
 
+if not string.find(package.cpath,"/home/we/dust/code/zxcvbn/lib/") then
+  package.cpath=package.cpath..";/home/we/dust/code/zxcvbn/lib/?.so"
+end
+json=require("cjson")
 track_=include("lib/track")
 vterm_=include("lib/vterm")
+sample_=include("lib/sample")
+
+-- global division definitions
+possible_divisions={1/32,1/24,1/16,1/12,1/8,1/6,1/4,1/3,1/2,1,2,4}
+possible_division_options={"1/32","1/24","1/16","1/12","1/8","1/6","1/4","1/3","1/2","1","2","4"}
+
+-- debouncer
+debounce_fn={}
+
+engine.name="Zxcvbn"
 
 function init()
-  tracks={}
-  for i=1,4 do
-    table.insert(tracks,track_:new{id=i})
-  end
+  os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
+
+  -- setup tracks
   params:add_number("track","track",1,4,1)
   params:set_action("track",function(x)
     for i,track in ipairs(tracks) do
       track:select(i==x)
     end
   end)
-  vterm=vterm_:new()
+
+  tracks={}
+  for i=1,4 do
+    table.insert(tracks,track_:new{id=i})
+  end
+
+  -- bang params
+  params:bang()
+
+  -- setup osc
+  osc_fun={
+    progress=function(args)
+      sampler:show_position(tonumber(args[1]))
+    end,
+    oscnotify=function(args)
+      print("file edited ok!")
+      rerun()
+    end,
+  }
+  osc.event=function(path,args,from)
+    if string.sub(path,1,1)=="/" then
+      path=string.sub(path,2)
+    end
+    if osc_fun[path]~=nil then osc_fun[path](args) else
+      print("osc.event: '"..path.."' ?")
+    end
+  end
+
   clock.run(function()
     while true do
+      debounce_params()
       clock.sleep(1/10)
       redraw()
     end
   end)
+
+  params:set("1sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+end
+
+function debounce_params()
+  for k,v in pairs(debounce_fn) do
+    if v~=nil and v[1]~=nil and v[1]>0 then
+      v[1]=v[1]-1
+      if v[1]~=nil and v[1]==0 then
+        if v[2]~=nil then
+          local status,err=pcall(v[2])
+          if err~=nil then
+            print(status,err)
+          end
+        end
+        debounce_fn[k]=nil
+      else
+        debounce_fn[k]=v
+      end
+    end
+  end
 end
 
 function keyboard.code(k,v)
-  vterm:keyboard(k,v)
+  tracks[params:get("track")]:keyboard(k,v)
 end
 
 function enc(k,d)
-  vterm:enc(k,d)
+  tracks[params:get("track")]:enc(k,d)
 end
 
 function key(k,z)
-  vterm:key(k,z)
+  tracks[params:get("track")]:key(k,z)
 end
 
 function show_message(message,seconds)
@@ -82,7 +144,7 @@ end
 
 function redraw()
   screen.clear()
-  vterm:redraw()
+  tracks[params:get("track")]:redraw()
 
   screen.level(7)
   screen.rect(0,0,6,66)
@@ -98,4 +160,8 @@ end
 
 function rerun()
   norns.script.load(norns.state.script)
+end
+
+function cleanup()
+  os.execute("pkill -f oscnotify")
 end

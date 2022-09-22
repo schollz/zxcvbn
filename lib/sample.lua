@@ -9,6 +9,7 @@ function Sample:new(o)
 end
 
 function Sample:init()
+  self.dec_to_hex={"0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"}
   if not util.file_exists(_path.data.."zxcvbn/dats/") then
     os.execute("mkdir -p ".._path.data.."zxcvbn/dats/")
     os.execute("mkdir -p ".._path.data.."zxcvbn/cursors/")
@@ -28,6 +29,7 @@ function Sample:init()
 end
 
 function Sample:load_sample(path,cursor_type)
+  print("sample: load_sample "..path)
   self.path=path
   -- load sample
   print("sample: init "..self.path)
@@ -41,7 +43,7 @@ function Sample:load_sample(path,cursor_type)
   self.ci=1
   self.view={0,self.duration}
   self.height=56
-  self.width=128
+  self.width=120
   self.debounce_zoom=0
 
   -- create dat file
@@ -51,10 +53,13 @@ function Sample:load_sample(path,cursor_type)
     os.execute(cmd)
   end
 
-  if cursor_type=="onsets" then
+  if cursor_type==nil or cursor_type=="onsets" then
     self.cursors=self:get_onsets(self.path,self.duration)
+    self.cursor_durations={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
   else
     self.cursors={0,self.duration*0.6,self.duration*0.8,self.duration-0.1}
+    self.cursor_durations={0,0,0,0}
+
   end
   engine.load_buffer(self.path)
   self.loaded=true
@@ -192,6 +197,10 @@ function Sample:do_move(d)
   self.debounce_fn["save_cursors"]={30,function() self:save_cursors() end}
 end
 
+function Sample:keyboard(k,v)
+
+end
+
 function Sample:enc(k,d)
   if k==1 then
   elseif k==2 then
@@ -267,7 +276,7 @@ function Sample:redraw()
   if not self.loaded then
     do return end
   end
-  local x=0
+  local x=7
   local y=8
   if show_cursor==nil then
     show_cursor=true
@@ -282,9 +291,9 @@ function Sample:redraw()
     local cursor=self.cursors[i]
     if cursor>=self.view[1] and cursor<=self.view[2] then
       local pos=util.linlin(self.view[1],self.view[2],1,128,cursor)
-      screen.level(i==self.ci and 15 or 1)
-      screen.move(pos,64-self.height)
-      screen.line(pos,64)
+      screen.level(i==self.ci and 15 or 5)
+      screen.move(pos+x,64-self.height)
+      screen.line(pos+x,64)
       screen.stroke()
     end
   end
@@ -307,7 +316,19 @@ function Sample:redraw()
     self.is_playing=false
   end
 
-  return string.format("%02d",self.ci).."/16 "..self.filename
+  local title="/"..self.filename
+  screen.level(15)
+  screen.move(8+x,6)
+  screen.text(title)
+  screen.move(6+x,6)
+  screen.text_right(self.dec_to_hex[self.ci])
+  screen.blend_mode(1)
+  screen.level(9)
+  screen.rect(x,0,128,7)
+  screen.fill()
+  -- screen.rect(x,0,11,7)
+  -- screen.fill()
+
 end
 
 return Sample
