@@ -647,7 +647,7 @@ function TLI:chord_to_midi(c,midi_near)
   return p
 end
 
-function TLI:parse_pattern(text,division)
+function TLI:parse_pattern(text,division,use_hex)
   division=division or 16
 
   local trim_=function(s)
@@ -673,7 +673,11 @@ function TLI:parse_pattern(text,division)
     pos.adj={}
     for j,v in ipairs(self.string_split(pos.el,";")) do
       if j==1 then
+	      if use_hex then 
+pos.parsed=self:hex_to_midi(v)
+	      else
         pos.parsed=self:to_midi(v)
+	      end
       else
         local foo=self.string_split(v,"=")
         pos.adj[foo[1]]=foo[2]
@@ -947,7 +951,7 @@ function TLI:get_arp(input,steps,shape,length)
   return final
 end
 
-function TLI:parse_tli(text)
+function TLI:parse_tli(text,use_hex)
 
   local trim_=function(s)
     return (s:gsub("^%s*(.-)%s*$","%1"))
@@ -997,7 +1001,7 @@ function TLI:parse_tli(text)
   end
 
   for k,pattern in pairs(data.patterns) do
-    data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,pattern.division)
+    data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,pattern.division,use_hex)
   end
 
   -- combine the chain
@@ -1069,6 +1073,18 @@ pattern=c
 e4
  
 ]])
+
+  local data=tli:parse_tli([[
+# ignore this
+ 
+chain a 
+ 
+pattern=a
+0
+1 2
+3333
+
+]],true)
 
   -- print(json.encode(data))
 
