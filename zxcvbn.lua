@@ -7,9 +7,20 @@
 --
 --    ▼ instructions below ▼
 
+track_=include("lib/track")
 vterm_=include("lib/vterm")
 
 function init()
+  tracks={}
+  for i=1,4 do
+    table.insert(tracks,track_:new{id=i})
+  end
+  params:add_number("track","track",1,4,1)
+  params:set_action("track",function(x)
+    for i,track in ipairs(tracks) do
+      track:select(i==x)
+    end
+  end)
   vterm=vterm_:new()
   clock.run(function()
     while true do
