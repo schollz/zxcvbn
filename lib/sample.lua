@@ -198,7 +198,20 @@ function Sample:do_move(d)
 end
 
 function Sample:keyboard(k,v)
-
+  print(k,v)
+  if k=="EQUAL" and v==1 then
+    self:do_zoom(1)
+  elseif k=="MINUS" and v==1 then
+    self:do_zoom(-1)
+  elseif k=="UP" and v==1 then
+    self:sel_cursor(self.ci+1)
+  elseif k=="DOWN" and v==1 then
+    self:sel_cursor(self.ci-1)
+  elseif k=="LEFT" and v==1 then
+    self:do_move(-1)
+  elseif k=="RIGHT" and v==1 then
+    self:do_move(1)
+  end
 end
 
 function Sample:enc(k,d)
@@ -290,7 +303,7 @@ function Sample:redraw()
   for i=1,16 do
     local cursor=self.cursors[i]
     if cursor>=self.view[1] and cursor<=self.view[2] then
-      local pos=util.linlin(self.view[1],self.view[2],1,128,cursor)
+      local pos=util.linlin(self.view[1],self.view[2],1,self.width,cursor)
       screen.level(i==self.ci and 15 or 5)
       screen.move(pos+x,64-self.height)
       screen.line(pos+x,64)
@@ -304,7 +317,7 @@ function Sample:redraw()
     screen.level(15)
     local cursor=self.show_pos
     if cursor>=self.view[1] and cursor<=self.view[2] then
-      local pos=util.linlin(self.view[1],self.view[2],1,128,cursor)
+      local pos=util.linlin(self.view[1],self.view[2],1,self.width,cursor)
       screen.aa(1)
       screen.level(15)
       screen.move(pos,64-self.height)
