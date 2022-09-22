@@ -92,7 +92,24 @@ function debounce_params()
   end
 end
 
+ctrl_on=false
+shift_on=false
 function keyboard.code(k,v)
+  if string.find(k,"CTRL") then
+    ctrl_on=v>0
+    do return end
+  elseif string.find(k,"SHIFT") then
+    shift_on=v>0
+    do return end
+  end
+  k=shift_on and "SHIFT+"..k or k
+  k=ctrl_on and "CTRL+"..k or k
+  for i,_ in ipairs(tracks) do
+    if k=="CTRL+"..i then
+      params:set("track",i)
+      do return end
+    end
+  end
   tracks[params:get("track")]:keyboard(k,v)
 end
 
@@ -151,7 +168,7 @@ function redraw()
   screen.fill()
   screen.level(0)
   screen.move(3,8)
-  screen.text_center("8")
+  screen.text_center(params:get("track"))
 
   draw_message()
 
