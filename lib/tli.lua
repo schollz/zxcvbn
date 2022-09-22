@@ -670,42 +670,38 @@ function TLI:parse_pattern(text,division,use_hex)
   end
 
   for i,pos in ipairs(positions) do
-    pos.adj={}
-    for j,v in ipairs(self.string_split(pos.el,";")) do
-      if j==1 then
-	      if use_hex then 
-pos.parsed=self:hex_to_midi(v)
-	      else
-        pos.parsed=self:to_midi(v)
-	      end
-      else
-        local foo=self.string_split(v,"=")
-        pos.adj[foo[1]]=foo[2]
-      end
+    local v=pos.el
+    if use_hex then
+      pos.parsed=self:hex_to_midi(v)
+    else
+      pos.parsed=self:to_midi(v)
     end
   end
 
+  print(json.encode(positions))
   -- adjustments
   for _,p in ipairs(positions) do
-    if p.adj~=nil and p.adj.arp~=nil then
+	  p.mods=p.mods or {v=60}
+    if p.mods.x~=nil then
+	    print("DOING ARP")
       -- introduce as an arp
       local notes={}
       for _,note in ipairs(p.parsed) do
         table.insert(notes,note.m)
       end
       --function TLI:get_arp(input,steps,shape,length)
-      local arp_notes=self:get_arp(notes,p.stop-p.start,p.adj.arp,p.adj.len)
-      local skip=p.adj.skip or 0
+      local arp_notes=self:get_arp(notes,p.stop-p.start,p.mods.x,p.mods.z)
+      local skip=p.mods.y or 0
       local j=0
       for i=p.start,p.stop-1,skip+1 do
         j=j+1
-        table.insert(track[i].on,{m=arp_notes[j],v=p.vel or 60})
+        table.insert(track[i].on,{m=arp_notes[j],v=p.mods.v})
         table.insert(track[i+1+skip].off,{m=arp_notes[j]})
       end
     else
       -- introduce normally
       for _,note in ipairs(p.parsed) do
-        table.insert(track[p.start].on,{m=note.m,v=p.vel or 60})
+        table.insert(track[p.start].on,{m=note.m,v=p.mods.v})
         table.insert(track[p.stop].off,{m=note.m})
       end
     end
@@ -729,9 +725,19 @@ function TLI:parse_positions(lines,division)
   local elast=nil
   local entities={}
   for i,line in ipairs(lines) do
+    local mods={}
     local ele={}
     for w in line:gmatch("%S+") do
-      table.insert(ele,w)
+      local c=w:sub(1,1)
+      if string.byte(c)>string.byte("g") and string.byte(c)<=string.byte("z") then
+        mods[c]=tonumber(w:sub(2))
+        mods[c]=mods[c] or w:sub(2)
+      else
+        table.insert(ele,w)
+      end
+    end
+    if next(mods)==nil then
+      mods=nil
     end
     local pos=self.er(#ele,division,0)
     local ei=0
@@ -739,18 +745,19 @@ function TLI:parse_positions(lines,division)
       ti=pi+(i-1)*division
       if p then
         if elast~=nil and ele[ei+1]~="-" then
-          table.insert(entities,{el=elast.el,start=elast.start,stop=ti})
+          table.insert(entities,{el=elast.el,start=elast.start,stop=ti,mods=elast.mods})
+          mods=nil
           elast=nil
         end
         if ele[ei+1]~="-" and ele[ei+1]~="." then
-          elast={el=ele[ei+1],start=ti}
+          elast={el=ele[ei+1],start=ti,mods=mods}
         end
         ei=ei+1
       end
     end
   end
   if elast~=nil then
-    table.insert(entities,{el=elast.el,start=elast.start,stop=ti})
+    table.insert(entities,{el=elast.el,start=elast.start,stop=ti,mods=elast.mods})
     elast=nil
   end
   return entities
@@ -953,6 +960,13 @@ end
 
 function TLI:parse_tli(text,use_hex)
 
+  local fields=function(s)
+    local foo={}
+    for w in s:gmatch("%S+") do
+      table.insert(foo,w)
+    end
+    return foo
+  end
   local trim_=function(s)
     return (s:gsub("^%s*(.-)%s*$","%1"))
   end
@@ -964,36 +978,34 @@ function TLI:parse_tli(text,use_hex)
       table.insert(lines,line)
     end
   end
-  local data={chain={},patterns={}}
+  local data={chain={},patterns={},meta={}}
   local current_pattern={}
   for _,line in ipairs(lines) do
+    local fi=fields(line)
     if line=="" then
     elseif string.sub(line,1,1)=="#" then
       -- skip comments
-    elseif string.find(line,"pattern") then
+    elseif #fi==2 and fi[1]=="pattern" then
       -- save current pattern
       if next(current_pattern)~=nil then
         data.patterns[current_pattern.pattern]=current_pattern
       end
       current_pattern={text="",division=16}
-      for w in line:gmatch("%S+") do
-        local foo=self.string_split(w,"=")
-        current_pattern[foo[1]]=foo[2]
-      end
-      current_pattern.division=tonumber(current_pattern.division)
-    elseif string.find(line,"chain") then
+      current_pattern.pattern=fi[2]
+    elseif fi[1]=="chain" then
       -- save current pattern
-      in_pattern=false
-      for w in line:gmatch("%S+") do
-        if w~="chain" then
-          table.insert(data.chain,w)
-        end
-      end
-      if next(current_pattern)~=nil then
-        data.patterns[current_pattern.pattern]=current_pattern
+      for i=2,#fi do
+        table.insert(data.chain,fi[i])
       end
     elseif next(current_pattern)~=nil then
-      current_pattern.text=current_pattern.text..line.."\n"
+      if fi[1]=="division" then
+        current_pattern.division=tonumber(fi[2])
+      else
+        current_pattern.text=current_pattern.text..line.."\n"
+      end
+    elseif #fi==2 then
+      data.meta[fi[1]]=tonumber(fi[2])
+      data.meta[fi[1]]=data.meta[fi[1]] or fi[2]
     end
   end
   if next(current_pattern)~=nil then
@@ -1031,7 +1043,7 @@ function TLI:test()
 
   --do_test('tli.er(3,8,1)')
   --do_test('tli:parse_entity("Cm7^4;v=40")')
-  --tli:parse_positions("W X - . Y\n\n- - Z\nZ . ")
+  -- tli:parse_positions("a4 - . b5 r90\n\n- - 0\nCm . ")
   --do_test('tli:get_arp({1,2,3},8,"ud",4)')
   -- tli:parse_pattern("Cm7;arp=ud;skip=1;len=6;vel=50\n-  Am . d4\n ")
   --   local data=tli:parse_tli([[
@@ -1058,35 +1070,21 @@ function TLI:test()
 
   local data=tli:parse_tli([[
 # ignore this
- 
-chain a b a c a
- 
-pattern=a
-c4 e5 e5 f4
- 
-pattern=b division=8
- 
-d4
-c4
- 
-pattern=c
-e4
- 
+file test.wav
+
+ppq 8
+
+chain a 
+
+# pattern definitions
+
+pattern a
+division 4
+Cm xu
+
 ]])
 
-  local data=tli:parse_tli([[
-# ignore this
- 
-chain a 
- 
-pattern=a
-0
-1 2
-3333
-
-]],true)
-
-  -- print(json.encode(data))
+  print(json.encode(data))
 
   for k,v in pairs(data.patterns) do
     print("pattern",k,json.encode(v.parsed.positions))
