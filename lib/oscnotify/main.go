@@ -2,76 +2,66 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/bep/debounce"
-	"github.com/fsnotify/fsnotify"
 	"github.com/hypebeast/go-osc/osc"
+	"github.com/rjeczalik/notify"
 	log "github.com/schollz/logger"
 )
 
-var flagRecvHost, flagRecvAddress, flagHost, flagAddress string
+var flagRecvHost, flagRecvAddress, flagHost, flagAddress, flagPath string
 var flagPort int
 
 func init() {
 	flag.StringVar(&flagHost, "host", "localhost", "osc host")
+	flag.StringVar(&flagPath, "path", ".", "path to watch")
 	flag.IntVar(&flagPort, "port", 10111, "port to use")
 	flag.StringVar(&flagAddress, "addr", "/oscnotify", "osc address")
 }
 
 func main() {
+	flag.Parse()
 	// Create new watcher.
 	log.SetLevel("info")
 	log.Info("oscnotify started")
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	defer watcher.Close()
+
+	c := make(chan notify.EventInfo, 1)
 
 	f := func() {
-		log.Debugf("changed file")
+		log.Debugf("sending osc to %s:%d", flagHost, flagPort)
 		client := osc.NewClient(flagHost, flagPort)
 		msg := osc.NewMessage(flagAddress)
 		msg.Append(int32(1))
-		err = client.Send(msg)
+		err := client.Send(msg)
 		if err != nil {
 			log.Error(err)
 		}
 	}
 
-	debounced := debounce.New(100 * time.Millisecond)
+	debounced := debounce.New(500 * time.Millisecond)
 
-	// Start listening for events.
-	go func() {
-		for {
-			select {
-			case event, ok := <-watcher.Events:
-				if !ok {
-					return
-				}
-				log.Debugf("event: %s", event)
-				if fmt.Sprintf("%s", event.Op) == "WRITE" {
-					debounced(f)
-				}
-			case err, ok := <-watcher.Errors:
-				if !ok {
-					return
-				}
+	flagPath, _ = filepath.Abs(flagPath)
+	filepath.Walk(flagPath, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() && !strings.Contains(path, ".git") {
+			log.Debugf("watching %s", path)
+			if err := notify.Watch(path, c, notify.Write); err != nil {
 				log.Error(err)
 			}
 		}
-	}()
+		return nil
+	})
 
-	// Add a path.
-	err = watcher.Add(".")
-	if err != nil {
-		log.Error(err)
-		return
+	defer notify.Stop(c)
+
+	// Block until an event is received.
+	for {
+		ei := <-c
+		log.Debugf("Got event: %s", ei)
+		debounced(f)
 	}
 
-	// Block main goroutine forever.
-	<-make(chan struct{})
 }
