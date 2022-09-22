@@ -24,6 +24,8 @@ luac.out
 *.lo
 *.def
 *.exp
+*.json
+lib/oscnotify/oscnotify
 
 # Shared objects (inc. Windows DLLs)
 *.dll
