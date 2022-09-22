@@ -9,6 +9,23 @@ function TLI:new(o)
 end
 
 function TLI:init()
+  self.hex_to_num={}
+  self.hex_to_num["0"]=1
+  self.hex_to_num["1"]=2
+  self.hex_to_num["2"]=3
+  self.hex_to_num["3"]=4
+  self.hex_to_num["4"]=5
+  self.hex_to_num["5"]=6
+  self.hex_to_num["6"]=7
+  self.hex_to_num["7"]=8
+  self.hex_to_num["8"]=9
+  self.hex_to_num["9"]=10
+  self.hex_to_num["a"]=11
+  self.hex_to_num["b"]=12
+  self.hex_to_num["c"]=13
+  self.hex_to_num["d"]=14
+  self.hex_to_num["e"]=15
+  self.hex_to_num["f"]=16
   table_print=function(tt,indent,done)
     done=done or {}
     indent=indent or 0
@@ -366,6 +383,15 @@ function TLI:to_midi(s,midi_near)
   end
 end
 
+function TLI:hex_to_midi(s)
+  local notes={}
+  for i=1,#s do
+    local c=s:sub(i,i)
+    table.insert(notes,{m=c,n=self.hex_to_num[c]})
+  end
+  return notes
+end
+
 function TLI:note_to_midi(n,midi_near)
   n=string.lower(n)
   n=string.gsub(n,"#","s")
@@ -622,9 +648,6 @@ function TLI:chord_to_midi(c,midi_near)
 end
 
 function TLI:parse_pattern(text,division)
-  print("--")
-  print(text)
-  print("--")
   division=division or 16
 
   local trim_=function(s)
@@ -695,7 +718,7 @@ function TLI:parse_pattern(text,division)
   --   print(s)
   -- end
 
-  return track
+  return {track=track,positions=positions}
 end
 
 function TLI:parse_positions(lines,division)
@@ -980,7 +1003,7 @@ function TLI:parse_tli(text)
   -- combine the chain
   data.track={}
   for _,p in ipairs(data.chain) do
-    for _,v in ipairs(data.patterns[p].parsed) do
+    for _,v in ipairs(data.patterns[p].parsed.track) do
       table.insert(data.track,v)
     end
   end
@@ -1000,6 +1023,7 @@ function TLI:test()
   --do_test('tli:note_to_midi("d",72)')
   --do_test('tli:chord_to_midi("Cm/G")')
   do_test('tli:note_to_midi("c4b3c#4")')
+  do_test('tli:hex_to_midi("012a")')
 
   --do_test('tli.er(3,8,1)')
   --do_test('tli:parse_entity("Cm7^4;v=40")')
@@ -1023,8 +1047,8 @@ function TLI:test()
 
   -- ]])
 
-  if not string.find(package.cpath,"/home/zns/Documents/norns-docker/dust/code/break-ops/lib/") then
-    package.cpath=package.cpath..";/home/zns/Documents/norns-docker/dust/code/break-ops/lib/?.so"
+  if not string.find(package.cpath,"./") then
+    package.cpath=package.cpath..";./?.so"
   end
   json=require("cjson")
 
@@ -1034,25 +1058,29 @@ function TLI:test()
 chain a b a c a
  
 pattern=a
-c4
+c4 e5 e5 f4
  
 pattern=b division=8
  
 d4
+c4
  
 pattern=c
 e4
  
 ]])
 
-  print(json.encode(data))
+  -- print(json.encode(data))
 
+  for k,v in pairs(data.patterns) do
+    print("pattern",k,json.encode(v.parsed.positions))
+  end
   -- print("OK")
-  for k,v in pairs(data.track) do
+  for _,v in ipairs(data.track) do
     if next(v.on) then
-      print(k,json.encode(v.on))
+      --print(k,json.encode(v.on))
     else
-      print(k)
+      --print(k)
     end
   end
 
@@ -1060,7 +1088,7 @@ e4
 
 end
 
--- tli=TLI:new()
--- tli:test()
+tli=TLI:new()
+tli:test()
 
 return TLI
