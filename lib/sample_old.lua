@@ -126,7 +126,7 @@ function Sample:load_sample(path)
 
   -- load cursors or figure out the best number
   self.path_to_cursors=_path.data.."/break-ops/cursors/"..self.filename..".cursors"
-  if util.file_exists(self.path_to_cursors) then -- TODO debug
+  if util.file_exists(self.path_to_cursors) then 
     print("sample: loading existing cursors")
     self:load_cursors()
   else

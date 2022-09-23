@@ -697,7 +697,7 @@ function TLI:parse_pattern(text,division,use_hex)
       for i=p.start,p.stop-1,skip+1 do
         j=j+1
         if j<=#arp_notes then
-          table.insert(track[i].on,{m=arp_notes[j],v=p.mods.v})
+          table.insert(track[i].on,{m=arp_notes[j],mods=p.mods,duration=p.stop-p.start})
           if i+1+skip<=#track then
             table.insert(track[i+1+skip].off,{m=arp_notes[j]})
           end
@@ -705,9 +705,9 @@ function TLI:parse_pattern(text,division,use_hex)
       end
     else
       -- introduce normally
-      for _,note in ipairs(p.parsed) do
-        table.insert(track[p.start].on,{m=note.m,mods=p.mods})
-        table.insert(track[p.stop].off,{m=note.m})
+      for i,note in ipairs(p.parsed) do
+        table.insert(track[p.start].on,{m=note.m,mods=p.mods,duration=p.stop-p.start})
+        table.insert(track[(p.stop-1)%#track+1].off,{m=note.m})
       end
     end
   end
@@ -762,7 +762,7 @@ end
     end
   end
   if elast~=nil then
-    table.insert(entities,{el=elast.el,start=elast.start,stop=ti,mods=elast.mods})
+    table.insert(entities,{el=elast.el,start=elast.start,stop=ti+1,mods=elast.mods})
     elast=nil
   end
   print("entities")
@@ -1070,10 +1070,6 @@ function TLI:test()
 
   -- ]])
 
-  -- TODO: apply mod to previous note
-  -- TODO: calculate the duration of each and include it in the track
-  -- TODO: place the last "off" in the track at the beginning
-
   if not string.find(package.cpath,"./") then
     package.cpath=package.cpath..";./?.so"
   end
@@ -1103,10 +1099,11 @@ c4 v30 r4 z5 d4 v60
   end
   -- print("OK")
   for k,v in ipairs(data.track) do
+    if next(v.off) then
+      print(k,json.encode(v.off))
+    end
     if next(v.on) then
       print(k,json.encode(v.on))
-    else
-      print(k)
     end
   end
 

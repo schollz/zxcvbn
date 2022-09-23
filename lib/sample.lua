@@ -148,6 +148,8 @@ function Sample:play(d)
   d.watch=d.watch or 0
   d.rate=d.rate or 1
   d.ci=d.ci or self.ci
+  d.retrig=d.retrig or 0
+  d.gate=d.gate or 1.0
   if self.is_melodic then
     if d.on then
       local sampleStart=self.cursors[1]
@@ -168,10 +170,7 @@ function Sample:play(d)
         duration=self.duration
       end
       local send_pos=1
-      -- TODO: add retrig
-      engine.slice_on(d.id,filename,d.db,d.rate,d.pitch,pos,duration,d.watch)
-    else
-      engine.slice_off(d.id)
+      engine.slice_on(d.id,filename,d.db,d.rate,d.pitch,pos,duration,d.retrig,d.gate,d.watch)
     end
   end
 end
