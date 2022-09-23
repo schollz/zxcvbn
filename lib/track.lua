@@ -37,7 +37,7 @@ function Track:init()
   local params_menu={
     {id="db",name="amp",min=-96,max=12,exp=false,div=1,default=0,unit="db"},
     {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=0},
-    {id="filter",name="filter",min=24,max=127,exp=false,div=0.5,default=127}, -- TODO: formatter for notes
+    {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(param:get(), true)end},
     {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
     {id="release",name="release",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},

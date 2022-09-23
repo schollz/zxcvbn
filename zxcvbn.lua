@@ -17,6 +17,7 @@ sample_=include("lib/sample")
 tli_=include("lib/tli")
 tli=tli_:new()
 lattice=require("lattice")
+musicutil=require("musicutil")
 
 -- global division definitions
 possible_divisions={1/32,1/24,1/16,1/12,1/8,1/6,1/4,1/3,1/2,1,2,4}
@@ -266,9 +267,9 @@ function params_kick()
 
   -- kick
   local params_menu={
-    {id="kick_db",name="db adj",min=-96,max=96,exp=false,div=1,default=0.0,unit="db"},
+    {id="kick_db",name="db adj",min=-96,max=16,exp=false,div=1,default=0.0,unit="db"},
     {id="preamp",name="preamp",min=0,max=4,exp=false,div=0.01,default=1,unit="amp"},
-    {id="basefreq",name="base freq",min=10,max=200,exp=false,div=0.1,default=32.7,unit="Hz"}, -- TODO: replace with note formatter
+    {id="basenote",name="base note",min=10,max=200,exp=false,div=1,default=24,formatter=function(param) return musicutil.note_num_to_name(param:get(), true)end},
     {id="ratio",name="ratio",min=1,max=20,exp=false,div=1,default=6},
     {id="sweeptime",name="sweep time",min=0,max=200,exp=false,div=1,default=50,unit="ms"},
     {id="decay1",name="decay1",min=5,max=2000,exp=false,div=10,default=300,unit="ms"},
