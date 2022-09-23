@@ -1068,6 +1068,7 @@ function TLI:test()
 
   -- ]])
 
+  -- TODO: apply mod to previous note
   -- TODO: calculate the duration of each and include it in the track
   -- TODO: place the last "off" in the track at the beginning
 
