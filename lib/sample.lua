@@ -28,7 +28,7 @@ function Sample:init()
   end
 end
 
-function Sample:load_sample(path,cursor_type)
+function Sample:load_sample(path,is_melodic)
   print("sample: load_sample "..path)
   self.path=path
   -- load sample
@@ -53,13 +53,13 @@ function Sample:load_sample(path,cursor_type)
     os.execute(cmd)
   end
 
-  if cursor_type==nil or cursor_type=="onsets" then
+  self.is_melodic=is_melodic
+  if not is_melodic then
     self.cursors=self:get_onsets(self.path,self.duration)
     self.cursor_durations={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
   else
     self.cursors={0,self.duration*0.6,self.duration*0.8,self.duration-0.1}
     self.cursor_durations={0,0,0,0}
-
   end
   engine.load_buffer(self.path)
   self.loaded=true
@@ -138,6 +138,40 @@ function Sample:get_onsets(fname,duration)
   return top16
 end
 
+function Sample:audition(on)
+  local id="audition"
+  local filename=self.path
+  local db=0.0
+  local pitch=0
+  if self.is_melodic then
+    if on then
+      print("playing audition")
+      local sampleStart=self.cursors[1]
+      local sampleIn=self.cursors[2]
+      local sampleOut=self.cursors[3]
+      local sampleEnd=self.cursors[4]
+      local watch=1
+      engine.melodic_on(id,filename,db,pitch,
+      sampleStart,sampleIn,sampleOut,sampleEnd,watch)
+    else
+      print("stopping audition")
+      engine.melodic_off(id)
+    end
+  else
+    if on then
+      local rate=1
+      local pos=self.cursors[self.ci]
+      local duration=self.cursor_durations[self.ci]
+      local send_pos=1
+      engine.slice_on(id,filename,db,rate,pitch,pos,duration,send_pos)
+    else
+      engine.slice_off(id)
+    end
+  end
+  -- local pos=self.is_melodic and self.cursors[1] or self.cursors[self.ci]
+  -- local duration=self.cursor_durations[]
+end
+
 function Sample:dump()
   local data={}
   data.seq=json.encode(seq)
@@ -190,9 +224,12 @@ function Sample:do_move(d)
   end
   table.insert(cursors,{i=17,c=self.duration})
   table.sort(cursors,function(a,b) return a.c<b.c end)
-  for i=1,16 do
-    self.cursor_durations[cursors[i].i]=cursors[i+1].c-cursors[i].c
+  for i,cursor in ipairs(cursors) do
+    if i<#cursors then
+      self.cursor_durations[cursor.i]=cursors[i+1].c-cursor.c
+    end
   end
+  self.cursor_durations[#cursors]=self.duration-cursors[#cursors].c
 
   self.debounce_fn["save_cursors"]={30,function() self:save_cursors() end}
 end
@@ -224,14 +261,16 @@ function Sample:enc(k,d)
 end
 
 function Sample:key(k,z)
-  if z==0 then
-    do return end
-  end
-  if k==2 then
+  if k==2 and z==1 then
     self:sel_cursor(self.ci+1)
   elseif k==3 then
-    self:play_cursor(self.ci)
+    self:audition(z==1)
   end
+end
+
+function Sample:set_position(pos)
+  self.show=1
+  self.show_pos=pos
 end
 
 function Sample:sel_cursor(ci)
@@ -300,8 +339,7 @@ function Sample:redraw()
   screen.aa(0)
   screen.update()
 
-  for i=1,16 do
-    local cursor=self.cursors[i]
+  for i,cursor in ipairs(self.cursors) do
     if cursor>=self.view[1] and cursor<=self.view[2] then
       local pos=util.linlin(self.view[1],self.view[2],1,self.width,cursor)
       screen.level(i==self.ci and 15 or 5)
@@ -320,8 +358,8 @@ function Sample:redraw()
       local pos=util.linlin(self.view[1],self.view[2],1,self.width,cursor)
       screen.aa(1)
       screen.level(15)
-      screen.move(pos,64-self.height)
-      screen.line(pos,64)
+      screen.move(pos+x,64-self.height)
+      screen.line(pos+x,64)
       screen.stroke()
       screen.aa(0)
     end

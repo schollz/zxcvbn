@@ -46,7 +46,7 @@ function init()
   -- setup osc
   osc_fun={
     progress=function(args)
-      sampler:show_position(tonumber(args[1]))
+      tracks[params:get("track")]:set_position(tonumber(args[1]))
     end,
     oscnotify=function(args)
       print("file edited ok!")
@@ -71,6 +71,8 @@ function init()
   end)
 
   params:set("1sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  -- params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
+
 end
 
 function debounce_params()
