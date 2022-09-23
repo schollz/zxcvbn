@@ -29,41 +29,40 @@ Engine_Zxcvbn : CroneEngine {
 
         (1..2).do({arg ch;
         SynthDef("playerInOut"++ch,{
-            arg bufnum, id=0,db=0.0, rate=1.0,pitch=0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.02,
+            arg out=0, buf, id=0,amp=1.0, rate=1.0,pitch=0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.1,
             duration=10000,attack=0.001,decay=0.3,sustain=1.0,release=2.0;
             
             // vars
-            var snd,amp,pos,trigger,sampleDuration,sampleDurationInOut,imp,aOrB,posA,sndA,posB,sndB,trigA,trigB;
-            var durationBuffer=BufDur.ir(bufnum);
-            var frames=BufFrames.ir(bufnum);
+            var snd,pos,trigger,sampleDuration,sampleDurationInOut,imp,aOrB,posA,sndA,posB,sndB,trigA,trigB;
+            var durationBuffer=BufDur.ir(buf);
+            var frames=BufFrames.ir(buf);
             
-            amp = db.dbamp;
-            rate = BufRateScale.ir(bufnum)*rate*pitch.midiratio;
+            rate = BufRateScale.ir(buf)*rate*pitch.midiratio;
             sampleDuration=(sampleEnd-sampleStart)/rate.abs;
             sampleDurationInOut=(sampleOut-sampleIn)/rate.abs;
             
-            trigger=DelayN.kr(Impulse.kr(1/sampleDurationInOut),sampleDuration-xfade,sampleDuration-xfade);
+            trigger=DelayN.kr(Impulse.kr(0)+Impulse.kr(1/sampleDurationInOut),sampleDuration*0.9,sampleDuration*0.9);
             aOrB=ToggleFF.kr(trigger);
             
             posA=Phasor.ar(
                 trig:1-aOrB,
-                rate:rate/context.server.sampleRate,
-                start:sampleStart,
-                end:sampleEnd,
-                resetPos:sampleIn
+                rate:rate,
+                start:sampleStart/durationBuffer*frames,
+                end:sampleEnd/durationBuffer*frames,
+                resetPos:sampleIn/durationBuffer*frames
             );
-            sndA=BufRd.ar(ch,bufnum,posA/durationBuffer*frames,
+            sndA=BufRd.ar(ch,buf,posA,
                 loop:1,
                 interpolation:4
             );
             posB=Phasor.ar(
                 trig:aOrB,
-                rate:rate.neg/context.server.sampleRate,
-                start:sampleStart,
-                end:sampleEnd,
-                resetPos:sampleOut
+                rate:rate.neg,
+                start:sampleStart/durationBuffer*frames,
+                end:sampleEnd/durationBuffer*frames,
+                resetPos:sampleOut/durationBuffer*frames
             );
-            sndB=BufRd.ar(ch,bufnum,posB/durationBuffer*frames,
+            sndB=BufRd.ar(ch,buf,posB,
                 loop:1,
                 interpolation:4
             );
@@ -73,9 +72,9 @@ Engine_Zxcvbn : CroneEngine {
             snd=Pan2.ar(snd,0);
             snd=snd*EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate * (1-TDelay.kr(Impulse.kr(0),duration)) ,doneAction:2);
             
-            // TODO: use sendreply SendTrig.kr(Impulse.kr(watch),id,A2K.kr(pos));
-            
-            Out.ar(0,snd);
+            SendReply.kr(Impulse.kr(10)*watch,'/position',[pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
+
+            Out.ar(out,snd*amp);
         }).add;
         });
 
@@ -301,6 +300,87 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
+        this.addCommand("slice_off","s",{ arg msg;
+            var id=msg[1];
+            if (syns.at(id).notNil,{
+                if (syns.at(id).isRunning,{
+                    syns.at(id).set(\gate,0);
+                });
+            });
+        });
+
+        this.addCommand("slice_on","ssffffff",{ arg msg;
+            var id=msg[1];
+            var filename=msg[2];
+            var amp=msg[3].dbamp;
+            var rate=msg[4];
+            var pitch=msg[5];
+            var pos=msg[6];
+            var duration=msg[7];
+            var send_pos=msg[8];
+            if (bufs.at(filename).notNil,{
+                if (syns.at(id).notNil,{
+                    if (syns.at(id).isRunning,{
+                        syns.at(id).set(\gate,0);
+                    });
+                });
+                syns.put(id,Synth.new("slice"++bufs.at(filename).numChannels, [
+                    out: buses.at("sliceFx"),
+                    buf: bufs.at(filename),
+                    amp: amp,
+                    rate: rate*pitch.midiratio,
+                    pos: pos,
+                    duration: duration,
+                    send_pos: send_pos,
+                ], syns.at("sliceFx"), \addBefore));
+                NodeWatcher.register(syns.at(id));
+            });
+        });
+
+        this.addCommand("melodic_off","s",{ arg msg;
+            var id=msg[1];
+            ["melodic_off",id].postln;
+            if (syns.at(id).notNil,{
+                if (syns.at(id).isRunning,{
+                    ["gating off"].postln;
+                    syns.at(id).set(\gate,0);
+                });
+            });            
+        });
+
+        this.addCommand("melodic_on","ssfffffff",{ arg msg;
+            var id=msg[1];
+            var filename=msg[2];
+            var amp=msg[3].dbamp;
+            var pitch=msg[4];
+            var sampleStart=msg[5];
+            var sampleIn=msg[6];
+            var sampleOut=msg[7];
+            var sampleEnd=msg[8];
+            var watch=msg[9];
+            if (bufs.at(filename).notNil,{
+                var buf=bufs.at(filename);
+                if (syns.at(id).notNil,{
+                    if (syns.at(id).isRunning,{
+                        syns.at(id).set(\gate,0);
+                    });
+                });
+                ["playing",msg].postln;
+                syns.put(id,Synth.new("playerInOut"++buf.numChannels, [
+                    out: 0,
+                    buf: buf,
+                    amp: amp,
+                    pitch: pitch,
+                    sampleStart: sampleStart,
+                    sampleIn: sampleIn,
+                    sampleOut: sampleOut,
+                    sampleEnd: sampleEnd,
+                    duration: 15,
+                    watch: watch,
+                ], syns.at("main"), \addBefore));
+                NodeWatcher.register(syns.at(id));
+            });
+        });
 
 
         this.addCommand("kick","fffffffff",{arg msg;

@@ -10,7 +10,7 @@ end
 
 function Track:init()
   -- initialize parameters
-  params:add_option(self.id.."track_type","type",{"sliced sample","melodic sample","midi","crow","engine"})
+  params:add_option(self.id.."track_type","type",{"sliced sample","melodic sample","midi","crow","engine"},1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
     self:select(self.selected)
@@ -24,12 +24,15 @@ function Track:init()
     end
   end)
   params:add_number(self.id.."sample_bpm","source bpm",10,200,math.floor(clock.get_tempo()))
+  params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
+
   params:add{type="binary",name="play",id=self.id.."track_play",behavior="toggle",action=function(v)
   end}
   params:add_option(self.id.."track_division","division",possible_division_options,5)
 
   self.params={shared={"track_type","track_play","track_division"}}
-  self.params["sliced sample"]={"sample_file","sample_bpm"} -- only show if midi is enabled
+  self.params["sliced sample"]={"sample_file","sample_bpm","play_through"} -- only show if midi is enabled
+  self.params["melodic sample"]={"sample_file"} -- only show if midi is enabled
 
   -- initialize track data
   self.state="vterm"
@@ -55,8 +58,12 @@ function Track:select(selected)
   }
 end
 
+function Track:set_position(pos)
+  self.sample:set_position(pos)
+end
+
 function Track:load_sample(path)
-  self.sample:load_sample(path)
+  self.sample:load_sample(path,params:get(self.id.."track_type")==2)
   self.state="sample"
 end
 
