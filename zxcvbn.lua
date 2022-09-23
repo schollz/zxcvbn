@@ -204,3 +204,53 @@ end
 function cleanup()
   os.execute("pkill -f oscnotify")
 end
+
+function params_action()
+  params.action_write=function(filename,name)
+    print("write",filename,name)
+    manager:save(filename..".txt")
+
+    -- save all the patterns
+    local data={patterns={},patterns_grid={}}
+    for i,v in ipairs(dat.tt) do
+      table.insert(data.patterns,v.sample_pattern:dump())
+    end
+    for i,v in ipairs(g_.patterns) do
+      table.insert(data.patterns_grid,v:dump())
+    end
+
+    filename=filename..".json"
+    local file=io.open(filename,"w+")
+    io.output(file)
+    io.write(json.encode(data))
+    io.close(file)
+  end
+
+  params.action_read=function(filename,silent)
+    print("read",filename,silent)
+    manager:load(filename..".txt")
+    -- turn off all the sounds
+    for i=1,112 do
+      params:set(i.."play",0)
+    end
+
+    -- load all the patterns
+    filename=filename..".json"
+    if not util.file_exists(filename) then
+      do return end
+    end
+    local f=io.open(filename,"rb")
+    local content=f:read("*all")
+    f:close()
+    if content==nil then
+      do return end
+    end
+    local data=json.decode(content)
+    for i,pattern in ipairs(data.patterns) do
+      dat.tt[i].sample_pattern:load(pattern)
+    end
+    for i,pattern in ipairs(data.patterns_grid) do
+      g_.patterns[i]:load(pattern)
+    end
+  end
+end
