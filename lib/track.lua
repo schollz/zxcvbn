@@ -93,6 +93,10 @@ function Track:loads(s)
   self.state=data.state
 end
 
+function Track:load_text(text)
+  self.states[VTERM]:load_text(text)
+end
+
 function Track:parse_tli()
   local text=self.states[VTERM]:get_text()
   local tli_parsed=nil
