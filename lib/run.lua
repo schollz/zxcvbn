@@ -137,15 +137,6 @@ function params_kick()
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,
     }
-    -- params:set_action(pram.id,function(x)
-    --   if string.find(pram.id,"euc")~=nil then
-    --     debounce_fn["euc"]={
-    --       1,function()
-    --         update_euclidean()
-    --       end
-    --     }
-    --   end
-    -- end)
   end
 end
 

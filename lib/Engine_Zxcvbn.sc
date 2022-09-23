@@ -29,7 +29,7 @@ Engine_Zxcvbn : CroneEngine {
 
         (1..2).do({arg ch;
         SynthDef("playerInOut"++ch,{
-            arg out=0, buf, id=0,amp=1.0, rate=1.0,pitch=0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.1,
+            arg out=0, buf, id=0,amp=1.0, pan=0, rate=1.0,pitch=0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.1,
             duration=10000,attack=0.001,decay=0.3,sustain=1.0,release=2.0;
             
             // vars
@@ -69,7 +69,7 @@ Engine_Zxcvbn : CroneEngine {
 
             pos=Select.kr(aOrB,[posA,posB]);
             snd=SelectX.ar(Lag.kr(aOrB,xfade),[sndA,sndB],0)*amp;
-            snd=Pan2.ar(snd,0);
+            snd=Pan2.ar(snd,pan);
             snd=snd*EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate * (1-TDelay.kr(Impulse.kr(0),duration)) ,doneAction:2);
             
             SendReply.kr(Impulse.kr(10)*watch,'/position',[pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
@@ -89,10 +89,10 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\main, {
-            var in1=In.ar(\in1.kr(1),2); // drums
-            var in2=In.ar(\in2.kr(1),2); // pad
-            var snd=Compander.ar(in2,in1*8,0.1,1,0.1,0.01,0.01)+(in1);
-            snd=Compander.ar(snd,snd,4,1,0.5,0.01,0.01);
+            var compressing=In.ar(\busCompressing.kr(1),2); 
+            var compressible=In.ar(\busCompressible.kr(1),2); 
+            var snd=Compander.ar(compressible,compressing*4,0.1,1,0.1,0.01,0.01);
+            snd=snd+In.ar(\busNoCompress.kr(1),2)+compressing;
             snd=LeakDC.ar(snd);
             Out.ar(\out.kr(0),snd);
         }).send(context.server);
@@ -147,7 +147,7 @@ Engine_Zxcvbn : CroneEngine {
 
         (1..2).do({arg ch;
         SynthDef("slice"++ch,{
-            arg out=0, amp=0, buf=0, rate=1, pos=0, gate=1, duration=100000, send_pos=0; 
+            arg out=0, amp=0, buf=0, rate=1, pos=0, gate=1, duration=100000, pan=0, send_pos=0; 
             var snd;
             var snd_pos = Phasor.ar(
                 trig: Impulse.kr(0),
@@ -158,6 +158,7 @@ Engine_Zxcvbn : CroneEngine {
             SendReply.kr(Impulse.kr(10)*send_pos,'/position',[snd_pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
             snd = BufRd.ar(ch,buf,snd_pos,interpolation:4);
             snd = snd * Env.asr(0.001, 1, 0.001).ar(Done.freeSelf, gate * (1-TDelay.kr(Impulse.kr(0),duration)) );
+            snd = Pan2.ar(snd,pan);
             snd = snd * amp;
             Out.ar(out,snd);
         }).send(context.server);
@@ -233,12 +234,13 @@ Engine_Zxcvbn : CroneEngine {
         context.server.sync;
         buses.put("compressing",Bus.audio(s,2));
         buses.put("compressible",Bus.audio(s,2));
+        buses.put("nocompress",Bus.audio(s,2));
         buses.put("sliceFx",Bus.audio(s,2));
         buses.put("padFx",Bus.audio(s,2));
         context.server.sync;
-        syns.put("main",Synth.new(\main,[\in1,buses.at("compressing"),\in2,buses.at("compressible")]));
+        syns.put("main",Synth.new(\main,[\busCompressing,buses.at("compressing"),\busCompressible,buses.at("compressible"),\busNoCompress,buses.at("nocompress")]));
         context.server.sync;
-        syns.put("sliceFx",Synth.new(\fx, [\in, buses.at("sliceFx"), \out, buses.at("compressing")], syns.at("main"), \addBefore));
+        syns.put("sliceFx",Synth.new(\fx, [in:, buses.at("sliceFx"), out:, buses.at("compressing")], syns.at("main"), \addBefore));
         context.server.sync;
         syns.put("padFx", Synth.new(\padFx, [in: buses.at("padFx"), out: buses.at("compressible"),  gate: 0], syns.at("main"), \addBefore));
         context.server.sync;
@@ -309,17 +311,18 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("slice_on","ssffffffff",{ arg msg;
+        this.addCommand("slice_on","ssfffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var amp=msg[3].dbamp;
-            var rate=msg[4];
-            var pitch=msg[5];
-            var pos=msg[6];
-            var duration=msg[7];
-	    var gate=msg[8];
-	    var retrig=msg[9];
-            var send_pos=msg[10];
+            var pan=msg[4];
+            var rate=msg[5];
+            var pitch=msg[6];
+            var pos=msg[7];
+            var duration=msg[8];
+            var gate=msg[9];
+            var retrig=msg[10];
+            var send_pos=msg[11];
             if (bufs.at(filename).notNil,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
@@ -368,17 +371,18 @@ Engine_Zxcvbn : CroneEngine {
             });            
         });
 
-        this.addCommand("melodic_on","ssffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssfffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var amp=msg[3].dbamp;
-            var pitch=msg[4];
-            var sampleStart=msg[5];
-            var sampleIn=msg[6];
-            var sampleOut=msg[7];
-            var sampleEnd=msg[8];
-            var duration=msg[9];
-            var watch=msg[10];
+            var pan=msg[4];
+            var pitch=msg[5];
+            var sampleStart=msg[6];
+            var sampleIn=msg[7];
+            var sampleOut=msg[8];
+            var sampleEnd=msg[9];
+            var duration=msg[10];
+            var watch=msg[11];
             if (bufs.at(filename).notNil,{
                 var buf=bufs.at(filename);
                 if (syns.at(id).notNil,{
@@ -391,6 +395,7 @@ Engine_Zxcvbn : CroneEngine {
                     out: 0,
                     buf: buf,
                     amp: amp,
+                    pan: pan,
                     pitch: pitch,
                     sampleStart: sampleStart,
                     sampleIn: sampleIn,
