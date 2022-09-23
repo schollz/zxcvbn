@@ -139,41 +139,50 @@ function Sample:get_onsets(fname,duration)
   return top16
 end
 
-function Sample:audition(on)
-  local id="audition"
+function Sample:play(d)
   local filename=self.path
-  local db=0.0
-  local pitch=0
+  d.on=d.on or false
+  d.id=d.id or "audition"
+  d.db=d.db or 0
+  d.pitch=d.pitch or 0
+  d.watch=d.watch or 0
+  d.rate=d.rate or 1
+  d.ci=d.ci or self.ci
   if self.is_melodic then
-    if on then
-      print("playing audition")
+    if d.on then
       local sampleStart=self.cursors[1]
       local sampleIn=self.cursors[2]
       local sampleOut=self.cursors[3]
       local sampleEnd=self.cursors[4]
-      local watch=1
-      engine.melodic_on(id,filename,db,pitch,
-      sampleStart,sampleIn,sampleOut,sampleEnd,watch)
+      engine.melodic_on(d.id,filename,d.db,d.pitch,
+      sampleStart,sampleIn,sampleOut,sampleEnd,d.watch)
     else
-      print("stopping audition")
-      engine.melodic_off(id)
+      engine.melodic_off(self.id)
     end
   else
-    if on then
+    if d.on then
       local rate=1
-      local pos=self.cursors[self.ci]
-      local duration=self.cursor_durations[self.ci]
+      local pos=self.cursors[d.ci]
+      local duration=self.cursor_durations[d.ci]
       if params:get(self.id.."play_through")==1 then
-        duration=30
+        duration=self.duration
       end
       local send_pos=1
-      engine.slice_on(id,filename,db,rate,pitch,pos,duration,send_pos)
+      engine.slice_on(d.id,filename,d.db,d.rate,d.pitch,pos,duration,d.watch)
     else
-      engine.slice_off(id)
+      engine.slice_off(d.id)
     end
   end
-  -- local pos=self.is_melodic and self.cursors[1] or self.cursors[self.ci]
-  -- local duration=self.cursor_durations[]
+end
+
+function Sample:audition(on)
+  local id="audition"
+  self:play({
+    on=on,
+    id="audition",
+    duration=params:get(self.id.."play_through")==1 and self.duration or nil,
+    watch=1,
+  })
 end
 
 function Sample:dump()

@@ -85,22 +85,33 @@ function Track:emit(beat,ppq)
     if self.tli~=nil and self.tli.track~=nil then
       local i=(beat-1)%#self.tli.track+1
       local t=self.tli.track[i]
-      for _,v in ipairs(t.off) do
-        tab.print(v)
+      for _,d in ipairs(t.off) do
+        d.on=false
+        self:play(d)
       end
-      for _,v in ipairs(t.on) do
-        tab.print(v)
+      for _,d in ipairs(t.on) do
+        d.on=true
+        self:play(d)
       end
     end
   end
 end
 
-function Track:play(d,on)
+function Track:play(d)
   -- d={m=4,v=60}
   if d.m==nil then
     do return end
   end
   d.v=d.v or 60
+  if params:get(self.id.."track_type")==1 then
+    self.states[SAMPLE]:play{
+      on=d.on,
+      id=self.id.."_"..d.m,
+      ci=d.m,
+      rate=clock.get_tempo()/params:get(self.id.."bpm"),
+      watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
+    }
+  end
 end
 
 function Track:select(selected)
