@@ -12,7 +12,9 @@ function VTerm:init()
   self.history={}
   self.history_pos=0
   self.view={row=1,col=1}
-  self.cursor={row=1,col=3}
+  self.cursor={row=1,col=1}
+  self.text=""
+  self.tosave={"history","history_pos","view","cursor","text"}
   self:load_text[[file amenbreak_bpm136.wav
 bpm 136 
  
@@ -26,6 +28,25 @@ pattern a
 3 3 3 3  
 ]]
   self:move_cursor(0,0)
+end
+
+function VTerm:dumps()
+  local data={}
+  for _,k in ipairs(self.tosave) do
+    data[k]=self[k]
+  end
+  return json.encode(data)
+end
+
+function VTerm:loads(s)
+  local data=json.decode(s)
+  if data==nil then
+    do return end
+  end
+  for k,v in pairs(data) do
+    self[k]=v
+  end
+  self:load_text(self.text)
 end
 
 function VTerm:insert(row,col,s)
@@ -194,13 +215,10 @@ function VTerm:keyboard(k,v)
     if v==1 then
       self:move_cursor(-1,0)
     end
-  elseif self.ctrl then
-    if k=="S" and v==1 then
-    elseif k=="Z" and v==1 then
-      -- TODO: undo
-    elseif tonumber(k)~=nil and tonumber(k)>0 and tonumber(k)<10 then
-      -- TODO: switch?
-    end
+  elseif k=="CTRL+Z" then
+    self:undo()
+  elseif k=="CTRL+Y" then
+    self:redo()
   elseif k=="SHIFT+S" then
     show_message("saved",2)
     self:save()
