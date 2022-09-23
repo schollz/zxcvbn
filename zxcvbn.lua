@@ -43,6 +43,9 @@ function init()
     table.insert(tracks,track_:new{id=i})
   end
 
+  -- define param actions
+  params_action()
+
   -- bang params
   params:bang()
 
@@ -90,9 +93,19 @@ function init()
   end
   sequencer:hard_restart()
 
-  params:set("1sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  -- params:set("1sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   -- params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
-  tracks[1]:parse_tli()
+  -- tracks[1]:parse_tli()
+  params:set("1track_type",3)
+  tracks[1]:load_text([[
+chain a
+
+pattern a
+Am/C
+F/C
+C
+Em/B
+  ]])
 end
 
 function debounce_params()

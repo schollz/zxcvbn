@@ -987,6 +987,7 @@ function TLI:parse_tli(text,use_hex)
   end
   local data={chain={},patterns={},meta={}}
   local current_pattern={}
+  local pattern_chain={}
   for _,line in ipairs(lines) do
     local fi=fields(line)
     if line=="" then
@@ -999,6 +1000,7 @@ function TLI:parse_tli(text,use_hex)
       end
       current_pattern={text="",division=16}
       current_pattern.pattern=fi[2]
+      table.insert(pattern_chain,fi[2])
     elseif fi[1]=="chain" then
       -- save current pattern
       for i=2,#fi do
@@ -1021,6 +1023,11 @@ function TLI:parse_tli(text,use_hex)
 
   for k,pattern in pairs(data.patterns) do
     data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,pattern.division,use_hex)
+  end
+
+  -- default to a chain of how the patterns are defined
+  if next(data.chain)==nil then 
+    data.chain=pattern_chain
   end
 
   -- combine the chain

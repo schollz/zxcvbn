@@ -14,19 +14,8 @@ function VTerm:init()
   self.view={row=1,col=1}
   self.cursor={row=1,col=1}
   self.text=""
+  self.lines={}
   self.tosave={"history","history_pos","view","cursor","text"}
-  self:load_text[[file amenbreak_bpm136.wav
-bpm 136 
- 
-chain a
-ppq 4 
- 
-pattern a
-0
-1
-2
-3 3 3 3  
-]]
   self:move_cursor(0,0)
 end
 
