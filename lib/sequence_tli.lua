@@ -60,7 +60,6 @@ function SequenceTLI:init()
 
   -- setup outputs
   self.outputs={}
-  -- TODO: do similar for sample pitch?
   table.insert(self.outputs,{
     name="engine pad",
     note_on=function(note,vel) engine.note_on(note,0.5,0.5) end,

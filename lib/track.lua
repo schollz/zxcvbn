@@ -109,10 +109,11 @@ function Track:play(d)
       on=d.on,
       id=self.id.."_"..d.m,
       ci=d.m,
-      duration=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")),-- TODO: use the calculated duration
+      duration=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")),
       rate=clock.get_tempo()/params:get(self.id.."bpm"),
       watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
       retrig=d.r or 0,
+      gate=d.q/100 or 0,
     }
   end
 end

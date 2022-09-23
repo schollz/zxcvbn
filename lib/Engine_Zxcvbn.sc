@@ -309,7 +309,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("slice_on","ssffffff",{ arg msg;
+        this.addCommand("slice_on","ssffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var amp=msg[3].dbamp;
@@ -317,7 +317,9 @@ Engine_Zxcvbn : CroneEngine {
             var pitch=msg[5];
             var pos=msg[6];
             var duration=msg[7];
-            var send_pos=msg[8];
+	    var gate=msg[8];
+	    var retrig=msg[9];
+            var send_pos=msg[10];
             if (bufs.at(filename).notNil,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
@@ -330,11 +332,28 @@ Engine_Zxcvbn : CroneEngine {
                     amp: amp,
                     rate: rate*pitch.midiratio,
                     pos: pos,
-                    duration: duration,
+                    duration: duration * gate / (retrig + 1),
                     send_pos: send_pos,
                 ], syns.at("sliceFx"), \addBefore));
-                // TODO: add retriggering
-                NodeWatcher.register(syns.at(id));
+                if (retrig>0,{
+                    Routine {
+                        (retrig).do{ arg i;
+                            (duration/retrig).wait;
+                            syns.put(id,Synth.new(synthDef, [
+                                out: buses.at("sliceFx"),
+                                buf: buf,
+                                amp: amp,
+                                rate: rate*((pitch.sign)*(i+1)+pitch).midiratio,
+                                pos: pos,
+                                duration: duration * gate / (retrig + 1),
+                                send_pos: send_pos,
+                            ], syns.at("sliceFx"), \addBefore));
+                        };
+                        NodeWatcher.register(syns.at(id));
+                    }.play;
+                 },{ 
+                    NodeWatcher.register(syns.at(id));
+		 });
             });
         });
 
