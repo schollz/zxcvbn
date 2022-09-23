@@ -47,6 +47,26 @@ function Track:init()
 
 end
 
+function Track:dumps()
+  local data={states={}}
+  for i,v in ipairs(self.states) do
+    data.states[i]=v:dumps()
+  end
+  data.state=self.state
+  return json.encode(data)
+end
+
+function Track:loads(s)
+  local data=json.decode(s)
+  if data==nil then
+    do return end
+  end
+  for i,v in ipairs(data.states) do
+    self.states[i]=self.states[i]:loads(v)
+  end
+  self.state=data.state
+end
+
 function Track:parse_tli()
   local text=self.states[VTERM]:get_text()
   local tli_parsed=nil

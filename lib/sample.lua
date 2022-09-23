@@ -26,6 +26,7 @@ function Sample:init()
   if not string.find(foo,"Options") then
     self.audiowaveform="audiowaveform"
   end
+  self.tosave={"ci","cursors","cursor_durations","view"}
 end
 
 function Sample:load_sample(path,is_melodic)
@@ -64,6 +65,25 @@ function Sample:load_sample(path,is_melodic)
   end
   engine.load_buffer(self.path)
   self.loaded=true
+end
+
+function Sample:dumps()
+  local data={}
+  for _,k in ipairs(self.tosave) do
+    data[k]=self[k]
+  end
+  return json.encode(data)
+end
+
+function Sample:loads(s)
+  local data=json.decode(s)
+  if data==nil then
+    do return end
+  end
+  for k,v in pairs(data) do
+    self[k]=v
+  end
+  self:do_move(0)
 end
 
 function Sample:get_onsets(fname,duration)

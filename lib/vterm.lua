@@ -47,6 +47,9 @@ function VTerm:loads(s)
     self[k]=v
   end
   self:load_text(self.text)
+  if self.on_save~=nil then
+    self.on_save(table.concat(self.lines,"\n"))
+  end
 end
 
 function VTerm:insert(row,col,s)
