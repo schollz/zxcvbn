@@ -368,7 +368,7 @@ Engine_Zxcvbn : CroneEngine {
             });            
         });
 
-        this.addCommand("melodic_on","ssfffffff",{ arg msg;
+        this.addCommand("melodic_on","ssffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var amp=msg[3].dbamp;
@@ -377,7 +377,8 @@ Engine_Zxcvbn : CroneEngine {
             var sampleIn=msg[6];
             var sampleOut=msg[7];
             var sampleEnd=msg[8];
-            var watch=msg[9];
+            var duration=msg[9];
+            var watch=msg[10];
             if (bufs.at(filename).notNil,{
                 var buf=bufs.at(filename);
                 if (syns.at(id).notNil,{
@@ -395,7 +396,7 @@ Engine_Zxcvbn : CroneEngine {
                     sampleIn: sampleIn,
                     sampleOut: sampleOut,
                     sampleEnd: sampleEnd,
-                    duration: 15,
+                    duration: duration,
                     watch: watch,
                 ], syns.at("main"), \addBefore));
                 NodeWatcher.register(syns.at(id));
