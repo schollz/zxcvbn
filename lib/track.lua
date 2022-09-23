@@ -36,10 +36,12 @@ function Track:init()
 
   local params_menu={
     {id="db",name="amp",min=-96,max=12,exp=false,div=1,default=0,unit="db"},
+    {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=0},
     {id="filter",name="filter",min=24,max=127,exp=false,div=0.5,default=127}, -- TODO: formatter for notes
     {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
     {id="release",name="release",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
+    {id="gate",name="gate",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     -- {id="send_main",name="main send",min=0,max=1,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
   }
   for _,pram in ipairs(params_menu) do
@@ -51,17 +53,23 @@ function Track:init()
       formatter=pram.formatter,
     }
   end
+  self.params={shared={"ppq","track_type","track_play","db","filter","probability","pan"}}
+  self.params["sliced sample"]={"sample_file","bpm","play_through","gate"} -- only show if midi is enabled
+  self.params["melodic sample"]={"sample_file","attack","release"} -- only show if midi is enabled
+  self.params["infinite pad"]={"attack","release"}
+
+
+  -- define the shortcodes here
   self.mods={
     v=function(x) params:set(self.id.."db",util.linlin(0,100,-96,12)) end,
     i=function(x) params:set(self.id.."filter",x+30) end,
-    o=function(x) params:set(self.id.."probability") end,
+    o=function(x) params:set(self.id.."probability",x) end,
+    h=function(x) params:set(self.id.."gate",x) end,
+    k=function(x) params:set(self.id.."attack",x) end,
+    l=function(x) params:set(self.id.."release",x) end,
+    p=function(x) params:set(self.id.."pan",(x/100)*2-1) end,
   }
   
-
-  self.params={shared={"ppq","track_type","track_play","db","filter","probability"}}
-  self.params["sliced sample"]={"sample_file","bpm","play_through"} -- only show if midi is enabled
-  self.params["melodic sample"]={"sample_file","attack","release"} -- only show if midi is enabled
-  self.params["infinite pad"]={"attack","release"}
 
   -- initialize track data
   self.state=VTERM
@@ -84,11 +92,12 @@ function Track:init()
         id=self.id.."_"..d.m,
         ci=d.m,
         db=params:get(self.id.."db"),
+        pan=params:get(self.id.."pan"),
         duration=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")),
         rate=clock.get_tempo()/params:get(self.id.."bpm"),
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
         retrig=d.mods.r or 0,
-        gate=d.q/100 or 0,
+        gate=params:get(self.id.."gate")/100,
       }
     end,
     note_off=function(d)

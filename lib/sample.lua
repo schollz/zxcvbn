@@ -26,7 +26,7 @@ function Sample:init()
   if not string.find(foo,"Options") then
     self.audiowaveform="audiowaveform"
   end
-  self.tosave={"ci","cursors","cursor_durations","view"}
+  self.tosave={"ci","cursors","cursor_durations","view","kick"}
 end
 
 function Sample:load_sample(path,is_melodic)
@@ -56,10 +56,12 @@ function Sample:load_sample(path,is_melodic)
 
   self.is_melodic=is_melodic
   if not is_melodic then
+    self.kick={-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96}
     self.cursors=self:get_onsets(self.path,self.duration)
     self.cursor_durations={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
     self:do_move(0)
   else
+    self.kick={-96,-96,-96,-96}
     self.cursors={0,self.duration*0.6,self.duration*0.8,self.duration-0.1}
     self.cursor_durations={0,0,0,0}
   end
@@ -164,6 +166,7 @@ function Sample:play(d)
   d.on=d.on or false
   d.id=d.id or "audition"
   d.db=d.db or 0
+  d.pan=d.pan or 0
   d.pitch=d.pitch or 0
   d.watch=d.watch or 0
   d.rate=d.rate or 1
@@ -176,7 +179,7 @@ function Sample:play(d)
       local sampleIn=self.cursors[2]
       local sampleOut=self.cursors[3]
       local sampleEnd=self.cursors[4]
-      engine.melodic_on(d.id,filename,d.db,d.pitch,sampleStart,sampleIn,sampleOut,sampleEnd,d.duration or 30,d.watch)
+      engine.melodic_on(d.id,filename,d.db,d.pan,d.pitch,sampleStart,sampleIn,sampleOut,sampleEnd,d.duration or 30,d.watch)
     else
       engine.melodic_off(self.id)
     end
@@ -189,7 +192,19 @@ function Sample:play(d)
         duration=self.duration
       end
       local send_pos=1
-      engine.slice_on(d.id,filename,d.db,d.rate,d.pitch,pos,duration,d.retrig,d.gate,d.watch)
+      engine.slice_on(d.id,filename,d.db,d.pan,d.rate,d.pitch,pos,duration,d.retrig,d.gate,d.watch)
+      if self.kick[d.ci]>-96 then
+        engine.kick(
+          params:get("basefreq"),
+          params:get("ratio"),
+          params:get("sweeptime")/1000,
+          params:get("preamp"),
+          params:get("kick_db")+self.kick[d.ci],
+          params:get("decay1")/1000,
+          params:get("decay1L")/1000,
+          params:get("decay2")/1000,
+        params:get("clicky")/1000)
+      end
     end
   end
 end
@@ -266,6 +281,18 @@ function Sample:do_move(d)
   self.debounce_fn["save_cursors"]={30,function() self:save_cursors() end}
 end
 
+function Sample:adjust_kick(i,d)
+  if self.is_melodic then 
+    do return end 
+  end
+  self.kick[i]=self.kick[i]+d
+  if self.kick[i]<-96 then 
+    self.kick[i]=-96
+  elseif self.kick[i]>12 then 
+    self.kick[i]=12 
+  end
+end
+
 function Sample:keyboard(k,v)
   print(k,v)
   if k=="EQUAL" and v==1 then
@@ -285,6 +312,7 @@ end
 
 function Sample:enc(k,d)
   if k==1 then
+    self:adjust_kick(self.ci,d)
   elseif k==2 then
     self:do_move(d)
   elseif k==3 and d~=0 then
@@ -412,6 +440,12 @@ function Sample:redraw()
   -- screen.rect(x,0,11,7)
   -- screen.fill()
 
+
+  if self.kick[self.ci]>-96 then 
+    screen.level(15)
+    screen.move(126,64)
+    screen.text_right(self.kick[self.ci].." dB")
+  end
 end
 
 return Sample
