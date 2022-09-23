@@ -127,7 +127,7 @@ function Track:parse_tli()
 end
 
 function Track:emit(beat,ppq)
-  if ppq~=params:get(self.id.."ppq") then
+  if params:get(self.id.."play")==0 or ppq~=params:get(self.id.."ppq") then
     do return end
   end
   if self.id==1 then

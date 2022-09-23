@@ -136,6 +136,9 @@ function keyboard.code(k,v)
   elseif string.find(k,"SHIFT") then
     shift_on=v>0
     do return end
+  elseif string.find(k,"SPACE") then 
+    params:set(params:get("track").."play",1)
+    do return end
   end
   k=shift_on and "SHIFT+"..k or k
   k=ctrl_on and "CTRL+"..k or k
