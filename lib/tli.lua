@@ -1068,6 +1068,9 @@ function TLI:test()
 
   -- ]])
 
+  -- TODO: calculate the duration of each and include it in the track
+  -- TODO: place the last "off" in the track at the beginning
+
   if not string.find(package.cpath,"./") then
     package.cpath=package.cpath..";./?.so"
   end

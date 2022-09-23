@@ -168,6 +168,7 @@ function Sample:play(d)
         duration=self.duration
       end
       local send_pos=1
+      -- TODO: add retrig
       engine.slice_on(d.id,filename,d.db,d.rate,d.pitch,pos,duration,d.watch)
     else
       engine.slice_off(d.id)

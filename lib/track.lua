@@ -103,13 +103,16 @@ function Track:play(d)
     do return end
   end
   d.v=d.v or 60
-  if params:get(self.id.."track_type")==1 then
+  if params:get(self.id.."track_type")==1 and do.on then
+    -- only triggers on note, uses duration to figure out how long
     self.states[SAMPLE]:play{
       on=d.on,
       id=self.id.."_"..d.m,
       ci=d.m,
+      duration=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")),-- TODO: use the calculated duration
       rate=clock.get_tempo()/params:get(self.id.."bpm"),
       watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
+      retrig=d.r or 0,
     }
   end
 end

@@ -333,6 +333,7 @@ Engine_Zxcvbn : CroneEngine {
                     duration: duration,
                     send_pos: send_pos,
                 ], syns.at("sliceFx"), \addBefore));
+                // TODO: add retriggering
                 NodeWatcher.register(syns.at(id));
             });
         });
