@@ -195,7 +195,7 @@ function Sample:play(d)
       engine.slice_on(d.id,filename,d.db,d.pan,d.rate,d.pitch,pos,duration,d.retrig,d.gate,d.watch)
       if self.kick[d.ci]>-96 then
         engine.kick(
-          params:get("basefreq"),
+          musicutil.note_num_to_freq(params:get("basenote")),
           params:get("ratio"),
           params:get("sweeptime")/1000,
           params:get("preamp"),
