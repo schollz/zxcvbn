@@ -173,13 +173,14 @@ function Sample:play(d)
   d.ci=d.ci or self.ci
   d.retrig=d.retrig or 0
   d.gate=d.gate or 1.0
+  d.filter=musicutil.note_num_to_freq(params:get(self.id.."filter"))
   if self.is_melodic then
     if d.on then
       local sampleStart=self.cursors[1]
       local sampleIn=self.cursors[2]
       local sampleOut=self.cursors[3]
       local sampleEnd=self.cursors[4]
-      engine.melodic_on(d.id,filename,d.db,d.pan,d.pitch,sampleStart,sampleIn,sampleOut,sampleEnd,d.duration or 30,d.watch)
+      engine.melodic_on(d.id,filename,d.db,d.pan,d.pitch,sampleStart,sampleIn,sampleOut,sampleEnd,d.duration or 30,d.filter,d.watch)
     else
       engine.melodic_off(self.id)
     end
@@ -187,12 +188,11 @@ function Sample:play(d)
     if d.on then
       local rate=1
       local pos=self.cursors[d.ci]
-      local duration=self.cursor_durations[d.ci]
-      if params:get(self.id.."play_through")==1 then
-        duration=self.duration
+      if params:get(self.id.."play_through")==2 then
+        d.duration=self.cursor_durations[d.ci]
       end
       local send_pos=1
-      engine.slice_on(d.id,filename,d.db,d.pan,d.rate,d.pitch,pos,duration,d.retrig,d.gate,d.watch)
+      engine.slice_on(d.id,filename,d.db,d.pan,d.rate,d.pitch,pos,d.duration,d.retrig,d.gate,d.filter,d.watch)
       if self.kick[d.ci]>-96 then
         engine.kick(
           musicutil.note_num_to_freq(params:get("basenote")),
