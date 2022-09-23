@@ -681,9 +681,9 @@ function TLI:parse_pattern(text,division,use_hex)
   print(json.encode(positions))
   -- adjustments
   for _,p in ipairs(positions) do
-	  p.mods=p.mods or {v=60}
+    p.mods=p.mods or {v=60}
     if p.mods.x~=nil then
-	    print("DOING ARP")
+      print("DOING ARP")
       -- introduce as an arp
       local notes={}
       for _,note in ipairs(p.parsed) do
@@ -693,10 +693,15 @@ function TLI:parse_pattern(text,division,use_hex)
       local arp_notes=self:get_arp(notes,p.stop-p.start,p.mods.x,p.mods.z)
       local skip=p.mods.y or 0
       local j=0
+      print(json.encode(track))
       for i=p.start,p.stop-1,skip+1 do
         j=j+1
-        table.insert(track[i].on,{m=arp_notes[j],v=p.mods.v})
-        table.insert(track[i+1+skip].off,{m=arp_notes[j]})
+        if j<=#arp_notes then
+          table.insert(track[i].on,{m=arp_notes[j],v=p.mods.v})
+          if i+1+skip<=#track then
+            table.insert(track[i+1+skip].off,{m=arp_notes[j]})
+          end
+        end
       end
     else
       -- introduce normally
@@ -1071,17 +1076,20 @@ function TLI:test()
   local data=tli:parse_tli([[
 # ignore this
 file test.wav
-
+bpm 123
+ 
 ppq 8
-
+ 
 chain a 
-
+ 
 # pattern definitions
-
+ 
 pattern a
-division 4
-Cm xu
-
+division 8
+Cm xu y2 z5 v40
+-
+-
+-
 ]])
 
   print(json.encode(data))
@@ -1090,11 +1098,11 @@ Cm xu
     print("pattern",k,json.encode(v.parsed.positions))
   end
   -- print("OK")
-  for _,v in ipairs(data.track) do
+  for k,v in ipairs(data.track) do
     if next(v.on) then
-      --print(k,json.encode(v.on))
+      print(k,json.encode(v.on))
     else
-      --print(k)
+      print(k)
     end
   end
 
