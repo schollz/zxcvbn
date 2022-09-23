@@ -387,7 +387,7 @@ function TLI:hex_to_midi(s)
   local notes={}
   for i=1,#s do
     local c=s:sub(i,i)
-    table.insert(notes,{m=c,n=self.hex_to_num[c]})
+    table.insert(notes,{n=c,m=self.hex_to_num[c]})
   end
   return notes
 end
@@ -1110,7 +1110,7 @@ Cm xu y2 z5 v40
 
 end
 
-tli=TLI:new()
-tli:test()
+-- tli=TLI:new()
+-- tli:test()
 
 return TLI

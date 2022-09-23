@@ -15,8 +15,8 @@ function VTerm:init()
   self:load_text[[file amenbreak_bpm136.wav
 bpm 136 
  
-chain a b a a b
-ppq 4 -> pulses per quarter note (creates division of 1/(4*ppq))
+chain a
+ppq 4 
  
 pattern a
 0
@@ -91,6 +91,10 @@ function VTerm:update_text()
   end
 end
 
+function VTerm:get_text()
+  return table.concat(self.lines,"\n")
+end
+
 function VTerm:update_history()
   if self.unsaved then
     self.unsaved=nil
@@ -147,10 +151,6 @@ function VTerm:keyboard(k,v)
         self:cursor_delete()
       end
     end
-  elseif string.find(k,"SHIFT") then
-    self.shift=v>0
-  elseif string.find(k,"CTRL") then
-    self.ctrl=v>0
   elseif k=="LEFT" then
     if v==1 then
       self:move_cursor(0,-1)
@@ -169,31 +169,51 @@ function VTerm:keyboard(k,v)
     end
   elseif self.ctrl then
     if k=="S" and v==1 then
-      show_message("saved",2)
-      -- TODO: save
     elseif k=="Z" and v==1 then
       -- TODO: undo
     elseif tonumber(k)~=nil and tonumber(k)>0 and tonumber(k)<10 then
       -- TODO: switch?
     end
+  elseif k=="SHIFT+S" then
+    show_message("saved",2)
+    if self.on_save~=nil then
+      self.on_save(table.concat(self.lines,"\n"))
+    end
+    -- TODO: add to history
   elseif v==1 then
     local unknown=false
     if k=="SPACE" then
       k=" "
     elseif k=="SEMICOLON" then
-      k=self.shift and ":" or ";"
+      k=";"
+    elseif k=="SHIFT+SEMICOLON" then
+      k=":"
+    elseif k=="APOSTROPHE" then
+      k="'"
+    elseif k=="SHIFT+APOSTROPHE" then
+      k='"'
     elseif k=="SLASH" then
-      k=self.shift and "?" or "/"
+      k="/"
+    elseif k=="SHIFT+SLASH" then
+      k="?"
     elseif k=="DOT" then
-      k=self.shift and ">" or "."
+      k="."
+    elseif k=="SHIFT+DOT" then
+      k=">"
     elseif k=="ENTER" then
       k="\n"
     elseif k=="MINUS" then
-      k=self.shift and "_" or "-"
+      k="-"
+    elseif k=="SHIFT+MINUS" then
+      k="_"
     elseif k=="COMMA" then
-      k=self.shift and "<" or ","
+      k=","
+    elseif k=="SHIFT+COMMA" then
+      k="<"
     elseif k=="EQUAL" then
-      k=self.shift and "+" or "="
+      k="="
+    elseif k=="SHIFT+EQUAL" then
+      k="+"
     elseif #k>1 then
       unknown=true
       print("vterm: unknown character: "..k)

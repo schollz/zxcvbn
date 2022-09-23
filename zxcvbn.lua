@@ -14,6 +14,9 @@ json=require("cjson")
 track_=include("lib/track")
 vterm_=include("lib/vterm")
 sample_=include("lib/sample")
+tli_=include("lib/tli")
+tli=tli_:new()
+lattice=require("lattice")
 
 -- global division definitions
 possible_divisions={1/32,1/24,1/16,1/12,1/8,1/6,1/4,1/3,1/2,1,2,4}
@@ -70,9 +73,26 @@ function init()
     end
   end)
 
+  -- start lattice
+  local sequencer=lattice:new{}
+  sequencer_beats={}
+  for ppq=1,8 do
+    sequencer_beats[ppq]=0
+    sequencer:new_pattern({
+      action=function(t)
+        sequencer_beats[ppq]=sequencer_beats[ppq]+1
+        for _,track in ipairs(tracks) do
+          track:emit(sequencer_beats[ppq],ppq)
+        end
+      end,
+      division=1/(4*ppq),
+    })
+  end
+  sequencer:hard_restart()
+
   params:set("1sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   -- params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
-
+  tracks[1]:parse_tli()
 end
 
 function debounce_params()
