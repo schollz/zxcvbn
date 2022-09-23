@@ -71,6 +71,54 @@ function Track:init()
   end})
   table.insert(self.states,sample_:new{id=self.id})
 
+  -- keep track of notes
+  self.notes_on={}
+
+  -- add playback functions for each kind of engine
+  self.play_fn={}
+  -- spliced sample
+  table.insert(self.play_fn,{
+    note_on=function(d) 
+      self.states[SAMPLE]:play{
+        on=true,
+        id=self.id.."_"..d.m,
+        ci=d.m,
+        db=params:get(self.id.."db"),
+        duration=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")),
+        rate=clock.get_tempo()/params:get(self.id.."bpm"),
+        watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
+        retrig=d.mods.r or 0,
+        gate=d.q/100 or 0,
+      }
+    end,
+    note_off=function(d)
+      self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
+    end,
+  })
+  -- melodic sample
+  table.insert(self.play_fn,{
+    note_on=function(d) 
+      self.states[SAMPLE]:play{
+        on=true,
+        id=self.id.."_"..d.m,
+        db=params:get(self.id.."db"),
+        duration=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")),
+        watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
+      }
+    end,
+    note_off=function(d)
+      self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
+    end,
+  })
+  -- infinite pad
+  table.insert(self.play_fn,{
+    note_on=function(d) 
+      engine.note_on(d.m,params:get(self.id.."attack")/1000,params:get(self.id.."release")/1000),d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")))
+    end,
+    note_off=function(d)
+      engine.note_off(d.m)
+    end,
+  })
 end
 
 function Track:dumps()
@@ -124,6 +172,7 @@ function Track:parse_tli()
     end
     show_message("parsed",1)
   end
+  -- TODO: if midi, then go through and turn off notes
 end
 
 function Track:emit(beat,ppq)
@@ -141,40 +190,13 @@ function Track:emit(beat,ppq)
         end
       end
       for _,d in ipairs(t.off) do
-        d.on=false
-        self:play(d)
+        self:play_fn[params:get(self.id.."track_type")]:note_off(d)
+        self.notes_on[d.m]=nil
       end
       for _,d in ipairs(t.on) do
-        d.on=true
-        self:play(d)
+        self:play_fn[params:get(self.id.."track_type")]:note_on(d)
+        self.notes_on[d.m]=true
       end
-    end
-  end
-end
-
-function Track:play(d)
-  -- d={m=4,v=60}
-  if d.m==nil then
-    do return end
-  end
-  if params:get(self.id.."track_type")==1 and do.on then
-    -- only triggers on note, uses duration to figure out how long
-    self.states[SAMPLE]:play{
-      on=d.on,
-      id=self.id.."_"..d.m,
-      ci=d.m,
-      db=params:get(self.id.."db"),
-      duration=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")),
-      rate=clock.get_tempo()/params:get(self.id.."bpm"),
-      watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
-      retrig=d.mods.r or 0,
-      gate=d.q/100 or 0,
-    }
-  elseif params:string(self.id.."track_type")=="infinite pad" then 
-    if d.on then 
-      engine.note_on(d.m,params:get(self.id.."attack")/1000,params:get(self.id.."release")/1000))
-    else
-      engine.note_off(d.m)
     end
   end
 end
