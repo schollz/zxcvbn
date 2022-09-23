@@ -26,13 +26,16 @@ tracker of limited input.
 all parameters latch until they change again
 
 ```
-h100 (hold length, %)
+h100 (hold length / gate, %)
 i99 (filter open = midi note - 30)
+j11 (just for fun (fx))
 k10 (attack, ms)
-l2000 (let-go, ms)
+l2000 (decay, ms)
 m99 (deci-mater)
-p99 (pan)
-q100 (gate)
+n??
+o100 (probability, %)
+p99 (pan, 0=left, 100 = right)
+q?? 
 r8 (retrig 8 times)
 s100 (compress %)
 t100 (compressibility)
