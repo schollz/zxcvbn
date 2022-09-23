@@ -10,6 +10,7 @@ end
 
 function VTerm:init()
   self.history={}
+  self.history_pos=0
   self.view={row=1,col=1}
   self.cursor={row=1,col=3}
   self:load_text[[file amenbreak_bpm136.wav
@@ -79,7 +80,6 @@ function VTerm:cursor_delete()
     do return end
   end
   self.lines[row]=self.lines[row]:sub(1,col-1)..self.lines[row]:sub(col+1)
-  print(col)
   self:move_cursor(0,-1)
   self:update_text()
 end
@@ -96,30 +96,33 @@ function VTerm:get_text()
 end
 
 function VTerm:save()
-    if self.on_save~=nil then
-      self.on_save(table.concat(self.lines,"\n"))
-    end
-    -- remove future history
-    for i=self.history_pos,#self.history do 
-	self.history[i]=nil
-    end
-    if #self.history==0 or self.text~=self.history[#self.history] then 
-      table.insert(self.history,self.text)
-    end
+  if self.on_save~=nil then
+    self.on_save(table.concat(self.lines,"\n"))
+  end
+  if self.history_pos==0 then
+    do return end
+  end
+  -- remove future history
+  for i=self.history_pos+1,#self.history do
+    self.history[i]=nil
+  end
+  if #self.history==0 or self.text~=self.history[#self.history] then
+    table.insert(self.history,self.text)
+  end
 end
 
 function VTerm:undo()
-	if self.history_pos>1 then 
-		self.history_pos=self.history_pos-1
-	self:load_text(self.history[self.history_pos])
-	end
+  if self.history_pos>1 then
+    self.history_pos=self.history_pos-1
+    self:load_text(self.history[self.history_pos])
+  end
 end
 
 function VTerm:redo()
-if self.history_pos<#self.history then 
-	self.history_pos=self.history_pos+1
-	self:load_text(self.history[self.history_pos])
-end
+  if self.history_pos<#self.history and self.history_pos>0 then
+    self.history_pos=self.history_pos+1
+    self:load_text(self.history[self.history_pos])
+  end
 end
 
 function VTerm:load_text(text)
@@ -128,9 +131,9 @@ function VTerm:load_text(text)
   for line in text:gmatch("([^\n]*)\n?") do
     table.insert(self.lines,line)
   end
-  if self.history==nil or next(self.history)==nil then 
-	  self.history={text}
-	  self.history_pos=1
+  if next(self.history)==nil then
+    self.history={text}
+    self.history_pos=1
   end
 end
 
