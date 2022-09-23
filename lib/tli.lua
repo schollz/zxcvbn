@@ -706,7 +706,7 @@ function TLI:parse_pattern(text,division,use_hex)
     else
       -- introduce normally
       for _,note in ipairs(p.parsed) do
-        table.insert(track[p.start].on,{m=note.m,v=p.mods.v})
+        table.insert(track[p.start].on,{m=note.m,mods=p.mods})
         table.insert(track[p.stop].off,{m=note.m})
       end
     end
@@ -730,32 +730,32 @@ function TLI:parse_positions(lines,division)
   local elast=nil
   local entities={}
   for i,line in ipairs(lines) do
-    local mods={}
     local ele={}
     for w in line:gmatch("%S+") do
       local c=w:sub(1,1)
       if string.byte(c)>string.byte("g") and string.byte(c)<=string.byte("z") then
-        mods[c]=tonumber(w:sub(2))
-        mods[c]=mods[c] or w:sub(2)
+	      if #ele>0 then
+        ele[#ele].mods[c]=tonumber(w:sub(2))
+        ele[#ele].mods[c]=ele[#ele].mods[c] or w:sub(2)
+end
       else
-        table.insert(ele,w)
+        table.insert(ele,{e=w,mods={}})
       end
     end
-    if next(mods)==nil then
-      mods=nil
-    end
+    print("ele")
+    print(json.encode(ele))
     local pos=self.er(#ele,division,0)
     local ei=0
     for pi,p in ipairs(pos) do
       ti=pi+(i-1)*division
       if p then
-        if elast~=nil and ele[ei+1]~="-" then
+        if elast~=nil and ele[ei+1].e~="-" then
           table.insert(entities,{el=elast.el,start=elast.start,stop=ti,mods=elast.mods})
           mods=nil
           elast=nil
         end
-        if ele[ei+1]~="-" and ele[ei+1]~="." then
-          elast={el=ele[ei+1],start=ti,mods=mods}
+        if ele[ei+1].e~="-" and ele[ei+1].e~="." then
+          elast={el=ele[ei+1].e,start=ti,mods=ele[ei+1].mods}
         end
         ei=ei+1
       end
@@ -765,6 +765,8 @@ function TLI:parse_positions(lines,division)
     table.insert(entities,{el=elast.el,start=elast.start,stop=ti,mods=elast.mods})
     elast=nil
   end
+  print("entities")
+  print(json.encode(entities))
   return entities
 end
 
@@ -1090,10 +1092,8 @@ chain a
  
 pattern a
 division 8
-Cm xu y2 z5 v40
--
--
--
+c4 v30 r4 z5 d4 v60
+#Cm xu y2 z5 v40
 ]])
 
   print(json.encode(data))
@@ -1114,7 +1114,7 @@ Cm xu y2 z5 v40
 
 end
 
--- tli=TLI:new()
--- tli:test()
+tli=TLI:new()
+tli:test()
 
 return TLI
