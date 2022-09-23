@@ -95,11 +95,31 @@ function VTerm:get_text()
   return table.concat(self.lines,"\n")
 end
 
-function VTerm:update_history()
-  if self.unsaved then
-    self.unsaved=nil
-    table.insert(self.history,self.text)
-  end
+function VTerm:save()
+    if self.on_save~=nil then
+      self.on_save(table.concat(self.lines,"\n"))
+    end
+    -- remove future history
+    for i=self.history_pos,#self.history do 
+	self.history[i]=nil
+    end
+    if #self.history==0 or self.text~=self.history[#self.history] then 
+      table.insert(self.history,self.text)
+    end
+end
+
+function VTerm:undo()
+	if self.history_pos>1 then 
+		self.history_pos=self.history_pos-1
+	self:load_text(self.history[self.history_pos])
+	end
+end
+
+function VTerm:redo()
+if self.history_pos<#self.history then 
+	self.history_pos=self.history_pos+1
+	self:load_text(self.history[self.history_pos])
+end
 end
 
 function VTerm:load_text(text)
@@ -107,6 +127,10 @@ function VTerm:load_text(text)
   self.lines={}
   for line in text:gmatch("([^\n]*)\n?") do
     table.insert(self.lines,line)
+  end
+  if self.history==nil or next(self.history)==nil then 
+	  self.history={text}
+	  self.history_pos=1
   end
 end
 
@@ -176,10 +200,7 @@ function VTerm:keyboard(k,v)
     end
   elseif k=="SHIFT+S" then
     show_message("saved",2)
-    if self.on_save~=nil then
-      self.on_save(table.concat(self.lines,"\n"))
-    end
-    -- TODO: add to history
+    self:save()
   elseif v==1 then
     local unknown=false
     if k=="SPACE" then
