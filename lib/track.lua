@@ -1,5 +1,8 @@
 local Track={}
 
+VTERM=1
+SAMPLE=2
+
 function Track:new(o)
   o=o or {}
   setmetatable(o,self)
@@ -15,6 +18,7 @@ function Track:init()
     -- rerun show/hiding
     self:select(self.selected)
   end)
+  params:add_number(self.id.."ppq","ppq",1,8,4)
   -- sliced sample
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
   params:set_action(self.id.."sample_file",function(x)
@@ -23,21 +27,80 @@ function Track:init()
       self:load_sample(x)
     end
   end)
-  params:add_number(self.id.."sample_bpm","source bpm",10,200,math.floor(clock.get_tempo()))
+  params:add_number(self.id.."bpm","bpm",10,200,math.floor(clock.get_tempo()))
   params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
 
   params:add{type="binary",name="play",id=self.id.."track_play",behavior="toggle",action=function(v)
   end}
-  params:add_option(self.id.."track_division","division",possible_division_options,5)
 
-  self.params={shared={"track_type","track_play","track_division"}}
-  self.params["sliced sample"]={"sample_file","sample_bpm","play_through"} -- only show if midi is enabled
+  self.params={shared={"ppq","track_type","track_play"}}
+  self.params["sliced sample"]={"sample_file","bpm","play_through"} -- only show if midi is enabled
   self.params["melodic sample"]={"sample_file"} -- only show if midi is enabled
 
   -- initialize track data
-  self.state="vterm"
-  self.vterm=vterm_:new()
-  self.sample=sample_:new()
+  self.state=VTERM
+  self.states={}
+  table.insert(self.states,vterm_:new{id=self.id,on_save=function(x)
+    self:parse_tli()
+  end})
+  table.insert(self.states,sample_:new{id=self.id})
+
+end
+
+function Track:parse_tli()
+  local text=self.states[VTERM]:get_text()
+  local tli_parsed=nil
+  local ok,err=pcall(function()
+    tli_parsed=tli:parse_tli(text,params:get(self.id.."track_type")==1)
+  end)
+  if not ok then
+    show_message("error parsing",2)
+    do return end
+  end
+  self.tli=tli_parsed
+  tab.print(self.tli.meta)
+  -- update the meta
+  if self.tli.meta~=nil then
+    for k,v in pairs(self.tli.meta) do
+      if params.lookup[self.id..k]~=nil then
+        local ok,err=pcall(function()
+          print("setting "..k.." = "..v)
+          params:set(self.id..k,v)
+        end)
+        if not ok then
+          show_message("error setting "..k)
+        end
+      end
+    end
+    show_message("parsed",1)
+  end
+end
+
+function Track:emit(beat,ppq)
+  if ppq~=params:get(self.id.."ppq") then
+    do return end
+  end
+  if self.id==1 then
+    print(beat,ppq)
+    if self.tli~=nil and self.tli.track~=nil then
+      local i=(beat-1)%#self.tli.track+1
+      local t=self.tli.track[i]
+      for _,v in ipairs(t.off) do
+        tab.print(v)
+      end
+      for _,v in ipairs(t.on) do
+        tab.print(v)
+      end
+    end
+  end
+end
+
+function Track:play(d,on)
+  -- d={m=4,v=60}
+  if d.m==nil then
+    do return end
+  end
+  d.v=d.v or 60
 end
 
 function Track:select(selected)
@@ -59,30 +122,35 @@ function Track:select(selected)
 end
 
 function Track:set_position(pos)
-  self.sample:set_position(pos)
+  self.states[SAMPLE]:set_position(pos)
 end
 
 function Track:load_sample(path)
-  self.sample:load_sample(path,params:get(self.id.."track_type")==2)
-  self.state="sample"
+  -- self.state=SAMPLE
+  self.states[SAMPLE]:load_sample(path,params:get(self.id.."track_type")==2)
 end
 
 -- base functions
 
 function Track:keyboard(k,v)
-  self[self.state]:keyboard(k,v)
+  if k=="TAB" then
+    if v==1 and params:get(self.id.."track_type")<3 then
+      self.state=3-self.state
+    end
+  end
+  self.states[self.state]:keyboard(k,v)
 end
 
 function Track:enc(k,d)
-  self[self.state]:enc(k,d)
+  self.states[self.state]:enc(k,d)
 end
 
 function Track:key(k,z)
-  self[self.state]:key(k,z)
+  self.states[self.state]:key(k,z)
 end
 
 function Track:redraw()
-  self[self.state]:redraw()
+  self.states[self.state]:redraw()
 end
 
 return Track

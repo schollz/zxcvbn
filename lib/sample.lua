@@ -57,6 +57,7 @@ function Sample:load_sample(path,is_melodic)
   if not is_melodic then
     self.cursors=self:get_onsets(self.path,self.duration)
     self.cursor_durations={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+    self:do_move(0)
   else
     self.cursors={0,self.duration*0.6,self.duration*0.8,self.duration-0.1}
     self.cursor_durations={0,0,0,0}
@@ -162,6 +163,9 @@ function Sample:audition(on)
       local rate=1
       local pos=self.cursors[self.ci]
       local duration=self.cursor_durations[self.ci]
+      if params:get(self.id.."play_through")==1 then
+        duration=30
+      end
       local send_pos=1
       engine.slice_on(id,filename,db,rate,pitch,pos,duration,send_pos)
     else
