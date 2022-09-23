@@ -176,8 +176,7 @@ function Sample:play(d)
       local sampleIn=self.cursors[2]
       local sampleOut=self.cursors[3]
       local sampleEnd=self.cursors[4]
-      engine.melodic_on(d.id,filename,d.db,d.pitch,
-      sampleStart,sampleIn,sampleOut,sampleEnd,d.watch)
+      engine.melodic_on(d.id,filename,d.db,d.pitch,sampleStart,sampleIn,sampleOut,sampleEnd,d.duration or 30,d.watch)
     else
       engine.melodic_off(self.id)
     end
