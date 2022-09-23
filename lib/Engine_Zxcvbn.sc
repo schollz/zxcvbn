@@ -103,7 +103,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = RLPF.ar(snd, LFNoise2.kr(0.3 ! snd.size).linexp(-1, 1, 100, 8000), 0.3);
             snd = Splay.ar(snd);
             snd = snd * Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)).ar(Done.freeSelf, \gate.kr(1));
-            snd = snd * -30.dbamp;
+            snd = snd * -30.dbamp * \amp.kr(1);
             Out.ar(\out.kr(0), snd);
         }).send(context.server);
 
@@ -114,7 +114,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = MoogFF.ar(snd, XLine.kr(100,rrand(6000,12000),8), 0);
             snd = snd * Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)).ar(Done.freeSelf, \gate.kr(1));
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
-            snd = snd * -10.dbamp;
+            snd = snd * -10.dbamp * \amp.kr(1);
             Out.ar(\out.kr(0), snd);
         }).send(context.server);
 
@@ -125,7 +125,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LeakDC.ar(snd);
             snd = snd * Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)).ar(Done.freeSelf, \gate.kr(1));
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
-            snd = snd * -50.dbamp;
+            snd = snd * -50.dbamp * \amp.kr(1);
             Out.ar(\out.kr(0), snd);
         }).send(context.server);
 
@@ -428,10 +428,11 @@ Engine_Zxcvbn : CroneEngine {
         });
 
 
-        this.addCommand("note_on","fff",{ arg msg;
+        this.addCommand("note_on","ffff",{ arg msg;
             var note=msg[1];
-            var attack=msg[2];
-            var release=msg[3];
+            var amp=msg[2].dbamp;
+            var attack=msg[3];
+            var release=msg[4];
             2.do{ arg i;
                 var id=note.asString++"_"++i;
                 if (syns.at(id).notNil,{
@@ -441,6 +442,7 @@ Engine_Zxcvbn : CroneEngine {
                 });
                 syns.put(id,Synth.new("pad"++i, [
                     freq: note.midicps, 
+                    amp: amp,
                     attack: attack,
                     release: release,
                     out: buses.at("padFx"),
