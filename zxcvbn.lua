@@ -101,15 +101,17 @@ function init()
   -- params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
   -- tracks[1]:parse_tli()
   params:set("1track_type",3)
+  params:set("2track_type",3)
   tracks[1]:load_text([[
 chain a
-
+ 
 pattern a
 Am/C
-F/C
+F/C k100 v50
 C
 Em/B
-  ]])
+      ]])
+  params:set("1play",1)
 end
 
 function debounce_params()
@@ -139,9 +141,6 @@ function keyboard.code(k,v)
     do return end
   elseif string.find(k,"SHIFT") then
     shift_on=v>0
-    do return end
-  elseif string.find(k,"SPACE") then 
-    params:set(params:get("track").."play",1)
     do return end
   end
   k=shift_on and "SHIFT+"..k or k
@@ -269,7 +268,7 @@ function params_kick()
   local params_menu={
     {id="kick_db",name="db adj",min=-96,max=16,exp=false,div=1,default=0.0,unit="db"},
     {id="preamp",name="preamp",min=0,max=4,exp=false,div=0.01,default=1,unit="amp"},
-    {id="basenote",name="base note",min=10,max=200,exp=false,div=1,default=24,formatter=function(param) return musicutil.note_num_to_name(param:get(), true)end},
+    {id="basenote",name="base note",min=10,max=200,exp=false,div=1,default=24,formatter=function(param) return musicutil.note_num_to_name(param:get(),true)end},
     {id="ratio",name="ratio",min=1,max=20,exp=false,div=1,default=6},
     {id="sweeptime",name="sweep time",min=0,max=200,exp=false,div=1,default=50,unit="ms"},
     {id="decay1",name="decay1",min=5,max=2000,exp=false,div=10,default=300,unit="ms"},

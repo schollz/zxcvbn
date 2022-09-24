@@ -24,20 +24,19 @@ function Track:init()
   params:set_action(self.id.."sample_file",function(x)
     print("sample_file",x)
     if util.file_exists(x) and string.sub(x,-1)~="/" then
-      self:load_sample(x)
+      self.load_sample(x)
     end
   end)
   params:add_number(self.id.."bpm","bpm",10,200,math.floor(clock.get_tempo()))
   params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
 
-  params:add{type="binary",name="play",id=self.id.."track_play",behavior="toggle",action=function(v)
+  params:add{type="binary",name="play",id=self.id.."play",behavior="toggle",action=function(v)
   end}
-
 
   local params_menu={
     {id="db",name="amp",min=-96,max=12,exp=false,div=1,default=0,unit="db"},
     {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=0},
-    {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(param:get(), true)end},
+    {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(param:get(),true)end},
     {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
     {id="release",name="release",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
@@ -53,15 +52,14 @@ function Track:init()
       formatter=pram.formatter,
     }
   end
-  self.params={shared={"ppq","track_type","track_play","db","filter","probability","pan"}}
+  self.params={shared={"ppq","track_type","play","db","filter","probability","pan"}}
   self.params["sliced sample"]={"sample_file","bpm","play_through","gate"} -- only show if midi is enabled
   self.params["melodic sample"]={"sample_file","attack","release"} -- only show if midi is enabled
   self.params["infinite pad"]={"attack","release"}
 
-
   -- define the shortcodes here
   self.mods={
-    v=function(x) params:set(self.id.."db",util.linlin(0,100,-96,12)) end,
+    v=function(x) params:set(self.id.."db",util.linlin(0,100,-96,12,x)) end,
     i=function(x) params:set(self.id.."filter",x+30) end,
     o=function(x) params:set(self.id.."probability",x) end,
     h=function(x) params:set(self.id.."gate",x) end,
@@ -69,7 +67,6 @@ function Track:init()
     l=function(x) params:set(self.id.."release",x) end,
     p=function(x) params:set(self.id.."pan",(x/100)*2-1) end,
   }
-  
 
   -- initialize track data
   self.state=VTERM
@@ -80,20 +77,22 @@ function Track:init()
   table.insert(self.states,sample_:new{id=self.id})
 
   -- keep track of notes
-  self.notes_on={}
+  self.notes_on={{},{},{},{}}
 
   -- add playback functions for each kind of engine
   self.play_fn={}
   -- spliced sample
   table.insert(self.play_fn,{
-    note_on=function(d) 
+    note_on=function(d)
+      local id=self.id.."_"..d.m
+      self.notes_on[1][d.m]=true
       self.states[SAMPLE]:play{
         on=true,
-        id=self.id.."_"..d.m,
+        id=id,
         ci=d.m,
         db=params:get(self.id.."db"),
         pan=params:get(self.id.."pan"),
-        duration=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")),
+        duration=d.duration_scaled,
         rate=clock.get_tempo()/params:get(self.id.."bpm"),
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
         retrig=d.mods.r or 0,
@@ -101,17 +100,20 @@ function Track:init()
       }
     end,
     note_off=function(d)
+      local id=self.id.."_"..d.m
       self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
     end,
   })
   -- melodic sample
   table.insert(self.play_fn,{
-    note_on=function(d) 
+    note_on=function(d)
+      local id=self.id.."_"..d.m
+      self.notes_on[2][d.m]=true
       self.states[SAMPLE]:play{
         on=true,
-        id=self.id.."_"..d.m,
+        id=id,
         db=params:get(self.id.."db"),
-        duration=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")),
+        duration=d.duration_scaled,
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
       }
     end,
@@ -121,8 +123,15 @@ function Track:init()
   })
   -- infinite pad
   table.insert(self.play_fn,{
-    note_on=function(d) 
-      engine.note_on(d.m,params:get(self.id.."attack")/1000,params:get(self.id.."release")/1000),d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq")))
+    note_on=function(d)
+      print("duration",d.duration_scaled)
+      local id=d.m
+      self.notes_on[3][d.m]=true
+      engine.note_on(id,
+        params:get(self.id.."db"),
+        params:get(self.id.."attack")/1000,
+        params:get(self.id.."release")/1000,
+      d.duration_scaled)
     end,
     note_off=function(d)
       engine.note_off(d.m)
@@ -152,6 +161,7 @@ end
 
 function Track:load_text(text)
   self.states[VTERM]:load_text(text)
+  self:parse_tli()
 end
 
 function Track:parse_tli()
@@ -165,7 +175,6 @@ function Track:parse_tli()
     do return end
   end
   self.tli=tli_parsed
-  tab.print(self.tli.meta)
   -- update the meta
   if self.tli.meta~=nil then
     for k,v in pairs(self.tli.meta) do
@@ -181,31 +190,41 @@ function Track:parse_tli()
     end
     show_message("parsed",1)
   end
-  -- TODO: if midi, then go through and turn off notes
+  -- add flag to turn off on notes
+  self.flag_parsed=true
 end
 
 function Track:emit(beat,ppq)
   if params:get(self.id.."play")==0 or ppq~=params:get(self.id.."ppq") then
     do return end
   end
-  if self.id==1 then
+  if self.tli~=nil and self.tli.track~=nil then
     print(beat,ppq)
-    if self.tli~=nil and self.tli.track~=nil then
-      local i=(beat-1)%#self.tli.track+1
-      local t=self.tli.track[i]
-      for k,v in pairs(t.mods) do 
-        if self.mods[k]~=nil then 
-          self.mods[k](v)
+    local i=(beat-1)%#self.tli.track+1
+    local t=self.tli.track[i]
+    for _,d in ipairs(t.off) do
+      self.play_fn[params:get(self.id.."track_type")].note_off(d)
+    end
+    for _,d in ipairs(t.on) do
+      if d.mods~=nil then
+        for k,v in pairs(d.mods) do
+          if self.mods[k]~=nil then
+            self.mods[k](v)
+          end
         end
       end
-      for _,d in ipairs(t.off) do
-        self:play_fn[params:get(self.id.."track_type")]:note_off(d)
-        self.notes_on[d.m]=nil
+      if self.flag_parsed then
+        self.flag_parsed=nil
+        for i,notes_on in ipairs(self.notes_on) do
+          for m,_ in pairs(notes_on) do
+            print("notes_on",m)
+            self.play_fn[i]:note_off({m=m})
+            self.notes_on[i][m]=nil
+          end
+        end
       end
-      for _,d in ipairs(t.on) do
-        self:play_fn[params:get(self.id.."track_type")]:note_on(d)
-        self.notes_on[d.m]=true
-      end
+      d.duration_scaled=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq"))
+      self.play_fn[params:get(self.id.."track_type")].note_on(d)
     end
   end
 end
