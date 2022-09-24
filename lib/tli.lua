@@ -734,10 +734,10 @@ function TLI:parse_positions(lines,division)
     for w in line:gmatch("%S+") do
       local c=w:sub(1,1)
       if string.byte(c)>string.byte("g") and string.byte(c)<=string.byte("z") then
-	      if #ele>0 then
-        ele[#ele].mods[c]=tonumber(w:sub(2))
-        ele[#ele].mods[c]=ele[#ele].mods[c] or w:sub(2)
-end
+        if #ele>0 then
+          ele[#ele].mods[c]=tonumber(w:sub(2))
+          ele[#ele].mods[c]=ele[#ele].mods[c] or w:sub(2)
+        end
       else
         table.insert(ele,{e=w,mods={}})
       end
@@ -1026,7 +1026,7 @@ function TLI:parse_tli(text,use_hex)
   end
 
   -- default to a chain of how the patterns are defined
-  if next(data.chain)==nil then 
+  if next(data.chain)==nil then
     data.chain=pattern_chain
   end
 
@@ -1117,8 +1117,5 @@ c4 v30 r4 z5 d4 v60
   print("\n###############################\n")
 
 end
-
-tli=TLI:new()
-tli:test()
 
 return TLI

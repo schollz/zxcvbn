@@ -12,9 +12,9 @@ function VTerm:init()
   self.history={}
   self.history_pos=0
   self.view={row=1,col=1}
-  self.cursor={row=1,col=1}
+  self.cursor={row=1,col=1,x=0}
   self.text=""
-  self.lines={}
+  self.lines={""}
   self.tosave={"history","history_pos","view","cursor","text"}
   self:move_cursor(0,0)
 end
@@ -151,6 +151,9 @@ function VTerm:load_text(text)
 end
 
 function VTerm:move_cursor(row,col)
+  if next(self.lines)==nil then
+    do return end
+  end
   self.cursor={row=self.cursor.row+row,col=self.cursor.col+col}
   if self.cursor.row>#self.lines then
     self.cursor.row=#self.lines
@@ -180,6 +183,7 @@ end
 
 function VTerm:keyboard(k,v)
   print(k,v)
+  local upper=false
   if k=="BACKSPACE" then
     if v>0 then
       self:cursor_delete()
@@ -207,11 +211,16 @@ function VTerm:keyboard(k,v)
     if v==1 then
       self:move_cursor(-1,0)
     end
+  elseif k=="CTRL+P" then
+    if v==1 then
+      params:set(self.id.."play",1-params:get(self.id.."play"))
+      show_message(params:get(self.id.."play")==0 and "stopped" or "playing")
+    end
   elseif k=="CTRL+Z" then
     self:undo()
   elseif k=="CTRL+Y" then
     self:redo()
-  elseif k=="SHIFT+S" then
+  elseif k=="CTRL+S" then
     show_message("saved",2)
     self:save()
   elseif v==1 then
@@ -248,12 +257,15 @@ function VTerm:keyboard(k,v)
       k="="
     elseif k=="SHIFT+EQUAL" then
       k="+"
+    elseif string.find(k,"SHIFT") and #k:sub(7)==1 then
+      k=k:sub(7)
+      upper=true
     elseif #k>1 then
       unknown=true
       print("vterm: unknown character: "..k)
     end
     if not unknown then
-      self:cursor_insert(self.shift and k or string.lower(k))
+      self:cursor_insert(upper and k or string.lower(k))
     end
   end
 end
