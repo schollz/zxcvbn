@@ -129,28 +129,17 @@ G/B;3
   params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   params:set("3track_type",1)
   tracks[3]:load_text([[
-chain c
+chain b
  
 ppq 4
  
-pattern c
-ppl 16
-01234567 xud z4 y1
- 
-pattern a
+pattern b
 ppl 2
-0
+0 n0
 1
 2
-3
-4
-5
-6
-7
-8
-9 r4
-a
-b
+3 n4
+
   ]])
   params:set("3play_through",2)
   params:set("1compressible",1)
@@ -160,8 +149,8 @@ b
   params:set("1db",-10)
   params:set("2db",-1)
   params:set("3db",-7.7)
-  params:set("1play",1)
-
+  params:set("3play",1)
+  params:set("track",3)
   clock.run(function()
     clock.sleep(1)
     sequencer:hard_restart()

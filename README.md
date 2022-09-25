@@ -27,14 +27,14 @@ j11 (just for fun (fx))
 k10 (attack, ms)
 l2000 (decay, ms)
 m99 (deci-mater)
-n??
+n?? (note change,-12-12)
 o100 (er offset)
 p99 (pan, 0=left, 100 = right)
 q100  (probability, %)
 r8 (retrig 8 times)
 s100 (stretch %)
-t?? (compressibility)
-u?? (compressing)
+t?? 
+u??
 v99 (volume add, db	)
 w??
 xud (arp type)

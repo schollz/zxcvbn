@@ -235,7 +235,10 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * Env.asr(0.001, 0.1, 0.01).ar(Done.freeSelf, \gate.kr(1) * ToggleFF.kr(1-TDelay.kr(DC.kr(1),\duration.kr(10000))) );
             snd = snd * -6.dbamp ! 2;
             snd = Pan2.ar(snd, \pan.kr(0));
-            Out.ar(\out.kr(0),snd);
+
+            Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
+            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd*amp);
         }).send(context.server);
 
         SynthDef(\bass,{
