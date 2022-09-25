@@ -185,14 +185,27 @@ function Sample:play(d)
       engine.melodic_off(self.id)
     end
   else
-    if d.on then
+    if d.on and self.cursors~=nil then
       local rate=1
       local pos=self.cursors[d.ci]
       if params:get(self.id.."play_through")==2 then
         d.duration=self.cursor_durations[d.ci]
       end
+      print("duration",d.duration,"gate",d.gate,"retrig",d.retrig,"rate",d.rate,"pitch",d.pitch)
       local send_pos=1
-      engine.slice_on(d.id,filename,d.db,d.pan,d.rate,d.pitch,pos,d.duration,d.retrig,d.gate,d.filter,d.watch)
+      engine.slice_on(
+        d.id,
+        filename,
+        d.db,
+        d.pan,
+        d.rate,
+        d.pitch,
+        pos,
+        d.duration,
+        d.retrig,
+        d.gate,
+        d.filter,
+      d.watch)
       if self.kick[d.ci]>-96 then
         engine.kick(
           musicutil.note_num_to_freq(params:get("basenote")),
@@ -278,18 +291,19 @@ function Sample:do_move(d)
   end
   self.cursor_durations[#cursors]=self.duration-cursors[#cursors].c
 
-  self.debounce_fn["save_cursors"]={30,function() self:save_cursors() end}
+  -- TODO: fix this
+  --self.debounce_fn["save_cursors"]={30,function() self:save_cursors() end}
 end
 
 function Sample:adjust_kick(i,d)
-  if self.is_melodic then 
-    do return end 
+  if self.is_melodic then
+    do return end
   end
   self.kick[i]=self.kick[i]+d
-  if self.kick[i]<-96 then 
+  if self.kick[i]<-96 then
     self.kick[i]=-96
-  elseif self.kick[i]>12 then 
-    self.kick[i]=12 
+  elseif self.kick[i]>12 then
+    self.kick[i]=12
   end
 end
 
@@ -440,11 +454,13 @@ function Sample:redraw()
   -- screen.rect(x,0,11,7)
   -- screen.fill()
 
-
-  if self.kick[self.ci]>-96 then 
+  if self.kick[self.ci]>-96 then
+    screen.update()
+    screen.move(126,58)
+    screen.blend_mode(1)
     screen.level(15)
-    screen.move(126,64)
     screen.text_right(self.kick[self.ci].." dB")
+    screen.blend_mode(0)
   end
 end
 

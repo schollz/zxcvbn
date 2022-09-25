@@ -196,19 +196,19 @@ function VTerm:keyboard(k,v)
       end
     end
   elseif k=="LEFT" then
-    if v==1 then
+    if v>0 then
       self:move_cursor(0,-1)
     end
   elseif k=="RIGHT" then
-    if v==1 then
+    if v>0 then
       self:move_cursor(0,1)
     end
   elseif k=="DOWN" then
-    if v==1 then
+    if v>0 then
       self:move_cursor(1,0)
     end
   elseif k=="UP" then
-    if v==1 then
+    if v>0 then
       self:move_cursor(-1,0)
     end
   elseif k=="CTRL+P" then

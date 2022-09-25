@@ -159,7 +159,7 @@ Engine_Zxcvbn : CroneEngine {
             );
             SendReply.kr(Impulse.kr(10)*send_pos,'/position',[snd_pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
             snd = BufRd.ar(ch,buf,snd_pos,interpolation:4);
-            snd = snd * Env.asr(0.001, 1, 0.001).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
+            snd = snd * Env.asr(0.01, 1, 0.01).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
             snd = Pan2.ar(snd,pan);
             snd = RLPF.ar(snd,filter,0.707);
             snd = snd * amp;
@@ -266,8 +266,8 @@ Engine_Zxcvbn : CroneEngine {
             var pitch=msg[6];
             var pos=msg[7];
             var duration=msg[8];
-            var gate=msg[9];
-            var retrig=msg[10];
+            var retrig=msg[9];
+            var gate=msg[10];
             var filter=msg[11];
             var send_pos=msg[12];
             if (bufs.at(filename).notNil,{
@@ -283,7 +283,7 @@ Engine_Zxcvbn : CroneEngine {
                     filter: filter,
                     rate: rate*pitch.midiratio,
                     pos: pos,
-                    duration: duration * gate / (retrig + 1),
+                    duration: (duration * gate / (retrig + 1)).postln,
                     send_pos: send_pos,
                 ], syns.at("sliceFx"), \addBefore));
                 if (retrig>0,{
@@ -304,8 +304,8 @@ Engine_Zxcvbn : CroneEngine {
                         NodeWatcher.register(syns.at(id));
                     }.play;
                  },{ 
-                    NodeWatcher.register(syns.at(id));
-		 });
+                NodeWatcher.register(syns.at(id));
+                });
             });
         });
 
