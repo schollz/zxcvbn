@@ -95,7 +95,6 @@ function init()
       division=1/(4*ppq),
     })
   end
-  sequencer:hard_restart()
 
   -- params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
   -- tracks[1]:parse_tli()
@@ -104,12 +103,24 @@ function init()
   tracks[1]:load_text([[
 chain a
  
+ppq 4
+ 
 pattern a
-0
+ppl 2
+0 v77
 1
 2
 3
+4
+5
+6
+7
+8
+9 r4
+a
+b
 ]])
+  params:set("1play_through",2)
   params:set("1play",1)
   params:set("2track_type",3)
   tracks[2]:load_text([[
@@ -117,11 +128,18 @@ chain a
  
 pattern a
 Am/C
-F/C k100 v50
+F/C k100
 C
 Em/B
       ]])
-  -- params:set("1play",1)
+  params:set("1play",1)
+  params:set("2play",1)
+
+  clock.run(function()
+    clock.sleep(1)
+    sequencer:hard_restart()
+
+  end)
 end
 
 function debounce_params()

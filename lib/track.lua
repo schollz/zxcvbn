@@ -24,10 +24,10 @@ function Track:init()
   params:set_action(self.id.."sample_file",function(x)
     print("sample_file",x)
     if util.file_exists(x) and string.sub(x,-1)~="/" then
-      self.load_sample(x)
+      self:load_sample(x)
     end
   end)
-  params:add_number(self.id.."bpm","bpm",10,200,math.floor(clock.get_tempo()))
+  params:add_number(self.id.."bpm","bpm",10,600,math.floor(clock.get_tempo()))
   params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
 
   params:add{type="binary",name="play",id=self.id.."play",behavior="toggle",action=function(v)
@@ -84,6 +84,9 @@ function Track:init()
   -- spliced sample
   table.insert(self.play_fn,{
     note_on=function(d)
+      if d.m==nil then
+        do return end
+      end
       local id=self.id.."_"..d.m
       self.notes_on[1][d.m]=true
       self.states[SAMPLE]:play{
@@ -100,6 +103,9 @@ function Track:init()
       }
     end,
     note_off=function(d)
+      if d.m==nil then
+        do return end
+      end
       local id=self.id.."_"..d.m
       self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
     end,
@@ -199,11 +205,13 @@ function Track:emit(beat,ppq)
     do return end
   end
   if self.tli~=nil and self.tli.track~=nil then
-    print(beat,ppq)
+    print("beat",beat,"ppq",ppq)
     local i=(beat-1)%#self.tli.track+1
     local t=self.tli.track[i]
     for _,d in ipairs(t.off) do
-      self.play_fn[params:get(self.id.."track_type")].note_off(d)
+      if d.m~=nil then
+        self.play_fn[params:get(self.id.."track_type")].note_off(d)
+      end
     end
     for _,d in ipairs(t.on) do
       if d.mods~=nil then
@@ -223,6 +231,8 @@ function Track:emit(beat,ppq)
           end
         end
       end
+      print("note_on")
+      tab.print(d)
       d.duration_scaled=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq"))
       self.play_fn[params:get(self.id.."track_type")].note_on(d)
     end
@@ -260,7 +270,7 @@ function Track:set_position(pos)
 end
 
 function Track:load_sample(path)
-  -- self.state=SAMPLE
+  print(string.format("track %d: load sample %s",self.id,path))
   self.states[SAMPLE]:load_sample(path,params:get(self.id.."track_type")==2)
 end
 

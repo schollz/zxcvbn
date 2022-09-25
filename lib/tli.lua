@@ -1007,7 +1007,7 @@ function TLI:parse_tli(text,use_hex)
         table.insert(data.chain,fi[i])
       end
     elseif next(current_pattern)~=nil then
-      if fi[1]=="division" then
+      if fi[1]=="ppl" then
         current_pattern.division=tonumber(fi[2])
       else
         current_pattern.text=current_pattern.text..line.."\n"
