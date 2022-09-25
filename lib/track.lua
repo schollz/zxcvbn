@@ -41,6 +41,8 @@ function Track:init()
     {id="attack",name="attack",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
     {id="release",name="release",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
     {id="gate",name="gate",min=0,max=100,exp=false,div=1,default=100,unit="%"},
+    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     -- {id="send_main",name="main send",min=0,max=1,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
   }
   for _,pram in ipairs(params_menu) do
@@ -51,8 +53,13 @@ function Track:init()
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,
     }
+    params:set_action(self.id..pram.id,function(v)
+      if params:get(self.id.."track_type")==3 and string.find(pram.id,"compress") then
+        engine.padfx_set(pram.id,v)
+      end
+    end)
   end
-  self.params={shared={"ppq","track_type","play","db","filter","probability","pan"}}
+  self.params={shared={"ppq","track_type","play","db","filter","probability","pan","compressing","compressible"}}
   self.params["sliced sample"]={"sample_file","bpm","play_through","gate"} -- only show if midi is enabled
   self.params["melodic sample"]={"sample_file","attack","release"} -- only show if midi is enabled
   self.params["infinite pad"]={"attack","release"}
@@ -130,7 +137,6 @@ function Track:init()
   -- infinite pad
   table.insert(self.play_fn,{
     note_on=function(d)
-      print("duration",d.duration_scaled)
       local id=d.m
       self.notes_on[3][d.m]=true
       engine.note_on(id,
@@ -205,7 +211,7 @@ function Track:emit(beat,ppq)
     do return end
   end
   if self.tli~=nil and self.tli.track~=nil then
-    print("beat",beat,"ppq",ppq)
+    --print("beat",beat,"ppq",ppq)
     local i=(beat-1)%#self.tli.track+1
     local t=self.tli.track[i]
     for _,d in ipairs(t.off) do
@@ -231,8 +237,6 @@ function Track:emit(beat,ppq)
           end
         end
       end
-      print("note_on")
-      tab.print(d)
       d.duration_scaled=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq"))
       self.play_fn[params:get(self.id.."track_type")].note_on(d)
     end

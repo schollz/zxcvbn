@@ -173,6 +173,8 @@ function Sample:play(d)
   d.ci=d.ci or self.ci
   d.retrig=d.retrig or 0
   d.gate=d.gate or 1.0
+  d.compressing=d.compressing or params:get(self.id.."compressing")
+  d.compressible=d.compressible or params:get(self.id.."compressible")
   d.filter=musicutil.note_num_to_freq(params:get(self.id.."filter"))
   if self.is_melodic then
     if d.on then
@@ -191,7 +193,7 @@ function Sample:play(d)
       if params:get(self.id.."play_through")==2 then
         d.duration=self.cursor_durations[d.ci]
       end
-      print("duration",d.duration,"gate",d.gate,"retrig",d.retrig,"rate",d.rate,"pitch",d.pitch)
+      --print("duration",d.duration,"gate",d.gate,"retrig",d.retrig,"rate",d.rate,"pitch",d.pitch)
       local send_pos=1
       engine.slice_on(
         d.id,
@@ -205,6 +207,8 @@ function Sample:play(d)
         d.retrig,
         d.gate,
         d.filter,
+        d.compressible,
+        d.compressing,
       d.watch)
       if self.kick[d.ci]>-96 then
         engine.kick(
