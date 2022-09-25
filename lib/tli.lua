@@ -731,11 +731,15 @@ function TLI:parse_positions(lines,division)
   local entities={}
   for i,line in ipairs(lines) do
     local ele={}
+    local er_rotation=0
     for w in line:gmatch("%S+") do
       local c=w:sub(1,1)
       if string.byte(c)>string.byte("g") and string.byte(c)<=string.byte("z") then
         if #ele>0 then
           ele[#ele].mods[c]=tonumber(w:sub(2))
+          if c=="o" and ele[#ele].mods[c]~=nil then 
+            er_rotation=ele[#ele].mods[c]
+          end
           ele[#ele].mods[c]=ele[#ele].mods[c] or w:sub(2)
         end
       else
@@ -744,7 +748,7 @@ function TLI:parse_positions(lines,division)
     end
     print("ele")
     print(json.encode(ele))
-    local pos=self.er(#ele,division,0)
+    local pos=self.er(#ele,division,er_rotation)
     local ei=0
     for pi,p in ipairs(pos) do
       ti=pi+(i-1)*division
