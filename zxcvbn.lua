@@ -32,6 +32,8 @@ function init()
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
 
   -- add major parameters
+  params_audioin()
+  params_sidechain()
   params_kick()
 
   -- setup tracks
@@ -107,7 +109,7 @@ ppq 4
  
 pattern a
 ppl 2
-0 v77
+0 
 1
 2
 3
@@ -134,7 +136,10 @@ Em/B
       ]])
   params:set("1play",1)
   params:set("2play",1)
-
+  params:set("1compressing",1)
+  params:set("2compressible",1)
+  params:set("sidechain_mult",8)
+  params:set("1db",-80)
   clock.run(function()
     clock.sleep(1)
     sequencer:hard_restart()
@@ -303,6 +308,8 @@ function params_kick()
     {id="decay1L",name="decay1L",min=5,max=2000,exp=false,div=10,default=800,unit="ms"},
     {id="decay2",name="decay2",min=5,max=2000,exp=false,div=10,default=150,unit="ms"},
     {id="clicky",name="clicky",min=0,max=100,exp=false,div=1,default=0,unit="%"},
+    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
   }
   params:add_group("KICK",#params_menu)
   for _,pram in ipairs(params_menu) do
@@ -313,5 +320,69 @@ function params_kick()
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,
     }
+  end
+end
+
+function params_audioin()
+  local params_menu={
+    {id="amp",name="amp",min=0,max=2,exp=false,div=0.01,default=1.0},
+    {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=-1,response=1},
+    {id="hpf",name="hpf",min=10,max=2000,exp=true,div=5,default=10},
+    {id="hpfqr",name="hpf qr",min=0.05,max=0.99,exp=false,div=0.01,default=0.61},
+    {id="lpf",name="lpf",min=200,max=20000,exp=true,div=100,default=18000},
+    {id="lpfqr",name="lpf qr",min=0.05,max=0.99,exp=false,div=0.01,default=0.61},
+    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+  }
+  params:add_group("AUDIO IN",#params_menu*2+1)
+  params:add_option("audioin_linked","audio in",{"mono+mono","stereo"},2)
+  local lrs={"L","R"}
+  for _,pram in ipairs(params_menu) do
+    for lri,lr in ipairs(lrs) do
+      params:add{
+        type="control",
+        id="audioin"..pram.id..lr,
+        name=pram.name.." "..lr,
+        controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
+        formatter=pram.formatter,
+      }
+      params:set_action("audioin"..pram.id..lr,function(v)
+        print(lr,pram.id,v)
+        --engine.audioin_set(lr,pram.id,v)
+        if params:get("audioin_linked")==2 then
+          if pram.id~="pan" then
+            params:set("audioin"..pram.id..lrs[3-lri],v,true)
+            --engine.audioin_set(lrs[3-lri],pram.id,v)
+          else
+            params:set("audioin"..pram.id..lrs[3-lri],-v,true)
+            --engine.audioin_set(lrs[3-lri],pram.id,-1*v)
+          end
+        end
+      end)
+    end
+  end
+  params:set("audioinpanR",1)
+end
+
+function params_sidechain()
+  local params_menu={
+    {id="sidechain_mult",name="amount",min=0,max=8,exp=false,div=0.1,default=2.0},
+    {id="compress_thresh",name="threshold",min=0,max=1,exp=false,div=0.01,default=0.1},
+    {id="compress_level",name="level",min=0,max=1,exp=false,div=0.01,default=0.1},
+    {id="compress_attack",name="attack",min=0,max=1,exp=false,div=0.001,default=0.01,formatter=function(param) return (param:get()*1000).." ms" end},
+    {id="compress_release",name="release",min=0,max=2,exp=false,div=0.01,default=0.2,formatter=function(param) return (param:get()*1000).." ms" end},
+  }
+  params:add_group("SIDECHAIN",#params_menu)
+  for _,pram in ipairs(params_menu) do
+    params:add{
+      type="control",
+      id=pram.id,
+      name=pram.name,
+      controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
+      formatter=pram.formatter,
+    }
+    params:set_action(pram.id,function(v)
+      engine.main_set(pram.id,v)
+    end)
   end
 end
