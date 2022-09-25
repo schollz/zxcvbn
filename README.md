@@ -11,7 +11,8 @@ tracker of limited input.
 - [ ] hookup the break effects in the engine
 - [ ] add play visual on the left bar
 - [ ] show type on the left bar
-- [ ] delete key should move previous line to current line
+- [ ] in chaining, support "*" to multiply patterns?
+- [x] delete key should move previous line to current line
 
 ## tli syntax
 

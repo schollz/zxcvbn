@@ -159,6 +159,7 @@ b
   params:set("1db",-10)
   params:set("2db",-1)
   params:set("3db",-7.7)
+  params:set("1play",1)
 
   clock.run(function()
     clock.sleep(1)
@@ -260,8 +261,12 @@ function redraw()
   screen.rect(0,0,6,66)
   screen.fill()
   screen.level(0)
-  screen.move(3,8)
+  screen.move(3,6)
   screen.text_center(params:get("track"))
+  for i,v in ipairs(tracks[params:get("track")].scroll) do 
+    screen.move(3,6+(i*8))
+    screen.text_center(v)
+  end
 
   draw_message()
 
