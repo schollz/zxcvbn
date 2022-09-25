@@ -97,12 +97,22 @@ function init()
   end
   sequencer:hard_restart()
 
-  -- params:set("1sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   -- params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
   -- tracks[1]:parse_tli()
-  params:set("1track_type",3)
-  params:set("2track_type",3)
+  params:set("1sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  params:set("1track_type",1)
   tracks[1]:load_text([[
+chain a
+ 
+pattern a
+0
+1
+2
+3
+]])
+  params:set("1play",1)
+  params:set("2track_type",3)
+  tracks[2]:load_text([[
 chain a
  
 pattern a
@@ -111,7 +121,7 @@ F/C k100 v50
 C
 Em/B
       ]])
-  params:set("1play",1)
+  -- params:set("1play",1)
 end
 
 function debounce_params()
