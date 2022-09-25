@@ -89,7 +89,9 @@ Engine_Zxcvbn : CroneEngine {
             
             SendReply.kr(Impulse.kr(10)*watch,'/position',[pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
 
-            Out.ar(out,snd*amp);
+            Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
+            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd*amp);
         }).add;
         });
 
@@ -418,7 +420,7 @@ Engine_Zxcvbn : CroneEngine {
             });            
         });
 
-        this.addCommand("melodic_on","ssffffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var amp=msg[3].dbamp;
@@ -430,7 +432,9 @@ Engine_Zxcvbn : CroneEngine {
             var sampleEnd=msg[9];
             var duration=msg[10];
             var filter=msg[11];
-            var watch=msg[12];
+            var compressible=msg[12];
+            var compressing=msg[13];
+            var watch=msg[14];
             if (bufs.at(filename).notNil,{
                 var buf=bufs.at(filename);
                 if (syns.at(id).notNil,{
@@ -440,7 +444,11 @@ Engine_Zxcvbn : CroneEngine {
                 });
                 ["playing",msg].postln;
                 syns.put(id,Synth.new("playerInOut"++buf.numChannels, [
-                    out: 0,
+                    out: buses.at("busIn"),
+                    outsc: buses.at("busSC"),
+                    outnsc: buses.at("busInNSC"),
+                    compressible: compressible,
+                    compressing: compressing,
                     buf: buf,
                     amp: amp,
                     pan: pan,

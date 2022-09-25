@@ -183,7 +183,21 @@ function Sample:play(d)
       local sampleIn=self.cursors[2]
       local sampleOut=self.cursors[3]
       local sampleEnd=self.cursors[4]
-      engine.melodic_on(d.id,filename,d.db,d.pan,d.pitch,sampleStart,sampleIn,sampleOut,sampleEnd,d.duration or 30,d.filter,d.watch)
+      engine.melodic_on(
+        d.id,
+        filename,
+        d.db,
+        d.pan,
+        d.pitch,
+        sampleStart,
+        sampleIn,
+        sampleOut,
+        sampleEnd,
+        d.duration or 30,
+        d.filter,
+        d.compressible,
+        d.compressing,
+      d.watch)
     else
       engine.melodic_off(self.id)
     end

@@ -18,6 +18,10 @@ function Track:init()
     -- rerun show/hiding
     self:select(self.selected)
   end)
+
+  params:add{type="binary",name="play",id=self.id.."play",behavior="toggle",action=function(v)
+  end}
+
   params:add_number(self.id.."ppq","ppq",1,8,4)
   -- sliced sample
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
@@ -30,11 +34,9 @@ function Track:init()
   params:add_number(self.id.."bpm","bpm",10,600,math.floor(clock.get_tempo()))
   params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
 
-  params:add{type="binary",name="play",id=self.id.."play",behavior="toggle",action=function(v)
-  end}
-
   local params_menu={
-    {id="db",name="amp",min=-96,max=12,exp=false,div=1,default=0,unit="db"},
+    {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(param:get(),true)end},
+    {id="db",name="volume",min=-96,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=0},
     {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(param:get(),true)end},
     {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
@@ -62,7 +64,7 @@ function Track:init()
   end
   self.params={shared={"ppq","track_type","play","db","filter","probability","pan","compressing","compressible"}}
   self.params["sliced sample"]={"sample_file","bpm","play_through","gate","decimate"} -- only show if midi is enabled
-  self.params["melodic sample"]={"sample_file","attack","release"} -- only show if midi is enabled
+  self.params["melodic sample"]={"sample_file","attack","release","source_note"} -- only show if midi is enabled
   self.params["infinite pad"]={"attack","release"}
 
   -- define the shortcodes here
@@ -100,7 +102,7 @@ function Track:init()
       self.states[SAMPLE]:play{
         on=true,
         id=id,
-        ci=d.m,
+        ci=(d.m-1)%16+1,
         db=params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
         pan=params:get(self.id.."pan"),
         duration=d.duration_scaled,
@@ -121,17 +123,24 @@ function Track:init()
   -- melodic sample
   table.insert(self.play_fn,{
     note_on=function(d)
+      if d.m==nil then
+        do return end
+      end
       local id=self.id.."_"..d.m
       self.notes_on[2][d.m]=true
       self.states[SAMPLE]:play{
         on=true,
         id=id,
         db=params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
+        pitch=d.m-params:get(self.id.."source_note"),
         duration=d.duration_scaled,
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
       }
     end,
     note_off=function(d)
+      if d.m==nil then
+        do return end
+      end
       self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
     end,
   })
