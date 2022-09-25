@@ -13,7 +13,7 @@ end
 
 function Track:init()
   -- initialize parameters
-  params:add_option(self.id.."track_type","type",{"sliced sample","melodic sample","infinite pad","crow 1+2","crow 3+4"},1)
+  params:add_option(self.id.."track_type","type",{"sliced sample","melodic sample","infinite pad","crow 1+2","crow 3+4","midi"},1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
     self:select(self.selected)
@@ -23,6 +23,11 @@ function Track:init()
   end}
 
   params:add_number(self.id.."ppq","ppq",1,8,4)
+
+  -- midi stuff
+  params:add_option(self.id.."midi_dev","midi",midi_device_list,1)
+  params:add_number(self.id.."midi_ch","midi ch",1,16,1)
+
   -- sliced sample
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
   params:set_action(self.id.."sample_file",function(x)
@@ -41,6 +46,7 @@ function Track:init()
     {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(param:get(),true)end},
     {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
+    {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
     {id="release",name="release",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
     {id="gate",name="gate",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
@@ -63,12 +69,13 @@ function Track:init()
       end
     end)
   end
-  self.params={shared={"ppq","track_type","play","db","filter","probability","pan","compressing","compressible"}}
-  self.params["sliced sample"]={"sample_file","bpm","play_through","gate","decimate","pitch"} -- only show if midi is enabled
-  self.params["melodic sample"]={"sample_file","attack","release","source_note"} -- only show if midi is enabled
-  self.params["infinite pad"]={"attack","release"}
-  self.params["crow 1+2"]={"attack","release"}
-  self.params["crow 3+4"]={"attack","release"}
+  self.params={shared={"ppq","track_type","play","db","probability"}}
+  self.params["sliced sample"]={"sample_file","bpm","play_through","gate","filter","decimate","pan","pitch","compressing","compressible"} -- only show if midi is enabled
+  self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"} -- only show if midi is enabled
+  self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible"}
+  self.params["crow 1+2"]={"attack","release","crow_sustain"}
+  self.params["crow 3+4"]={"attack","release","crow_sustain"}
+  self.params["midi"]={"midi_ch","midi_dev"}
 
   -- define the shortcodes here
   self.mods={
@@ -91,7 +98,11 @@ function Track:init()
   table.insert(self.states,sample_:new{id=self.id})
 
   -- keep track of notes
-  self.notes_on={{},{},{},{}}
+  self.notes_on={}
+  for i=1,#self.track_type_options do 
+    table.insert(self.notes_on,{})
+  end
+
   self.scroll={"","","","","","",""}
 
   -- add playback functions for each kind of engine
@@ -169,6 +180,8 @@ function Track:init()
   for i=1,2 do 
     table.insert(self.play_fn,{
       note_on=function(d)
+        crow.output[i+1].action=string.format("adsr(%3.3f,%3.3f,%3.3f,%3.3f,'linear')",
+              params:get(self.id.."attack"),params:get(self.id.."crow_sustain"),0.1,params:get(self.id.."release"))
         crow.output[i].volts=(d.m-24)/12
         crow.output[i+1](true)
       end,
@@ -177,6 +190,18 @@ function Track:init()
       end,
     })
   end
+
+  -- midi device
+  table.insert(self.play_fn,{
+    note_on=function(d)
+      self.notes_on[6][d.m]=true
+      local vel=util.linlin(-96,12,0,127,params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10))
+      midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch")))
+    end,
+    note_off=function(d)  
+      midi_device[params:get(self.id.."midi_dev")].note_off(d.m,0,params:get(self.id.."midi_ch")))
+    end,
+  })
 
 end
 
