@@ -229,6 +229,7 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\glitch,{
+            arg amp=1.0;
             var snd;
             snd = SinOsc.ar((SinOsc.ar(\modFreq.kr(3240)) * Env.perc(0.01,2).kr * \index.kr(3000) + \carrierFreq.kr(1000)));
             snd = snd + PitchShift.ar(snd, Rand(0.03, 0.06), 2);
@@ -242,7 +243,7 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\bass,{
-            arg freq=300;
+            arg freq=300,amp=1.0;
             var snd;
             snd = SinOsc.ar(Env([freq,freq/3,freq/5].cpsmidi, [0.1,3], -4).ar.midicps * [-0.1, 0, 0.1].midiratio);
             snd = snd * Env.perc(0, 5).ar;
@@ -253,8 +254,11 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd + (snd * 3).fold2;
             snd = snd * Env.perc(0.001, 3.0).ar(Done.freeSelf);
             snd = snd * -10.dbamp;
+            snd = snd * Env.asr(0.001, 0.1, 0.01).ar(Done.freeSelf, \gate.kr(1) * ToggleFF.kr(1-TDelay.kr(DC.kr(1),\duration.kr(10000))) );
             snd = Splay.ar(snd,0.3);
-            Out.ar(\out.kr(0),snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
+            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd*amp);
         }).send(context.server);
 
 
@@ -546,6 +550,33 @@ Engine_Zxcvbn : CroneEngine {
                 ["loaded"+id].postln;
                 bufs.put(id,buf);
             });
+        });
+
+        this.addCommand("glitch","f",{ arg msg;
+            var duration=msg[1];
+            syns.put("glitch",Synth.new(\glitch, [
+                modFreq: exprand(100,3000),
+                carrierFreq: exprand(100, 3000),
+                index: rrand(100,8000),
+                pan: rrand(-0.9,0.9),
+                duration: duration,
+                out: buses.at("busIn"),
+                outsc: buses.at("busSC"),
+                outnsc: buses.at("busInNSC"),
+            ],syns.at("main"),\addBefore));
+        });
+        
+        this.addCommand("bass","ff",{ arg msg;
+            var freq=msg[1].midicps;
+            var duration=msg[2];
+            syns.put("bass",Synth.new(\bass, [
+                freq: freq,
+                pan: rrand(-0.9,0.9),
+                duration: duration,
+                out: buses.at("busIn"),
+                outsc: buses.at("busSC"),
+                outnsc: buses.at("busInNSC"),
+            ],syns.at("main"),\addBefore));
         });
 
 
