@@ -1099,9 +1099,9 @@ function TLI:test()
   -- #Cm xu y2 z5 v40
   -- ]])
 
-  local data=tli:parse_tli([[
+  local data=tli__:parse_tli([[
 pattern a
-ppl32
+ppl 8
 0123 xud z4
 ]],true)
 
@@ -1124,7 +1124,7 @@ ppl32
 
 end
 
-local tli=TLI:new()
-tli:test()
+tli__=TLI:new()
+tli__:test()
 
 return TLI

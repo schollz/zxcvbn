@@ -110,7 +110,6 @@ Em/B;2 xud z5
 G/B;2 xud z5
  
   ]])
-  params:set("1db",-11)
 
   -- tracks[1]:parse_tli()
 
@@ -120,13 +119,11 @@ chain a
  
 pattern a
 ppl 32
-Cmaj;34
+Cmaj;3
 Am/C;4
 Em/B;3 
 G/B;3
         ]])
-  params:set("1play",1)
-  params:set("2play",1)
 
   params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   params:set("3track_type",1)
@@ -135,9 +132,9 @@ chain c
  
 ppq 4
  
-pattern c 
-ppl32
-0123 xud z4
+pattern c
+ppl 16
+01234567 xud z4 y1
  
 pattern a
 ppl 2
@@ -155,13 +152,13 @@ a
 b
   ]])
   params:set("3play_through",2)
-  params:set("3play",1)
-
   params:set("1compressible",1)
   params:set("2compressible",1)
   params:set("3compressing",1)
-  params:set("sidechain_mult",8)
-  params:set("3db",-16)
+  params:set("sidechain_mult",0.5)
+  params:set("1db",-13)
+  params:set("2db",0)
+  params:set("3db",-14)
 
   clock.run(function()
     clock.sleep(1)
