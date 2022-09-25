@@ -46,6 +46,7 @@ function Track:init()
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="decimate",name="decimate",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="pitch",name="pitch",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
     -- {id="send_main",name="main send",min=0,max=1,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
   }
   for _,pram in ipairs(params_menu) do
@@ -63,7 +64,7 @@ function Track:init()
     end)
   end
   self.params={shared={"ppq","track_type","play","db","filter","probability","pan","compressing","compressible"}}
-  self.params["sliced sample"]={"sample_file","bpm","play_through","gate","decimate"} -- only show if midi is enabled
+  self.params["sliced sample"]={"sample_file","bpm","play_through","gate","decimate","pitch"} -- only show if midi is enabled
   self.params["melodic sample"]={"sample_file","attack","release","source_note"} -- only show if midi is enabled
   self.params["infinite pad"]={"attack","release"}
 
@@ -76,6 +77,7 @@ function Track:init()
     l=function(x) params:set(self.id.."release",x) end,
     p=function(x) params:set(self.id.."pan",(x/100)*2-1) end,
     m=function(x) params:set(self.id.."decimate",x/100) end,
+    n=function(x) params:set(self.id.."pitch",x) end,
   }
 
   -- initialize track data
@@ -110,6 +112,7 @@ function Track:init()
         rate=clock.get_tempo()/params:get(self.id.."bpm"),
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
         retrig=d.mods.r or 0,
+        pitch=params:get(self.id.."pitch"),
         gate=params:get(self.id.."gate")/100,
       }
     end,
