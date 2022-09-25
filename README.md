@@ -32,7 +32,7 @@ r8 (retrig 8 times)
 s100 (stretch %)
 t?? (compressibility)
 u?? (compressing)
-v99 (volume add, db)
+v99 (volume add, db	)
 w??
 xud (arp type)
 y1  (arp skip)

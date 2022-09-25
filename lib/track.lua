@@ -13,7 +13,7 @@ end
 
 function Track:init()
   -- initialize parameters
-  params:add_option(self.id.."track_type","type",{"sliced sample","melodic sample","infinite pad","midi","crow"},1)
+  params:add_option(self.id.."track_type","type",{"sliced sample","melodic sample","infinite pad","crow 1+2","crow 3+4"},1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
     self:select(self.selected)
@@ -113,11 +113,11 @@ function Track:init()
       }
     end,
     note_off=function(d)
-      if d.m==nil then
-        do return end
-      end
-      local id=self.id.."_"..d.m
-      self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
+      -- if d.m==nil then
+      --   do return end
+      -- end
+      -- local id=self.id.."_"..d.m
+      -- self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
     end,
   })
   -- melodic sample
@@ -138,10 +138,10 @@ function Track:init()
       }
     end,
     note_off=function(d)
-      if d.m==nil then
-        do return end
-      end
-      self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
+      -- if d.m==nil then
+      --   do return end
+      -- end
+      -- self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
     end,
   })
   -- infinite pad
@@ -156,7 +156,7 @@ function Track:init()
       d.duration_scaled)
     end,
     note_off=function(d)
-      engine.note_off(d.m)
+      -- engine.note_off(d.m)
     end,
   })
 end

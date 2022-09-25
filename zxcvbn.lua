@@ -104,9 +104,9 @@ function init()
 chain a
 pattern a
 ppl 32
-Cmaj;3 xud z5
-Am/C;3 xud z5
-Em/B;2 xud z5
+Cmaj;4 xud z5
+Am/C;4 xud z5
+Em/B;3 xud z5
 G/B;2 xud z5
  
   ]])
@@ -156,9 +156,9 @@ b
   params:set("2compressible",1)
   params:set("3compressing",1)
   params:set("sidechain_mult",0.5)
-  params:set("1db",-13)
-  params:set("2db",0)
-  params:set("3db",-14)
+  params:set("1db",-10)
+  params:set("2db",-1)
+  params:set("3db",-7.7)
 
   clock.run(function()
     clock.sleep(1)
