@@ -43,6 +43,7 @@ function Track:init()
     {id="gate",name="gate",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="decimate",name="decimate",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     -- {id="send_main",name="main send",min=0,max=1,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
   }
   for _,pram in ipairs(params_menu) do
@@ -60,19 +61,19 @@ function Track:init()
     end)
   end
   self.params={shared={"ppq","track_type","play","db","filter","probability","pan","compressing","compressible"}}
-  self.params["sliced sample"]={"sample_file","bpm","play_through","gate"} -- only show if midi is enabled
+  self.params["sliced sample"]={"sample_file","bpm","play_through","gate","decimate"} -- only show if midi is enabled
   self.params["melodic sample"]={"sample_file","attack","release"} -- only show if midi is enabled
   self.params["infinite pad"]={"attack","release"}
 
   -- define the shortcodes here
   self.mods={
-    v=function(x) params:set(self.id.."db",util.linlin(0,100,-96,12,x)) end,
     i=function(x) params:set(self.id.."filter",x+30) end,
     o=function(x) params:set(self.id.."probability",x) end,
     h=function(x) params:set(self.id.."gate",x) end,
     k=function(x) params:set(self.id.."attack",x) end,
     l=function(x) params:set(self.id.."release",x) end,
     p=function(x) params:set(self.id.."pan",(x/100)*2-1) end,
+    m=function(x) params:set(self.id.."decimate",x/100) end,
   }
 
   -- initialize track data
@@ -100,7 +101,7 @@ function Track:init()
         on=true,
         id=id,
         ci=d.m,
-        db=params:get(self.id.."db"),
+        db=params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
         pan=params:get(self.id.."pan"),
         duration=d.duration_scaled,
         rate=clock.get_tempo()/params:get(self.id.."bpm"),
@@ -125,7 +126,7 @@ function Track:init()
       self.states[SAMPLE]:play{
         on=true,
         id=id,
-        db=params:get(self.id.."db"),
+        db=params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
         duration=d.duration_scaled,
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
       }
@@ -140,7 +141,7 @@ function Track:init()
       local id=d.m
       self.notes_on[3][d.m]=true
       engine.note_on(id,
-        params:get(self.id.."db"),
+        params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
         params:get(self.id.."attack")/1000,
         params:get(self.id.."release")/1000,
       d.duration_scaled)
