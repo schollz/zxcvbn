@@ -12,7 +12,7 @@ function VTerm:init()
   self.history={}
   self.history_pos=0
   self.view={row=1,col=1}
-  self.cursor={row=1,col=1,x=0}
+  self.cursor={row=4,col=8,x=0,blink=0}
   self.text=""
   self.lines={""}
   self.tosave={"history","history_pos","view","cursor","text"}
@@ -79,8 +79,10 @@ function VTerm:cursor_delete()
     if row>1 then
       -- combine current line with previous line
       local lines={}
+      local pos=0
       for i,line in ipairs(self.lines) do
         if i==row-1 then
+          pos=#line
           table.insert(lines,line..self.lines[i+1])
         elseif i==row then
         else
@@ -88,7 +90,7 @@ function VTerm:cursor_delete()
         end
       end
       self.lines=lines
-      self:move_cursor(-1,10000)
+      self:move_cursor(-1,pos)
     end
     do return end
   end
@@ -154,7 +156,7 @@ function VTerm:move_cursor(row,col)
   if next(self.lines)==nil then
     do return end
   end
-  self.cursor={row=self.cursor.row+row,col=self.cursor.col+col}
+  self.cursor={row=self.cursor.row+row,col=self.cursor.col+col,blink=0}
   if self.cursor.row>#self.lines then
     self.cursor.row=#self.lines
   end
@@ -169,7 +171,14 @@ function VTerm:move_cursor(row,col)
   end
   local line=self.lines[self.cursor.row]
   line=line:gsub(" ","-")
-  self.cursor.x=screen.text_extents(line:sub(1,self.cursor.col))+2
+  self.cursor.x=screen.text_extents(line:sub(self.view.col,self.cursor.col))+2
+  while self.cursor.x>120 do
+    self.view.col=self.view.col+1
+    self.cursor.x=screen.text_extents(line:sub(self.view.col,self.cursor.col))+2
+  end
+  while self.cursor.col<self.view.col do
+    self.view.col=self.view.col-1 
+  end
   if self.cursor.col==0 then
     self.cursor.x=1
   end
@@ -193,6 +202,12 @@ function VTerm:keyboard(k,v)
       if self.cursor.col<#self.lines[self.cursor.row] then
         self:move_cursor(0,1)
         self:cursor_delete()
+      elseif self.cursor.col==#self.lines[self.cursor.row] and self.cursor.row<#self.lines then 
+        local first_pos=self.cursor.col
+        self:move_cursor(1,-10000)
+        self:cursor_delete()
+        self:move_cursor(0,-10000)
+        self:move_cursor(0,first_pos)
       end
     end
   elseif k=="LEFT" then
@@ -294,13 +309,22 @@ function VTerm:redraw()
     if i>=self.view.row then
       screen.level(15)
       screen.move(1+x_offset,8*(i-self.view.row+1)+y_offset)
+      -- if i==4 then
+      --   print(i,self.view.col,line:sub(self.view.col))
+      -- end
       screen.text(line:sub(self.view.col))
     end
     if self.cursor.row==i then
-      screen.level(5)
-      screen.move(self.cursor.x+x_offset,8*(i-self.view.row+1)-6+y_offset)
-      screen.line(self.cursor.x+x_offset,8*(i-self.view.row+1)+2+y_offset)
-      screen.stroke()
+      self.cursor.blink=self.cursor.blink+1
+      if self.cursor.blink<7 then 
+        screen.level(5)
+        screen.move(self.cursor.x+x_offset,8*(i-self.view.row+1)-6+y_offset)
+        screen.line(self.cursor.x+x_offset,8*(i-self.view.row+1)+2+y_offset)
+        screen.stroke()
+      end
+      if self.cursor.blink==10 then 
+        self.cursor.blink=0
+      end
     end
   end
 end
