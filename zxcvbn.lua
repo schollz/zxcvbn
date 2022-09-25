@@ -98,18 +98,50 @@ function init()
     })
   end
 
-  -- params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
-  -- tracks[1]:parse_tli()
-  params:set("1sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
-  params:set("1track_type",1)
+  params:set("1track_type",2)
+  params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
   tracks[1]:load_text([[
 chain a
+pattern a
+ppl 32
+Cmaj;3 xud z5
+Am/C;3 xud z5
+Em/B;2 xud z5
+G/B;2 xud z5
+ 
+  ]])
+  params:set("1db",-11)
+
+  -- tracks[1]:parse_tli()
+
+  params:set("2track_type",3)
+  tracks[2]:load_text([[
+chain a
+ 
+pattern a
+ppl 32
+Cmaj;34
+Am/C;4
+Em/B;3 
+G/B;3
+        ]])
+  params:set("1play",1)
+  params:set("2play",1)
+
+  params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  params:set("3track_type",1)
+  tracks[3]:load_text([[
+chain c
  
 ppq 4
  
+pattern c 
+ppl32
+0123 xud z4
+ 
 pattern a
 ppl 2
-0 
+0
 1
 2
 3
@@ -121,29 +153,19 @@ ppl 2
 9 r4
 a
 b
-]])
-  params:set("1play_through",2)
-  params:set("1play",1)
-  params:set("2track_type",3)
-  tracks[2]:load_text([[
-chain a
- 
-pattern a
-Am/C
-F/C k100
-C
-Em/B
-      ]])
-  params:set("1play",1)
-  params:set("2play",1)
-  params:set("1compressing",1)
+  ]])
+  params:set("3play_through",2)
+  params:set("3play",1)
+
+  params:set("1compressible",1)
   params:set("2compressible",1)
+  params:set("3compressing",1)
   params:set("sidechain_mult",8)
-  params:set("1db",-80)
+  params:set("3db",-16)
+
   clock.run(function()
     clock.sleep(1)
     sequencer:hard_restart()
-
   end)
 end
 

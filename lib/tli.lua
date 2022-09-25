@@ -1043,17 +1043,17 @@ end
 function TLI:test()
   print("\n############ tests ############\n")
 
-  do_test=function(fn)
-    local f=load('return '..fn)
-    local val=f()
-    print(string.format("%s ->\n%s",fn,to_string(val)))
-  end
+  -- do_test=function(fn)
+  --   local f=load('return '..fn)
+  --   local val=f()
+  --   print(string.format("%s ->\n%s",fn,to_string(val)))
+  -- end
 
   --do_test('tli:note_to_midi("c4")')
   --do_test('tli:note_to_midi("d",72)')
   --do_test('tli:chord_to_midi("Cm/G")')
-  do_test('tli:note_to_midi("c4b3c#4")')
-  do_test('tli:hex_to_midi("012a")')
+  -- do_test('tli:note_to_midi("c4b3c#4")')
+  -- do_test('tli:hex_to_midi("012a")')
 
   --do_test('tli.er(3,8,1)')
   --do_test('tli:parse_entity("Cm7^4;v=40")')
@@ -1082,22 +1082,28 @@ function TLI:test()
   end
   json=require("cjson")
 
+  --   local data=tli:parse_tli([[
+  -- # ignore this
+  -- file test.wav
+  -- bpm 123
+
+  -- ppq 8
+
+  -- chain a
+
+  -- # pattern definitions
+
+  -- pattern a
+  -- division 8
+  -- c4 v30 r4 z5 d4 v60
+  -- #Cm xu y2 z5 v40
+  -- ]])
+
   local data=tli:parse_tli([[
-# ignore this
-file test.wav
-bpm 123
- 
-ppq 8
- 
-chain a 
- 
-# pattern definitions
- 
 pattern a
-division 8
-c4 v30 r4 z5 d4 v60
-#Cm xu y2 z5 v40
-]])
+ppl32
+0123 xud z4
+]],true)
 
   print(json.encode(data))
 
@@ -1117,5 +1123,8 @@ c4 v30 r4 z5 d4 v60
   print("\n###############################\n")
 
 end
+
+local tli=TLI:new()
+tli:test()
 
 return TLI
