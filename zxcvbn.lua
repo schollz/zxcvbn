@@ -138,7 +138,7 @@ ppl 2
 0 n0
 1
 2
-3 n4
+3 n24
 
   ]])
   params:set("3play_through",2)
