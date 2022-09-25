@@ -12,6 +12,8 @@ tracker of limited input.
 - [ ] add play visual on the left bar
 - [ ] show type on the left bar
 - [ ] in chaining, support "*" to multiply patterns?
+- [ ] retrigger should start at 1, not 0
+- [ ] scroll shows hex for sample type =1?
 - [x] delete key should move previous line to current line
 
 ## tli syntax
@@ -26,9 +28,9 @@ k10 (attack, ms)
 l2000 (decay, ms)
 m99 (deci-mater)
 n??
-o100 (probability, %)
+o100 (er offset)
 p99 (pan, 0=left, 100 = right)
-q?? 
+q100  (probability, %)
 r8 (retrig 8 times)
 s100 (stretch %)
 t?? (compressibility)

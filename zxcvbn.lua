@@ -104,10 +104,11 @@ function init()
 chain a
 pattern a
 ppl 32
-Cmaj;4 xud z5 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4
-Am/C;4 xud z5
-Em/B;3 xud z5
-G/B;2 xud z5
+c4 c4 c5 c3 c4
+#Cmaj;4 xud z5 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4
+#Am/C;4 xud z5
+#Em/B;3 xud z5
+#G/B;2 xud z5
  
   ]])
 

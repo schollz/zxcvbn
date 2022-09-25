@@ -70,7 +70,7 @@ function Track:init()
   -- define the shortcodes here
   self.mods={
     i=function(x) params:set(self.id.."filter",x+30) end,
-    o=function(x) params:set(self.id.."probability",x) end,
+    q=function(x) params:set(self.id.."probability",x) end,
     h=function(x) params:set(self.id.."gate",x) end,
     k=function(x) params:set(self.id.."attack",x) end,
     l=function(x) params:set(self.id.."release",x) end,
@@ -250,7 +250,7 @@ function Track:emit(beat,ppq)
       end
       d.duration_scaled=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq"))
       if d.m~=nil then 
-        self:scroll_add(string.lower(musicutil.note_num_to_name(d.m)))
+        self:scroll_add(params:get(self.id.."track_type")==1 and d.m or string.lower(musicutil.note_num_to_name(d.m)))
       end
       self.play_fn[params:get(self.id.."track_type")].note_on(d)
     end
