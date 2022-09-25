@@ -118,6 +118,7 @@ Engine_Zxcvbn : CroneEngine {
                 compress_thresh, 1, compress_level, 
                 compress_attack, compress_release);
             snd = snd + sndNSC;
+            snd = LeakDC.ar(snd);
             Out.ar(outBus,snd);
         }).send(context.server);
 
@@ -442,7 +443,6 @@ Engine_Zxcvbn : CroneEngine {
                         syns.at(id).set(\gate,0);
                     });
                 });
-                ["playing",msg].postln;
                 syns.put(id,Synth.new("playerInOut"++buf.numChannels, [
                     out: buses.at("busIn"),
                     outsc: buses.at("busSC"),
