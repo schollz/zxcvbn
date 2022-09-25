@@ -8,17 +8,9 @@ tracker of limited input.
 
 ## todo
 
-- [ ] add start/stop other buttons on the grid
-- [ ] tie the "option" parameters to the fm-stabs / glitches
-- [x] e1 changes the kick amount for sample slice
-- [ ] create text editor?
-- [ ] add routing for the tli
-- [x] do note clusterse work for tli? e4b5??
 - [ ] hookup the break effects in the engine
-- [ ] Ctl+S saves file and reloads
-- [ ] add display alert for errors
-- [ ] turn off all gates on reloading of file
-
+- [ ] add play visual on the left bar
+- [ ] show type on the left bar
 
 ## tli syntax
 
