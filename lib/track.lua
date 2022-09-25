@@ -88,6 +88,7 @@ function Track:init()
 
   -- keep track of notes
   self.notes_on={{},{},{},{}}
+  self.scroll={"","","","","","",""}
 
   -- add playback functions for each kind of engine
   self.play_fn={}
@@ -248,6 +249,9 @@ function Track:emit(beat,ppq)
         end
       end
       d.duration_scaled=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq"))
+      if d.m~=nil then 
+        self:scroll_add(string.lower(musicutil.note_num_to_name(d.m)))
+      end
       self.play_fn[params:get(self.id.."track_type")].note_on(d)
     end
   end
@@ -277,6 +281,13 @@ function Track:select(selected)
       _menu.rebuild_params()
     end
   }
+end
+
+function Track:scroll_add(m)
+  for i=1,6 do 
+    self.scroll[i]=self.scroll[i+1]
+  end
+  self.scroll[7]=m
 end
 
 function Track:set_position(pos)
