@@ -400,3 +400,58 @@ function params_sidechain()
     end)
   end
 end
+
+
+function params_crow()
+    -- crow
+    params:add_group("CROW",8)
+    for j=1,2 do
+      local i=(j-1)*2+2
+      params:add_control(i.."crow_attack",string.format("crow %d attack",i),controlspec.new(0.01,4,'lin',0.01,0.2,'s',0.01/3.99))
+      params:add_control(i.."crow_sustain",string.format("crow %d sustain",i),controlspec.new(0,10,'lin',0.1,7,'volts',0.1/10))
+      params:add_control(i.."crow_decay",string.format("crow %d decay",i),controlspec.new(0.01,4,'lin',0.01,0.5,'s',0.01/3.99))
+      params:add_control(i.."crow_release",string.format("crow %d release",i),controlspec.new(0.01,4,'lin',0.01,0.2,'s',0.01/3.99))
+      for _,v in ipairs({"attack","sustain","decay","release"}) do
+        params:set_action(i.."crow_"..v,function(x)
+          debounce_fn[i.."crow"]={
+            3,function()
+              crow.output[i].action=string.format("adsr(%3.3f,%3.3f,%3.3f,%3.3f,'linear')",
+              params:get(i.."crow_attack"),params:get(i.."crow_sustain"),params:get(i.."crow_decay"),params:get(i.."crow_release"))
+            end,
+          }
+        end)
+      end
+    end
+  end
+
+  function params_midi()  
+    -- midi
+    midi_device={}
+    midi_device_list={}
+    for i,dev in pairs(midi.devices) do
+      if dev.port~=nil then
+        local connection=midi.connect(dev.port)
+        local name=string.lower(dev.name).." "..i
+        print("adding "..name.." as midi device")
+        table.insert(midi_device_list,name)
+        table.insert(midi_device,{
+          name=name,
+          note_on=function(note,vel,ch) connection:note_on(note,vel,ch) end,
+          note_off=function(note,vel,ch) connection:note_off(note,vel,ch) end,
+        })
+        connection.event=function(data)
+          local msg=midi.to_msg(data)
+          if msg.type=="clock" then
+            do return end
+          end
+          if msg.type=='start' or msg.type=='continue' then
+            -- OP-1 fix for transport
+            reset()
+          elseif msg.type=="stop" then
+          elseif msg.type=="note_on" then
+          end
+        end
+      end
+    end
+
+  end

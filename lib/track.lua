@@ -67,6 +67,8 @@ function Track:init()
   self.params["sliced sample"]={"sample_file","bpm","play_through","gate","decimate","pitch"} -- only show if midi is enabled
   self.params["melodic sample"]={"sample_file","attack","release","source_note"} -- only show if midi is enabled
   self.params["infinite pad"]={"attack","release"}
+  self.params["crow 1+2"]={"attack","release"}
+  self.params["crow 3+4"]={"attack","release"}
 
   -- define the shortcodes here
   self.mods={
@@ -163,6 +165,19 @@ function Track:init()
       -- engine.note_off(d.m)
     end,
   })
+  -- crow 1+2
+  for i=1,2 do 
+    table.insert(self.play_fn,{
+      note_on=function(d)
+        crow.output[i].volts=(d.m-24)/12
+        crow.output[i+1](true)
+      end,
+      note_off=function(d)  
+        crow.output[i+1](false)
+      end,
+    })
+  end
+
 end
 
 function Track:dumps()
