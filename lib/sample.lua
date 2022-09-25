@@ -176,6 +176,7 @@ function Sample:play(d)
   d.compressing=d.compressing or params:get(self.id.."compressing")
   d.compressible=d.compressible or params:get(self.id.."compressible")
   d.filter=musicutil.note_num_to_freq(params:get(self.id.."filter"))
+  d.decimate=d.decimate or params:get(self.id.."decimate")
   if self.is_melodic then
     if d.on then
       local sampleStart=self.cursors[1]
@@ -207,20 +208,23 @@ function Sample:play(d)
         d.retrig,
         d.gate,
         d.filter,
+        d.decimate,
         d.compressible,
         d.compressing,
       d.watch)
       if self.kick[d.ci]>-96 then
         engine.kick(
-          musicutil.note_num_to_freq(params:get("basenote")),
-          params:get("ratio"),
-          params:get("sweeptime")/1000,
-          params:get("preamp"),
+          musicutil.note_num_to_freq(params:get("kick_basenote")),
+          params:get("kick_ratio"),
+          params:get("kick_sweeptime")/1000,
+          params:get("kick_preamp"),
           params:get("kick_db")+self.kick[d.ci],
-          params:get("decay1")/1000,
-          params:get("decay1L")/1000,
-          params:get("decay2")/1000,
-        params:get("clicky")/1000)
+          params:get("kick_decay1")/1000,
+          params:get("kick_decay1L")/1000,
+          params:get("kick_decay2")/1000,
+          params:get("kick_clicky")/1000,
+          params:get("kick_compressing"),
+        params:get("kick_compressible"))
       end
     end
   end
@@ -458,14 +462,10 @@ function Sample:redraw()
   -- screen.rect(x,0,11,7)
   -- screen.fill()
 
-  if self.kick[self.ci]>-96 then
-    screen.update()
-    screen.move(126,58)
-    screen.blend_mode(1)
-    screen.level(15)
-    screen.text_right(self.kick[self.ci].." dB")
-    screen.blend_mode(0)
-  end
+  screen.blend_mode(0)
+  screen.move(126,58)
+  screen.level(15)
+  screen.text_right(self.kick[self.ci].." dB")
 end
 
 return Sample

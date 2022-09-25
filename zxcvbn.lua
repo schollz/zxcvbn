@@ -299,7 +299,7 @@ function params_kick()
 
   -- kick
   local params_menu={
-    {id="kick_db",name="db adj",min=-96,max=16,exp=false,div=1,default=0.0,unit="db"},
+    {id="db",name="db adj",min=-96,max=16,exp=false,div=1,default=0.0,unit="db"},
     {id="preamp",name="preamp",min=0,max=4,exp=false,div=0.01,default=1,unit="amp"},
     {id="basenote",name="base note",min=10,max=200,exp=false,div=1,default=24,formatter=function(param) return musicutil.note_num_to_name(param:get(),true)end},
     {id="ratio",name="ratio",min=1,max=20,exp=false,div=1,default=6},
@@ -308,14 +308,14 @@ function params_kick()
     {id="decay1L",name="decay1L",min=5,max=2000,exp=false,div=10,default=800,unit="ms"},
     {id="decay2",name="decay2",min=5,max=2000,exp=false,div=10,default=150,unit="ms"},
     {id="clicky",name="clicky",min=0,max=100,exp=false,div=1,default=0,unit="%"},
-    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=1.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
   }
   params:add_group("KICK",#params_menu)
   for _,pram in ipairs(params_menu) do
     params:add{
       type="control",
-      id=pram.id,
+      id="kick_"..pram.id,
       name=pram.name,
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,

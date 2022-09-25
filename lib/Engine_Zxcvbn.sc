@@ -112,7 +112,7 @@ Engine_Zxcvbn : CroneEngine {
             snd=In.ar(inBus,2);
             sndNSC=In.ar(inBusNSC,2);
             sndSC=In.ar(inSC,2);
-            snd = Compander.ar(snd, (sndSC*sidechain_mult.poll), 
+            snd = Compander.ar(snd, (sndSC*sidechain_mult), 
                 compress_thresh, 1, compress_level, 
                 compress_attack, compress_release);
             snd = snd + sndNSC;
@@ -187,7 +187,7 @@ Engine_Zxcvbn : CroneEngine {
 
             // fx
             snd = (snd * 30.dbamp).tanh * -10.dbamp;
-            snd = SelectX.ar(\decimator.kr(0).lag(0.01), [snd, Latch.ar(snd, Impulse.ar(LFNoise2.kr(0.3).exprange(1000,16e3)))]);
+            snd = SelectX.ar(\decimate.kr(0).lag(0.01), [snd, Latch.ar(snd, Impulse.ar(LFNoise2.kr(0.3).exprange(1000,16e3)))]);
             snd = SelectX.ar(\pitch1.kr(0).lag(0.01), [snd, PitchShift.ar(snd, 0.2, 2)]);
             snd = SelectX.ar(\pitch2.kr(0).lag(0.01), [snd, PitchShift.ar(snd, 0.03, 1.4)]);
             snd = BHiShelf.ar(BLowShelf.ar(snd, 500, 1, -10), 3000, 1, -10);
@@ -342,7 +342,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("slice_on","ssffffffffffff",{ arg msg;
+        this.addCommand("slice_on","ssfffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var amp=msg[3].dbamp;
@@ -354,9 +354,10 @@ Engine_Zxcvbn : CroneEngine {
             var retrig=msg[9];
             var gate=msg[10];
             var filter=msg[11];
-            var compressible=msg[12];
-            var compressing=msg[13];
-            var send_pos=msg[14];
+            var decimate=msg[12];
+            var compressible=msg[13];
+            var compressing=msg[14];
+            var send_pos=msg[15];
             if (bufs.at(filename).notNil,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
@@ -375,6 +376,7 @@ Engine_Zxcvbn : CroneEngine {
                     rate: rate*pitch.midiratio,
                     pos: pos,
                     duration: (duration * gate / (retrig + 1)),
+                    decimate: decimate,
                     send_pos: send_pos,
                 ], syns.at("main"), \addBefore));
                 if (retrig>0,{
@@ -393,6 +395,7 @@ Engine_Zxcvbn : CroneEngine {
                                 rate: rate*((pitch.sign)*(i+1)+pitch).midiratio,
                                 pos: pos,
                                 duration: duration * gate / (retrig + 1),
+                                decimate: decimate,
                                 send_pos: send_pos,
                             ], syns.at("main"), \addBefore));
                         };

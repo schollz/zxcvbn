@@ -11,6 +11,7 @@ tracker of limited input.
 - [ ] hookup the break effects in the engine
 - [ ] add play visual on the left bar
 - [ ] show type on the left bar
+- [ ] delete key should move previous line to current line
 
 ## tli syntax
 
@@ -28,11 +29,11 @@ o100 (probability, %)
 p99 (pan, 0=left, 100 = right)
 q?? 
 r8 (retrig 8 times)
-s100 (compress %)
-t100 (compressibility)
-u100 (compressing)
-v99 (velocity, 0-127)
-w99 (stretch, %%)
+s100 (stretch %)
+t?? (compressibility)
+u?? (compressing)
+v99 (volume add, db)
+w??
 xud (arp type)
 y1  (arp skip)
 z6  (arp length)
