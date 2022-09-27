@@ -29,7 +29,7 @@ function Sample:init()
   self.tosave={"ci","cursors","cursor_durations","view","kick"}
 end
 
-function Sample:load_sample(path,is_melodic)
+function Sample:load_sample(path,is_melodic,slices)
   print("sample: load_sample "..path)
   self.path=path
   -- load sample
@@ -47,7 +47,7 @@ function Sample:load_sample(path,is_melodic)
   self.width=120
   self.debounce_zoom=0
 
-  self.slice_num=16 -- TODO: initialize the slice_num to a parameter
+  self.slice_num=self.is_melodic and 4 or slices
   self.cursors={}
   self.cursor_durations={}
   self.kick={}
@@ -69,7 +69,6 @@ function Sample:load_sample(path,is_melodic)
     self.cursors=self:get_onsets(self.path,self.duration)
     self:do_move(0)
   else
-    self.slice_num=4
     self.cursors[2]=self.duration*0.6
     self.cursors[3]=self.duration*0.8
     self.cursors[4]=self.duration-0.1
