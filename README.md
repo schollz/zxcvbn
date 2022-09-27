@@ -15,6 +15,7 @@ tracker of limited input.
 - [ ] retrigger should start at 1, not 0
 - [ ] scroll shows hex for sample type =1?
 - [x] delete key should move previous line to current line
+- [ ] slice should send duration_total as well as duration_slice (duration_slice is switched by type and not affected by retrig rate)
 
 ## tli syntax
 
