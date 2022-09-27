@@ -1002,7 +1002,7 @@ function TLI:parse_tli(text,use_hex)
       if next(current_pattern)~=nil then
         data.patterns[current_pattern.pattern]=current_pattern
       end
-      current_pattern={text="",division=16}
+      current_pattern={text="",division=data.meta.ppl or 16}
       current_pattern.pattern=fi[2]
       table.insert(pattern_chain,fi[2])
     elseif fi[1]=="chain" then

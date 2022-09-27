@@ -133,14 +133,19 @@ G/B;3
 chain b
  
 ppq 4
- 
-pattern b
 ppl 2
+
+pattern a
 0 n0
 1
+
+pattern b
 2
 3 n24
 
+pattern c
+3 r5 n-2
+-
   ]])
   params:set("3play_through",2)
   params:set("1compressible",1)
