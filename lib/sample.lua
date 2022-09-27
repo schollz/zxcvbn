@@ -205,8 +205,10 @@ function Sample:play(d)
     if d.on and self.cursors~=nil then
       local rate=1
       local pos=self.cursors[d.ci]
-      if params:get(self.id.."play_through")==2 then
-        d.duration=self.cursor_durations[d.ci]
+      d.duration_slice=d.duration 
+      d.duration_total=d.duration
+      if params:get(self.id.."play_through")==2 and d.duration_slice>self.cursor_durations[d.ci] then
+        d.duration_slice=self.cursor_durations[d.ci]
       end
       --print("duration",d.duration,"gate",d.gate,"retrig",d.retrig,"rate",d.rate,"pitch",d.pitch)
       local send_pos=1
@@ -218,7 +220,8 @@ function Sample:play(d)
         d.rate,
         d.pitch,
         pos,
-        d.duration,
+        d.duration_slice,
+        d.duration_total,
         d.retrig,
         d.gate,
         d.filter,

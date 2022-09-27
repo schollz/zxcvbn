@@ -352,7 +352,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("slice_on","ssfffffffffffff",{ arg msg;
+        this.addCommand("slice_on","ssffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var amp=msg[3].dbamp;
@@ -360,14 +360,15 @@ Engine_Zxcvbn : CroneEngine {
             var rate=msg[5];
             var pitch=msg[6];
             var pos=msg[7];
-            var duration=msg[8];
-            var retrig=msg[9];
-            var gate=msg[10];
-            var filter=msg[11];
-            var decimate=msg[12];
-            var compressible=msg[13];
-            var compressing=msg[14];
-            var send_pos=msg[15];
+            var duration_slice=msg[8];
+            var duration_total=msg[9];
+            var retrig=msg[10];
+            var gate=msg[11];
+            var filter=msg[12];
+            var decimate=msg[13];
+            var compressible=msg[14];
+            var compressing=msg[15];
+            var send_pos=msg[16];
             if (bufs.at(filename).notNil,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
@@ -385,14 +386,14 @@ Engine_Zxcvbn : CroneEngine {
                     filter: filter,
                     rate: rate*pitch.midiratio,
                     pos: pos,
-                    duration: (duration * gate / (retrig + 1)),
+                    duration: (duration_slice * gate / (retrig + 1)),
                     decimate: decimate,
                     send_pos: send_pos,
                 ], syns.at("main"), \addBefore));
                 if (retrig>0,{
                     Routine {
                         (retrig).do{ arg i;
-                            (duration/retrig).wait;
+                            (duration_total/retrig).wait;
                             syns.put(id,Synth.new("slice"++bufs.at(filename).numChannels, [
                                 out: buses.at("busIn"),
                                 outsc: buses.at("busSC"),
@@ -404,7 +405,7 @@ Engine_Zxcvbn : CroneEngine {
                                 filter: filter,
                                 rate: rate*((pitch.sign)*(i+1)+pitch).midiratio,
                                 pos: pos,
-                                duration: duration * gate / (retrig + 1),
+                                duration: duration_slice * gate / (retrig + 1),
                                 decimate: decimate,
                                 send_pos: send_pos,
                             ], syns.at("main"), \addBefore));
