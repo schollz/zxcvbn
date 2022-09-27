@@ -272,6 +272,26 @@ function VTerm:keyboard(k,v)
       k="="
     elseif k=="SHIFT+EQUAL" then
       k="+"
+    elseif k=="SHIFT+1" then
+      k="!"
+    elseif k=="SHIFT+2" then
+      k="@"
+    elseif k=="SHIFT+3" then
+      k="#"
+    elseif k=="SHIFT+4" then
+      k="$"
+    elseif k=="SHIFT+5" then
+      k="%"
+    elseif k=="SHIFT+6" then
+      k="^"
+    elseif k=="SHIFT+7" then
+      k="&"
+    elseif k=="SHIFT+8" then
+      k="*"
+    elseif k=="SHIFT+9" then
+      k="("
+    elseif k=="SHIFT+0" then
+      k=")"
     elseif string.find(k,"SHIFT") and #k:sub(7)==1 then
       k=k:sub(7)
       upper=true
