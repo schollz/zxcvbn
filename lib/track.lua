@@ -36,6 +36,7 @@ function Track:init()
       self:load_sample(x)
     end
   end)
+  params:add_number(self.id.."slices","slices",1,16,16)
   params:add_number(self.id.."bpm","bpm",10,600,math.floor(clock.get_tempo()))
   params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
 
@@ -70,7 +71,7 @@ function Track:init()
     end)
   end
   self.params={shared={"ppq","track_type","play","db","probability"}}
-  self.params["sliced sample"]={"sample_file","bpm","play_through","gate","filter","decimate","pan","pitch","compressing","compressible"} -- only show if midi is enabled
+  self.params["sliced sample"]={"sample_file","slices","bpm","play_through","gate","filter","decimate","pan","pitch","compressing","compressible"} -- only show if midi is enabled
   self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"} -- only show if midi is enabled
   self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible"}
   self.params["crow 1+2"]={"attack","release","crow_sustain"}
@@ -339,7 +340,7 @@ end
 
 function Track:load_sample(path)
   print(string.format("track %d: load sample %s",self.id,path))
-  self.states[SAMPLE]:load_sample(path,params:get(self.id.."track_type")==2)
+  self.states[SAMPLE]:load_sample(path,params:get(self.id.."track_type")==2,params:get(self.id.."slices"))
 end
 
 -- base functions
