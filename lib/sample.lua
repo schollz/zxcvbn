@@ -47,6 +47,16 @@ function Sample:load_sample(path,is_melodic)
   self.width=120
   self.debounce_zoom=0
 
+  self.slice_num=16 -- TODO: initialize the slice_num to a parameter
+  self.cursors={}
+  self.cursor_durations={}
+  self.kick={}
+  for i=1,self.slice_num do 
+    table.insert(self.cursors,0)
+    table.insert(self.kick,-96)
+    table.insert(self.cursor_durations,0)
+  end
+
   -- create dat file
   self.path_to_dat=_path.data.."zxcvbn/dats/"..self.filename..".dat"
   if not util.file_exists(self.path_to_dat) then
@@ -56,14 +66,13 @@ function Sample:load_sample(path,is_melodic)
 
   self.is_melodic=is_melodic
   if not is_melodic then
-    self.kick={-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96,-96}
     self.cursors=self:get_onsets(self.path,self.duration)
-    self.cursor_durations={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
     self:do_move(0)
   else
-    self.kick={-96,-96,-96,-96}
-    self.cursors={0,self.duration*0.6,self.duration*0.8,self.duration-0.1}
-    self.cursor_durations={0,0,0,0}
+    self.slice_num=4
+    self.cursors[2]=self.duration*0.6
+    self.cursors[3]=self.duration*0.8
+    self.cursors[4]=self.duration-0.1
   end
   engine.load_buffer(self.path)
   self.loaded=true
@@ -89,7 +98,7 @@ function Sample:loads(s)
 end
 
 function Sample:get_onsets(fname,duration)
-  self.path_to_cursors=_path.data.."/zxcvbn/cursors/"..self.filename..".cursors"
+  self.path_to_cursors=_path.data.."/zxcvbn/cursors/"..self.filename.."_"..self.slice_num..".cursors"
   -- try to load the cached cursors
   if util.file_exists(self.path_to_cursors) then
     print("sample: loading existing cursors")
@@ -140,25 +149,25 @@ function Sample:get_onsets(fname,duration)
     end
   end
   table.sort(onsets,function(a,b) return a.count>b.count end)
-  local top16={}
+  local top_slices={}
   local i=0
   for _,o in ipairs(onsets) do
     i=i+1
-    table.insert(top16,average(o.onset))
-    if i==16 then
+    table.insert(top_slices,average(o.onset))
+    if i==self.slice_num then
       break
     end
   end
-  table.sort(top16)
+  table.sort(top_slices)
 
-  -- save the top16
+  -- save the top_slices
   local filename=self.path_to_cursors
   local file=io.open(self.path_to_cursors,"w+")
   io.output(file)
-  io.write(json.encode({cursors=top16}))
+  io.write(json.encode({cursors=top_slices}))
   io.close(file)
 
-  return top16
+  return top_slices
 end
 
 function Sample:play(d)
@@ -374,9 +383,9 @@ end
 
 function Sample:sel_cursor(ci)
   if ci<1 then
-    ci=ci+16
-  elseif ci>16 then
-    ci=ci-16
+    ci=ci+self.slice_num
+  elseif ci>self.slice_num then
+    ci=ci-self.slice_num
   end
   self.ci=ci
   local view_duration=(self.view[2]-self.view[1])
@@ -384,7 +393,7 @@ function Sample:sel_cursor(ci)
   if view_duration~=self.duration and cursor-self.cursor_durations[ci]<self.view[1] or cursor+self.cursor_durations[ci]>self.view[2] then
     local cursor_frac=0.5
     local next_view=cursor+self.cursor_durations[ci]
-    if ci<16 then
+    if ci<self.slice_num then
       next_view=next_view+self.cursor_durations[ci+1]/2
     end
     local prev_view=cursor-self.cursor_durations[ci]
