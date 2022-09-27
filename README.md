@@ -8,16 +8,16 @@ tracker of limited input.
 
 ## todo
 
-- [ ] hookup the break effects in the engine
-- [ ] add play visual on the left bar
-- [ ] show type on the left bar
-- [ ] in chaining, support "*" to multiply patterns?
-- [ ] retrigger should start at 1, not 0
-- [ ] scroll shows hex for sample type =1?
-- [ ] chaining chains?
-- [x] delete key should move previous line to current line
 - [ ] slice should send duration_total as well as duration_slice (duration_slice is switched by type and not affected by retrig rate) (need to test)
 - [ ] ppl addressed in the meta (need to test)
+- [ ] in chaining, support "*" to multiply patterns?
+- [ ] chaining chains?
+- [ ] show type on the left bar
+- [x] delete key should move previous line to current line
+- [x] ~~hookup the break effects in the engine~~ break effects are less interesting
+- [x] ~~add play visual on the left bar~~
+- [x] ~~retrigger should start at 1, not 0~~ nvm
+- [x] ~~scroll shows hex for sample type =1?~~ 
 
 
 ## tli syntax
