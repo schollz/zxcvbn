@@ -13,7 +13,8 @@ end
 
 function Track:init()
   -- initialize parameters
-  params:add_option(self.id.."track_type","type",{"sliced sample","melodic sample","infinite pad","crow 1+2","crow 3+4","midi"},1)
+  self.track_type_options={"sliced sample","melodic sample","infinite pad","crow 1+2","crow 3+4","midi"}
+  params:add_option(self.id.."track_type","type",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
     self:select(self.selected)
@@ -197,10 +198,10 @@ function Track:init()
     note_on=function(d)
       self.notes_on[6][d.m]=true
       local vel=util.linlin(-96,12,0,127,params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10))
-      midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch")))
+      midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
     end,
     note_off=function(d)  
-      midi_device[params:get(self.id.."midi_dev")].note_off(d.m,0,params:get(self.id.."midi_ch")))
+      midi_device[params:get(self.id.."midi_dev")].note_off(d.m,0,params:get(self.id.."midi_ch"))
     end,
   })
 
