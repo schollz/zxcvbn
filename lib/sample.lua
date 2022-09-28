@@ -53,7 +53,7 @@ function Sample:load_sample(path,is_melodic,slices)
   self.kick={}
   for i=1,self.slice_num do 
     table.insert(self.cursors,0)
-    table.insert(self.kick,-96)
+    table.insert(self.kick,-48)
     table.insert(self.cursor_durations,0)
   end
 
@@ -241,7 +241,7 @@ function Sample:play(d)
         d.compressible,
         d.compressing,
       d.watch)
-      if self.kick[d.ci]>-96 then
+      if self.kick[d.ci]>-48 then
         engine.kick(
           musicutil.note_num_to_freq(params:get("kick_basenote")),
           params:get("kick_ratio"),
@@ -338,8 +338,8 @@ function Sample:adjust_kick(i,d)
     do return end
   end
   self.kick[i]=self.kick[i]+d
-  if self.kick[i]<-96 then
-    self.kick[i]=-96
+  if self.kick[i]<-48 then
+    self.kick[i]=-48
   elseif self.kick[i]>12 then
     self.kick[i]=12
   end

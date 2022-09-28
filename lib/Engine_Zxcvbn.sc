@@ -394,7 +394,7 @@ Engine_Zxcvbn : CroneEngine {
                 if (retrig>0,{
                     Routine {
                         (retrig).do{ arg i;
-                            (duration_total/retrig).wait;
+                            (duration_total/ (retrig+1) ).wait;
                             syns.put(id,Synth.new("slice"++bufs.at(filename).numChannels, [
                                 out: buses.at("busIn"),
                                 outsc: buses.at("busSC"),
@@ -476,7 +476,7 @@ Engine_Zxcvbn : CroneEngine {
                 if (retrig>0,{
                     Routine {
                         (retrig).do{ arg i;
-                            (duration_total/retrig).wait;
+                            (duration_total/ (retrig+1) ).wait;
                             syns.put(id,Synth.new("playerInOut"++buf.numChannels, [
                                 out: buses.at("busIn"),
                                 outsc: buses.at("busSC"),
