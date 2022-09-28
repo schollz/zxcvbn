@@ -194,6 +194,7 @@ function Sample:play(d)
       engine.melodic_on(
         d.id,
         filename,
+        params:get(self.id.."db"),
         d.db,
         d.pan,
         d.pitch,
@@ -213,8 +214,8 @@ function Sample:play(d)
     if d.on and self.cursors~=nil then
       local rate=1
       local pos=self.cursors[d.ci]
-      d.duration_slice=d.duration 
-      d.duration_total=d.duration
+      d.duration_slice=d.duration or self.cursor_durations[d.ci]
+      d.duration_total=d.duration_slice
       if params:get(self.id.."play_through")==2 and d.duration_slice>self.cursor_durations[d.ci] then
         d.duration_slice=self.cursor_durations[d.ci]
       end
@@ -223,6 +224,7 @@ function Sample:play(d)
       engine.slice_on(
         d.id,
         filename,
+        params:get(self.id.."db"),
         d.db,
         d.pan,
         d.rate,
@@ -252,6 +254,8 @@ function Sample:play(d)
         params:get("kick_compressible"))
       end
     end
+  elseif not d.on then 
+    engine.slice_off(d.id)
   end
 end
 
@@ -260,7 +264,6 @@ function Sample:audition(on)
   self:play({
     on=on,
     id="audition",
-    duration=params:get(self.id.."play_through")==1 and self.duration or nil,
     watch=1,
   })
 end

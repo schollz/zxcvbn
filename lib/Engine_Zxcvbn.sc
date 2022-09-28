@@ -352,23 +352,24 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("slice_on","ssffffffffffffff",{ arg msg;
+        this.addCommand("slice_on","ssfffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
-            var amp=msg[3].dbamp;
-            var pan=msg[4];
-            var rate=msg[5];
-            var pitch=msg[6];
-            var pos=msg[7];
-            var duration_slice=msg[8];
-            var duration_total=msg[9];
-            var retrig=msg[10];
-            var gate=msg[11];
-            var filter=msg[12];
-            var decimate=msg[13];
-            var compressible=msg[14];
-            var compressing=msg[15];
-            var send_pos=msg[16];
+            var db=msg[3];
+            var db_add=msg[4];
+            var pan=msg[5];
+            var rate=msg[6];
+            var pitch=msg[7];
+            var pos=msg[8];
+            var duration_slice=msg[9];
+            var duration_total=msg[10];
+            var retrig=msg[11];
+            var gate=msg[12];
+            var filter=msg[13];
+            var decimate=msg[14];
+            var compressible=msg[15];
+            var compressing=msg[16];
+            var send_pos=msg[17];
             if (bufs.at(filename).notNil,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
@@ -382,7 +383,7 @@ Engine_Zxcvbn : CroneEngine {
                     compressible: compressible,
                     compressing: compressing,
                     buf: bufs.at(filename),
-                    amp: amp,
+                    amp: (db+db_add).dbamp,
                     filter: filter,
                     rate: rate*pitch.midiratio,
                     pos: pos,
@@ -401,7 +402,7 @@ Engine_Zxcvbn : CroneEngine {
                                 compressible: compressible,
                                 compressing: compressing,
                                 buf: bufs.at(filename),
-                                amp: amp,
+                                amp: (db+(db_add*(i+1))).dbamp,
                                 filter: filter,
                                 rate: rate*((pitch.sign)*(i+1)+pitch).midiratio,
                                 pos: pos,
@@ -429,21 +430,22 @@ Engine_Zxcvbn : CroneEngine {
             });            
         });
 
-        this.addCommand("melodic_on","ssffffffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssfffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
-            var amp=msg[3].dbamp;
-            var pan=msg[4];
-            var pitch=msg[5];
-            var sampleStart=msg[6];
-            var sampleIn=msg[7];
-            var sampleOut=msg[8];
-            var sampleEnd=msg[9];
-            var duration=msg[10];
-            var filter=msg[11];
-            var compressible=msg[12];
-            var compressing=msg[13];
-            var watch=msg[14];
+            var db=msg[3];
+            var db_add=msg[4];
+            var pan=msg[5];
+            var pitch=msg[6];
+            var sampleStart=msg[7];
+            var sampleIn=msg[8];
+            var sampleOut=msg[9];
+            var sampleEnd=msg[10];
+            var duration=msg[11];
+            var filter=msg[12];
+            var compressible=msg[13];
+            var compressing=msg[14];
+            var watch=msg[15];
             if (bufs.at(filename).notNil,{
                 var buf=bufs.at(filename);
                 if (syns.at(id).notNil,{
@@ -458,7 +460,7 @@ Engine_Zxcvbn : CroneEngine {
                     compressible: compressible,
                     compressing: compressing,
                     buf: buf,
-                    amp: amp,
+                    amp: (db+db_add).dbamp,
                     pan: pan,
                     filter: filter,
                     pitch: pitch,
