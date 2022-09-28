@@ -9,7 +9,6 @@ tracker of limited input.
 ## todo
 
 - [ ] slice should send duration_total as well as duration_slice (duration_slice is switched by type and not affected by retrig rate) (need to test)
-- [ ] ppl addressed in the meta (need to test)
 - [ ] in chaining, support "*" to multiply patterns?
 - [ ] chaining chains?
 - [ ] show type on the left bar
@@ -18,6 +17,7 @@ tracker of limited input.
 - [ ] make retrig/volume work with melodic on
 - [ ] make retrig/volume work with crow
 - [x] delete key should move previous line to current line
+- [x] ppl addressed in the meta
 - [x] ~~hookup the break effects in the engine~~ break effects are less interesting
 - [x] ~~add play visual on the left bar~~
 - [x] ~~retrigger should start at 1, not 0~~ nvm
