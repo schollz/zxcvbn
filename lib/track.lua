@@ -43,7 +43,7 @@ function Track:init()
 
   local params_menu={
     {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(param:get(),true)end},
-    {id="db",name="volume",min=-96,max=12,exp=false,div=0.1,default=-6,unit="db"},
+    {id="db",name="volume",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=0},
     {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(param:get(),true)end},
     {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
@@ -199,8 +199,23 @@ function Track:init()
   table.insert(self.play_fn,{
     note_on=function(d)
       self.notes_on[6][d.m]=true
-      local vel=util.linlin(-96,12,0,127,params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10))
-      midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
+      local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0))
+      local note=d.m + (d.n or 0)
+      if vel>0 then 
+        midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
+      end
+      if d.mods.x~=nil and d.mods.x>0 then 
+        clock.run(function()
+          for i=1,d.mods.x do 
+            clock.sleep(d.duration_scaled/(d.mods.x+1))
+            local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
+            local note=d.m + (d.n or 0)*(i+1)
+            if vel>0 then 
+              midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
+            end
+          end
+        end)
+      end
     end,
     note_off=function(d)  
       midi_device[params:get(self.id.."midi_dev")].note_off(d.m,0,params:get(self.id.."midi_ch"))
