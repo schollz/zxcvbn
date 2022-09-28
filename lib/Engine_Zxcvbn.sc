@@ -414,7 +414,7 @@ Engine_Zxcvbn : CroneEngine {
                         NodeWatcher.register(syns.at(id));
                     }.play;
                  },{ 
-                NodeWatcher.register(syns.at(id));
+                    NodeWatcher.register(syns.at(id));
                 });
             });
         });
@@ -430,7 +430,7 @@ Engine_Zxcvbn : CroneEngine {
             });            
         });
 
-        this.addCommand("melodic_on","ssfffffffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssfffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -443,9 +443,11 @@ Engine_Zxcvbn : CroneEngine {
             var sampleEnd=msg[10];
             var duration=msg[11];
             var filter=msg[12];
-            var compressible=msg[13];
-            var compressing=msg[14];
-            var watch=msg[15];
+            var gate=msg[13];
+            var retrig=msg[14];
+            var compressible=msg[15];
+            var compressing=msg[16];
+            var watch=msg[17];
             if (bufs.at(filename).notNil,{
                 var buf=bufs.at(filename);
                 if (syns.at(id).notNil,{
@@ -468,10 +470,37 @@ Engine_Zxcvbn : CroneEngine {
                     sampleIn: sampleIn,
                     sampleOut: sampleOut,
                     sampleEnd: sampleEnd,
-                    duration: duration,
+                    duration: (duration_slice * gate / (retrig + 1)),
                     watch: watch,
                 ], syns.at("main"), \addBefore));
-                NodeWatcher.register(syns.at(id));
+                if (retrig>0,{
+                    Routine {
+                        (retrig).do{ arg i;
+                            (duration_total/retrig).wait;
+                            syns.put(id,Synth.new("playerInOut"++buf.numChannels, [
+                                out: buses.at("busIn"),
+                                outsc: buses.at("busSC"),
+                                outnsc: buses.at("busInNSC"),
+                                compressible: compressible,
+                                compressing: compressing,
+                                buf: buf,
+                                amp: (db+(db_add*(i+1))).dbamp,
+                                pan: pan,
+                                filter: filter,
+                                pitch: pitch,
+                                sampleStart: sampleStart,
+                                sampleIn: sampleIn,
+                                sampleOut: sampleOut,
+                                sampleEnd: sampleEnd,
+                                duration: (duration_slice * gate / (retrig + 1)),
+                                watch: watch,
+                            ], syns.at("main"), \addBefore));
+                        };
+                        NodeWatcher.register(syns.at(id));
+                    }.play;
+                 },{ 
+                    NodeWatcher.register(syns.at(id));
+                });
             });
         });
 

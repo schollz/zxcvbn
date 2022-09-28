@@ -15,6 +15,8 @@ tracker of limited input.
 - [ ] show type on the left bar
 - [ ] retrig with volume will act like delay (decreasing/increasing volume each step)
 - [ ] make retrig/volume work with midi (midi delay!)
+- [ ] make retrig/volume work with melodic on
+- [ ] make retrig/volume work with crow
 - [x] delete key should move previous line to current line
 - [x] ~~hookup the break effects in the engine~~ break effects are less interesting
 - [x] ~~add play visual on the left bar~~
