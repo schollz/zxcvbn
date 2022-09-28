@@ -204,6 +204,8 @@ function Sample:play(d)
         sampleEnd,
         d.duration or 30,
         d.filter,
+        d.gate,
+        d.retrig,
         d.compressible,
         d.compressing,
       d.watch)

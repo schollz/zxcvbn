@@ -153,7 +153,9 @@ function Track:init()
         db=d.mods.v or 0,
         pitch=d.m-params:get(self.id.."source_note"),
         duration=d.duration_scaled,
+        retrig=d.mods.x or 0,
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
+        gate=params:get(self.id.."gate")/100,
       }
     end,
     note_off=function(d)
