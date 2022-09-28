@@ -681,8 +681,8 @@ function TLI:parse_pattern(text,division,use_hex)
   print(json.encode(positions))
   -- adjustments
   for _,p in ipairs(positions) do
-    p.mods=p.mods or {v=60}
-    if p.mods.x~=nil then
+    p.mods=p.mods or {}
+    if p.mods.r~=nil then
       print("DOING ARP")
       -- introduce as an arp
       local notes={}
@@ -690,8 +690,8 @@ function TLI:parse_pattern(text,division,use_hex)
         table.insert(notes,note.m)
       end
       --function TLI:get_arp(input,steps,shape,length)
-      local arp_notes=self:get_arp(notes,p.stop-p.start,p.mods.x,p.mods.z)
-      local skip=p.mods.y or 0
+      local arp_notes=self:get_arp(notes,p.stop-p.start,p.mods.r,p.mods.t)
+      local skip=p.mods.s or 0
       local j=0
       print(json.encode(track))
       for i=p.start,p.stop-1,skip+1 do

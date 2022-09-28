@@ -121,12 +121,12 @@ function Track:init()
         on=true,
         id=id,
         ci=(d.m-1)%16+1,
-        db=params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
+        db=d.mods.v or 0,
         pan=params:get(self.id.."pan"),
         duration=d.duration_scaled,
         rate=clock.get_tempo()/params:get(self.id.."bpm"),
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
-        retrig=d.mods.r or 0,
+        retrig=d.mods.x or 0,
         pitch=params:get(self.id.."pitch"),
         gate=params:get(self.id.."gate")/100,
       }
@@ -150,7 +150,7 @@ function Track:init()
       self.states[SAMPLE]:play{
         on=true,
         id=id,
-        db=params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
+        db=d.mods.v or 0,
         pitch=d.m-params:get(self.id.."source_note"),
         duration=d.duration_scaled,
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,

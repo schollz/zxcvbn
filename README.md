@@ -13,6 +13,8 @@ tracker of limited input.
 - [ ] in chaining, support "*" to multiply patterns?
 - [ ] chaining chains?
 - [ ] show type on the left bar
+- [ ] retrig with volume will act like delay (decreasing/increasing volume each step)
+- [ ] make retrig/volume work with midi (midi delay!)
 - [x] delete key should move previous line to current line
 - [x] ~~hookup the break effects in the engine~~ break effects are less interesting
 - [x] ~~add play visual on the left bar~~
@@ -24,28 +26,27 @@ tracker of limited input.
 
 all parameters latch until they change again
 
-```
-h100 (hold length / gate, %)
-i99 (filter open = midi note - 30)
-j11 (just for fun (fx))
-k10 (attack, ms)
-l2000 (decay, ms)
-m99 (deci-mater)
-n?? (note change,-12-12)
-o100 (er offset)
-p99 (pan, 0=left, 100 = right)
-q100  (probability, %)
-r8 (retrig 8 times)
-s100 (stretch %)
-t?? 
-u??
-v99 (volume add, db	)
-w??
-xud (arp type)
-y1  (arp skip)
-z6  (arp length)
+- [ ] h100 (hold length / gate, %)
+- [ ] i99 (filter open = midi note - 30)
+- [ ] j11 (just for fun (fx))
+- [ ] k10 (attack, ms)
+- [ ] l2000 (decay, ms)
+- [ ] m99 (deci-mater)
+- [ ] n?? (note change,-12-12)
+- [ ] o100 (er offset)
+- [ ] p99 (pan, 0=left, 100 = right)
+- [ ] q100  (probability, %)
+- [x] r8 (arp type)
+- [x] s100 (arp skip)
+- [x] t1 (arp time (in steps))
+- [ ] u??
+- [ ] v99 (volume add, db	)
+- [ ] w11 (stretch)()
+- [ ] x8 (retrig 8 times) (v-1 makes a delay type thing)
+- [ ] y1 
+- [ ] z6  reverb send
 
-```
+
 
 ```
 
