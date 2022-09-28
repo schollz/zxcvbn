@@ -470,7 +470,7 @@ Engine_Zxcvbn : CroneEngine {
                     sampleIn: sampleIn,
                     sampleOut: sampleOut,
                     sampleEnd: sampleEnd,
-                    duration: (duration_slice * gate / (retrig + 1)),
+                    duration: (duration * gate / (retrig + 1)),
                     watch: watch,
                 ], syns.at("main"), \addBefore));
                 if (retrig>0,{
@@ -492,7 +492,7 @@ Engine_Zxcvbn : CroneEngine {
                                 sampleIn: sampleIn,
                                 sampleOut: sampleOut,
                                 sampleEnd: sampleEnd,
-                                duration: (duration_slice * gate / (retrig + 1)),
+                                duration: (duration * gate / (retrig + 1)),
                                 watch: watch,
                             ], syns.at("main"), \addBefore));
                         };
