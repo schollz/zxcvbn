@@ -130,7 +130,7 @@ G/B;3
   params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   params:set("3track_type",1)
   tracks[3]:load_text([[
-chain b
+chain a b c
  
 ppq 4
 ppl 2
@@ -138,10 +138,12 @@ ppl 2
 pattern a
 0 n0
 1
+2
+3
 
 pattern b
-2
-3 n24
+2 n0
+3 n2
 
 pattern c
 3 r5 n-2
