@@ -184,10 +184,28 @@ function Track:init()
   for i=1,2 do 
     table.insert(self.play_fn,{
       note_on=function(d)
-        crow.output[i+1].action=string.format("adsr(%3.3f,%3.3f,%3.3f,%3.3f,'linear')",
-              params:get(self.id.."attack"),params:get(self.id.."crow_sustain"),0.1,params:get(self.id.."release"))
-        crow.output[i].volts=(d.m-24)/12
-        crow.output[i+1](true)
+        local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0))
+        local note=d.m + (d.n or 0)
+        if level>0 then 
+          crow.output[i+1].action=string.format("ar(%3.3f,%3.3f,%3.3f)",
+                params:get(self.id.."attack"),params:get(self.id.."release"),level)
+          crow.output[i].volts=(note-24)/12
+          crow.output[i+1](true)
+        end
+        if d.mods.x~=nil and d.mods.x>0 then 
+          clock.run(function()
+            for i=1,d.mods.x do 
+              clock.sleep(d.duration_scaled/(d.mods.x+1))
+              crow.output[i+1](false)
+              level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0)*(i+1)
+              note=d.m + (d.n or 0)*(i+1)
+              if level>0 then 
+                crow.output[i].volts=(note-24)/12
+                crow.output[i+1](true)
+              end
+            end
+          end)
+        end
       end,
       note_off=function(d)  
         crow.output[i+1](false)
@@ -203,22 +221,28 @@ function Track:init()
       local note=d.m + (d.n or 0)
       if vel>0 then 
         midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
+        midi_device[params:get(self.id.."midi_dev")].notes[d.m]=note
       end
       if d.mods.x~=nil and d.mods.x>0 then 
         clock.run(function()
           for i=1,d.mods.x do 
             clock.sleep(d.duration_scaled/(d.mods.x+1))
-            local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
-            local note=d.m + (d.n or 0)*(i+1)
+            midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
+            vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
+            note=d.m + (d.n or 0)*(i+1)
             if vel>0 then 
               midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
+              midi_device[params:get(self.id.."midi_dev")].notes[d.m]=note
             end
           end
         end)
       end
     end,
-    note_off=function(d)  
-      midi_device[params:get(self.id.."midi_dev")].note_off(d.m,0,params:get(self.id.."midi_ch"))
+    note_off=function(d) 
+      local note=midi_device[params:get(self.id.."midi_dev")].notes[d.m]
+      if note~=nil then 
+        midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
+      end
     end,
   })
 
