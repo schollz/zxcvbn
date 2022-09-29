@@ -37,7 +37,7 @@ some parameters are not available for all instruments.
 - [x] l2000 (decay, ms)
 - [x] m99 (deci-mater)
 - [x] n?? (note change,-12-12)
-- [ ] o100 (er offset)
+- [x] o100 (er offset)
 - [ ] p99 (pan, 0=left, 100 = right)
 - [x] q100  (probability, %)
 - [x] r8 (arp type)
@@ -46,7 +46,7 @@ some parameters are not available for all instruments.
 - [ ] u??
 - [x] v99 (volume add, db	)
 - [ ] w11 (stretch)()
-- [ ] x8 (retrig 8 times) (v-1 makes a delay type thing)
+- [x] x8 (retrig 8 times) (v-1 makes a delay type thing)
 - [ ] y1 
 - [ ] z6  reverb send
 

@@ -147,46 +147,37 @@ function Track:init()
         do return end
       end
       local id=self.id.."_"..d.m
-      self.notes_on[2][d.m]=true
       self.states[SAMPLE]:play{
         on=true,
         id=id,
         db=d.mods.v or 0,
-        pitch=d.m-params:get(self.id.."source_note"),
+        pitch=d.m-params:get(self.id.."source_note")+params:get(self.id.."pitch"),
         duration=d.duration_scaled,
         retrig=d.mods.x or 0,
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
         gate=params:get(self.id.."gate")/100,
       }
     end,
-    note_off=function(d)
-      -- if d.m==nil then
-      --   do return end
-      -- end
-      -- self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
-    end,
+    note_off=function(d) end,
   })
   -- infinite pad
   table.insert(self.play_fn,{
     note_on=function(d)
-      local id=d.m
-      self.notes_on[3][d.m]=true
-      engine.note_on(id,
+      local note=d.m+params:get(self.id.."pitch")
+      engine.note_on(note,
         params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
         params:get(self.id.."attack")/1000,
         params:get(self.id.."release")/1000,
       d.duration_scaled)
     end,
-    note_off=function(d)
-      -- engine.note_off(d.m)
-    end,
+    note_off=function(d) end,
   })
   -- crow 1+2
   for i=1,2 do 
     table.insert(self.play_fn,{
       note_on=function(d)
         local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0))
-        local note=d.m + (d.n or 0)
+        local note=d.m + params:get(self.id.."pitch")
         if level>0 then 
           crow.output[i+1].action=string.format("ar(%3.3f,%3.3f,%3.3f)",
                 params:get(self.id.."attack"),params:get(self.id.."release"),level)
@@ -199,7 +190,7 @@ function Track:init()
               clock.sleep(d.duration_scaled/(d.mods.x+1))
               crow.output[i+1](false)
               level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0)*(i+1)
-              note=d.m + (d.n or 0)*(i+1)
+              note=d.m + params:get(self.id.."pitch")*(i+1)
               if level>0 then 
                 crow.output[i].volts=(note-24)/12
                 crow.output[i+1](true)
@@ -219,7 +210,7 @@ function Track:init()
     note_on=function(d)
       self.notes_on[6][d.m]=true
       local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0))
-      local note=d.m + (d.n or 0)
+      local note=d.m + params:get(self.id.."pitch")
       if vel>0 then 
         midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
         midi_device[params:get(self.id.."midi_dev")].notes[d.m]=note
@@ -230,7 +221,7 @@ function Track:init()
             clock.sleep(d.duration_scaled/(d.mods.x+1))
             midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
             vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
-            note=d.m + (d.n or 0)*(i+1)
+            note=d.m + params:get(self.id.."pitch")*(i+1)
             if vel>0 then 
               midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
               midi_device[params:get(self.id.."midi_dev")].notes[d.m]=note
