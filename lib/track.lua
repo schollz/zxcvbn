@@ -95,7 +95,8 @@ function Track:init()
   self.state=VTERM
   self.states={}
   table.insert(self.states,vterm_:new{id=self.id,on_save=function(x)
-    self:parse_tli()
+    local success=self:parse_tli()
+    return success
   end})
   table.insert(self.states,sample_:new{id=self.id})
 
@@ -299,6 +300,7 @@ function Track:parse_tli()
   end
   -- add flag to turn off on notes
   self.flag_parsed=true
+  return true 
 end
 
 function Track:emit(beat,ppq)
