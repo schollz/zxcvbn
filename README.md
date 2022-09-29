@@ -8,14 +8,13 @@ tracker of limited input.
 
 ## todo
 
-- [ ] slice should send duration_total as well as duration_slice (duration_slice is switched by type and not affected by retrig rate) (need to test)
-- [ ] in chaining, support "*" to multiply patterns?
-- [ ] chaining chains?
 - [ ] show type on the left bar
 - [ ] retrig with volume will act like delay (decreasing/increasing volume each step)
 - [ ] make retrig/volume work with midi (midi delay!)
 - [ ] make retrig/volume work with melodic on
 - [ ] make retrig/volume work with crow
+- [x] slice should send duration_total as well as duration_slice (duration_slice is switched by type and not affected by retrig rate) (need to test)
+- [x] in chaining, support "*" to multiply patterns?
 - [x] delete key should move previous line to current line
 - [x] ppl addressed in the meta
 - [x] ~~hookup the break effects in the engine~~ break effects are less interesting
