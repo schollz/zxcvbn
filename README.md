@@ -1,16 +1,13 @@
 # zxcvbn
 
-branch working well: https://github.com/schollz/zxcvbn/commit/c65c1fad06f9509b79ac1808113394c562a023a6
-
 too little information.
 
 tracker of limited input.
 
 ## todo
 
-- [ ] show type on the left bar
 - [ ] TEST copy / paste
-- [ ] TEST undo / dredo
+- [ ] TEST undo / redo
 - [ ] TEST retrig/volume w/ crow
 - [ ] TEST retrig/volume w/ midi
 - [ ] TEST retrig/volume w/ melodic
@@ -22,11 +19,14 @@ tracker of limited input.
 - [x] ~~add play visual on the left bar~~
 - [x] ~~retrigger should start at 1, not 0~~ nvm
 - [x] ~~scroll shows hex for sample type =1?~~ 
+- [ ] ~~show type on the left bar~~ nvm
 
 
 ## tli syntax
 
-all parameters latch until they change again
+some parameters latch until they change again.
+
+some parameters are not available for all instruments.
 
 - [ ] h100 (hold length / gate, %)
 - [ ] i99 (filter open = midi note - 30)
@@ -37,12 +37,12 @@ all parameters latch until they change again
 - [ ] n?? (note change,-12-12)
 - [ ] o100 (er offset)
 - [ ] p99 (pan, 0=left, 100 = right)
-- [ ] q100  (probability, %)
+- [x] q100  (probability, %)
 - [x] r8 (arp type)
 - [x] s100 (arp skip)
 - [x] t1 (arp time (in steps))
 - [ ] u??
-- [ ] v99 (volume add, db	)
+- [x] v99 (volume add, db	)
 - [ ] w11 (stretch)()
 - [ ] x8 (retrig 8 times) (v-1 makes a delay type thing)
 - [ ] y1 
