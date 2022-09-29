@@ -9,10 +9,11 @@ tracker of limited input.
 ## todo
 
 - [ ] show type on the left bar
-- [ ] retrig with volume will act like delay (decreasing/increasing volume each step)
-- [ ] make retrig/volume work with midi (midi delay!)
-- [ ] make retrig/volume work with melodic on
-- [ ] make retrig/volume work with crow
+- [ ] copy / paste
+- [ ] TEST undo/redo
+- [ ] TEST retrig/volume w/ crow
+- [ ] TEST retrig/volume w/ midi
+- [ ] TEST retrig/volume w/ melodic
 - [x] slice should send duration_total as well as duration_slice (duration_slice is switched by type and not affected by retrig rate) (need to test)
 - [x] in chaining, support "*" to multiply patterns?
 - [x] delete key should move previous line to current line
