@@ -6,6 +6,8 @@ tracker of limited input.
 
 ## todo
 
+- [ ] random parameter choices with '?' (e.g. m?)
+- [ ] padfx as a global reverb send
 - [ ] TEST copy / paste
 - [ ] TEST undo / redo
 - [ ] TEST retrig/volume w/ crow
