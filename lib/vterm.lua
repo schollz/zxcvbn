@@ -151,6 +151,27 @@ function VTerm:redo()
   end
 end
 
+function VTerm:copy()
+  -- copy the current line
+  self.copied=""..self.lines[self.cursor.row]
+end
+
+function VTerm:paste()
+  -- paste the line after the current
+  if self.copied==nil then 
+    do return end 
+  end
+  local lines={}
+  for i,v in ipairs(self.lines) do 
+    table.insert(lines,v)
+    if i==self.cursor.row then 
+      table.insert(lines,self.copied)
+    end
+  end
+  self.copied=nil
+  self.history_dirty=true
+end
+
 function VTerm:load_text(text)
   self.text=text
   self.lines={}
@@ -241,6 +262,10 @@ function VTerm:keyboard(k,v)
     self:undo()
   elseif k=="CTRL+Y" then
     self:redo()
+  elseif k=="CTRL+C" then
+    self:copy()
+  elseif k=="CTRL+V" then
+    self:paste()
   elseif k=="CTRL+S" then
     show_message("saved",2)
     self:save()
