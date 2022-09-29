@@ -254,6 +254,19 @@ function TLI:init()
     {m=131,i="B9",f=15804.264,y={"b9","cb9"}},
   }
 
+  self.notes_white={"C","D","E","F","G","A","B"}
+  self.notes_scale_sharp={"C","C#","D","D#","E","F","F#","G","G#","A","A#","B","C","C#","D","D#","E","F","F#","G","G#","A","A#","B","C","C#","D","D#","E","F","F#","G","G#","A","A#","B"}
+  self.notes_scale_acc1={"B#","Db","D","Eb","Fb","E#","Gb","G","Ab","A","Bb","Cb"}
+  self.notes_scale_acc2={"C","Cs","D","Ds","E","F","Fs","G","Gs","A","As","B"}
+  self.notes_scale_acc3={"Bs","Db","D","Eb","Fb","Es","Gb","G","Ab","A","Bb","Cb"}
+  self.notes_adds={"","#","b","s"}
+  self.notes_all={}
+  for i,n in ipairs(self.notes_white) do
+    for j,a in ipairs(self.notes_adds) do
+      table.insert(self.notes_all,(n..a))
+    end
+  end
+
   self.db_chords={
     {"1P 3M 5P","major","maj","^",""},
     {"1P 3M 5P 7M","major seventh","maj7","ma7","Maj7","^7"},
@@ -415,7 +428,10 @@ function TLI:note_to_midi(n,midi_near)
       end
     end
   end
-  return #notes>0 and notes or nil
+  if #notes==0 then 
+    error("no notes found")
+  end
+  return notes
 end
 
 function TLI:chord_to_midi(c,midi_near)
@@ -435,18 +451,7 @@ function TLI:chord_to_midi(c,midi_near)
   local db=self.database
   local db_chords=self.db_chords
 
-  notes_white={"C","D","E","F","G","A","B"}
-  notes_scale_sharp={"C","C#","D","D#","E","F","F#","G","G#","A","A#","B","C","C#","D","D#","E","F","F#","G","G#","A","A#","B","C","C#","D","D#","E","F","F#","G","G#","A","A#","B"}
-  notes_scale_acc1={"B#","Db","D","Eb","Fb","E#","Gb","G","Ab","A","Bb","Cb"}
-  notes_scale_acc2={"C","Cs","D","Ds","E","F","Fs","G","Gs","A","As","B"}
-  notes_scale_acc3={"Bs","Db","D","Eb","Fb","Es","Gb","G","Ab","A","Bb","Cb"}
-  notes_adds={"","#","b","s"}
-  notes_all={}
-  for i,n in ipairs(notes_white) do
-    for j,a in ipairs(notes_adds) do
-      table.insert(notes_all,(n..a))
-    end
-  end
+
 
   chord_match=""
 
@@ -483,7 +488,7 @@ function TLI:chord_to_midi(c,midi_near)
   note_match=""
   transpose_note_match=""
   chord_rest=""
-  for i,n in ipairs(notes_all) do
+  for i,n in ipairs(self.notes_all) do
     if transpose_note~="" and #n>#transpose_note_match then
       if n:lower()==transpose_note or n==transpose_note then
         transpose_note_match=n
@@ -504,45 +509,45 @@ function TLI:chord_to_midi(c,midi_near)
     end
   end
   if note_match=="" then
-    return nil
+    error("not chord found")
   end
 
   -- convert to canonical sharp scale
   -- e.g. Fb -> E, Gs -> G#
-  for i,n in ipairs(notes_scale_acc1) do
+  for i,n in ipairs(self.notes_scale_acc1) do
     if note_match==n then
-      note_match=notes_scale_sharp[i]
+      note_match=self.notes_scale_sharp[i]
       break
     end
   end
-  for i,n in ipairs(notes_scale_acc2) do
+  for i,n in ipairs(self.notes_scale_acc2) do
     if note_match==n then
-      note_match=notes_scale_sharp[i]
+      note_match=self.notes_scale_sharp[i]
       break
     end
   end
-  for i,n in ipairs(notes_scale_acc3) do
+  for i,n in ipairs(self.notes_scale_acc3) do
     if note_match==n then
-      note_match=notes_scale_sharp[i]
+      note_match=self.notes_scale_sharp[i]
       break
     end
   end
   if transpose_note_match~="" then
-    for i,n in ipairs(notes_scale_acc1) do
+    for i,n in ipairs(self.notes_scale_acc1) do
       if transpose_note_match==n then
-        transpose_note_match=notes_scale_sharp[i]
+        transpose_note_match=self.notes_scale_sharp[i]
         break
       end
     end
-    for i,n in ipairs(notes_scale_acc2) do
+    for i,n in ipairs(self.notes_scale_acc2) do
       if transpose_note_match==n then
-        transpose_note_match=notes_scale_sharp[i]
+        transpose_note_match=self.notes_scale_sharp[i]
         break
       end
     end
-    for i,n in ipairs(notes_scale_acc3) do
+    for i,n in ipairs(self.notes_scale_acc3) do
       if transpose_note_match==n then
-        transpose_note_match=notes_scale_sharp[i]
+        transpose_note_match=self.notes_scale_sharp[i]
         break
       end
     end
@@ -567,7 +572,7 @@ function TLI:chord_to_midi(c,midi_near)
 
   -- find location of root
   root_position=1
-  for i,n in ipairs(notes_scale_sharp) do
+  for i,n in ipairs(self.notes_scale_sharp) do
     if n==note_match then
       root_position=i
       break
@@ -595,7 +600,7 @@ function TLI:chord_to_midi(c,midi_near)
       print("root_position+semitones: "..root_position+semitones)
     end
     -- get note in scale from root position
-    note_in_chord=notes_scale_sharp[root_position+semitones]
+    note_in_chord=self.notes_scale_sharp[root_position+semitones]
     table.insert(notes_in_chord,note_in_chord)
   end
 
@@ -746,8 +751,7 @@ function TLI:parse_positions(lines,division)
         table.insert(ele,{e=w,mods={}})
       end
     end
-    print("ele")
-    print(json.encode(ele))
+
     local pos=self.er(#ele,division,er_rotation)
     local ei=0
     for pi,p in ipairs(pos) do
@@ -769,8 +773,7 @@ function TLI:parse_positions(lines,division)
     table.insert(entities,{el=elast.el,start=elast.start,stop=ti+1,mods=elast.mods})
     elast=nil
   end
-  print("entities")
-  print(json.encode(entities))
+
   return entities
 end
 
@@ -960,6 +963,8 @@ function TLI:get_arp(input,steps,shape,length)
       local j=math.random(i)
       s[i],s[j]=s[j],s[i]
     end
+  else
+    error("arp shape not understood")
   end
 
   local final={}
@@ -970,6 +975,17 @@ function TLI:get_arp(input,steps,shape,length)
 end
 
 function TLI:parse_tli(text,use_hex)
+  local data={}
+  local _, err =
+      pcall(
+          function()
+              data = self:parse_tli_(text,use_hex)
+          end
+      )
+  return data,err 
+end
+
+function TLI:parse_tli_(text,use_hex)
 
   local fields=function(s)
     local foo={}
@@ -1007,8 +1023,13 @@ function TLI:parse_tli(text,use_hex)
       table.insert(pattern_chain,fi[2])
     elseif fi[1]=="chain" then
       -- save current pattern
+      local w={}
       for i=2,#fi do
-        table.insert(data.chain,fi[i])
+        table.insert(w,fi[i])
+      end
+      data.chain,err=parse_chain(table.concat(w," "))
+      if err ~= nil then 
+        error(err)
       end
     elseif next(current_pattern)~=nil then
       if fi[1]=="ppl" then
@@ -1081,10 +1102,7 @@ function TLI:test()
 
   -- ]])
 
-  if not string.find(package.cpath,"./") then
-    package.cpath=package.cpath..";./?.so"
-  end
-  json=require("cjson")
+  json=require("json")
 
   --   local data=tli:parse_tli([[
   -- # ignore this
@@ -1128,7 +1146,5 @@ ppl 8
 
 end
 
-tli__=TLI:new()
-tli__:test()
 
 return TLI

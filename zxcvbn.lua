@@ -11,6 +11,7 @@ if not string.find(package.cpath,"/home/we/dust/code/zxcvbn/lib/") then
   package.cpath=package.cpath..";/home/we/dust/code/zxcvbn/lib/?.so"
 end
 json=require("cjson")
+parse_chain=include("lib/parse_chain")
 track_=include("lib/track")
 vterm_=include("lib/vterm")
 sample_=include("lib/sample")
