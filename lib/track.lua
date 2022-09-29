@@ -71,8 +71,8 @@ function Track:init()
       end
     end)
   end
-  self.params={shared={"ppq","track_type","play","db","probability"}}
-  self.params["sliced sample"]={"sample_file","slices","bpm","play_through","gate","filter","decimate","pan","pitch","compressing","compressible"} -- only show if midi is enabled
+  self.params={shared={"ppq","track_type","play","db","probability","pitch"}}
+  self.params["sliced sample"]={"sample_file","slices","bpm","play_through","gate","filter","decimate","pan","compressing","compressible"} -- only show if midi is enabled
   self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"} -- only show if midi is enabled
   self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible"}
   self.params["crow 1+2"]={"attack","release","crow_sustain"}
