@@ -390,6 +390,11 @@ function Track:keyboard(k,v)
     if v==1 and params:get(self.id.."track_type")<3 then
       self.state=3-self.state
     end
+  elseif k=="CTRL+P" then
+    if v==1 then
+      params:set(self.id.."play",1-params:get(self.id.."play"))
+      show_message(params:get(self.id.."play")==0 and "stopped" or "playing")
+    end
   end
   self.states[self.state]:keyboard(k,v)
 end
