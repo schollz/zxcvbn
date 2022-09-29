@@ -46,6 +46,7 @@ function VTerm:insert(row,col,s)
 end
 
 function VTerm:cursor_insert(s)
+  self.history_dirty=true
   local row=self.cursor.row
   local col=self.cursor.col
   if s=="\n" then
@@ -111,26 +112,36 @@ function VTerm:get_text()
 end
 
 function VTerm:save()
-  if self.on_save~=nil then
-    self.on_save(table.concat(self.lines,"\n"))
+  if self.on_save==nil then
+    do return end 
   end
-  if self.history_pos==0 then
-    do return end
+  local success=self.on_save(table.concat(self.lines,"\n"))
+  if not success then 
+    do return end 
   end
+  self.history_dirty=false
   -- remove future history
   for i=self.history_pos+1,#self.history do
     self.history[i]=nil
   end
-  if #self.history==0 or self.text~=self.history[#self.history] then
+  -- add to history if it is a new entry
+  if self.text~=self.history[#self.history] then
     table.insert(self.history,self.text)
+    self.history_pos=#self.history
   end
 end
 
 function VTerm:undo()
-  if self.history_pos>1 then
-    self.history_pos=self.history_pos-1
-    self:load_text(self.history[self.history_pos])
+  if #self.history==0 then 
+    do return end 
   end
+  if self.history_dirty then 
+    self.history_pos=#self.history
+    self.history_dirty=false
+  elseif self.history_pos>1 then
+    self.history_pos=self.history_pos-1
+  end
+  self:load_text(self.history[self.history_pos])
 end
 
 function VTerm:redo()
