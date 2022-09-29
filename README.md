@@ -9,8 +9,8 @@ tracker of limited input.
 ## todo
 
 - [ ] show type on the left bar
-- [ ] copy / paste
-- [ ] TEST undo/redo
+- [ ] TEST copy / paste
+- [ ] TEST undo / dredo
 - [ ] TEST retrig/volume w/ crow
 - [ ] TEST retrig/volume w/ midi
 - [ ] TEST retrig/volume w/ melodic
