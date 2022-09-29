@@ -1058,6 +1058,9 @@ function TLI:parse_tli_(text,use_hex)
   -- combine the chain
   data.track={}
   for _,p in ipairs(data.chain) do
+    if data.patterns[p]==nil or data.patterns[p].parsed==nil or data.patterns[p].parsed.track==nil then 
+      error("pattern "..p.." not found")
+    end
     for _,v in ipairs(data.patterns[p].parsed.track) do
       table.insert(data.track,v)
     end
