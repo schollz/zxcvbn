@@ -338,7 +338,9 @@ function Track:emit(beat,ppq)
       if d.m~=nil then 
         self:scroll_add(params:get(self.id.."track_type")==1 and d.m or string.lower(musicutil.note_num_to_name(d.m)))
       end
-      self.play_fn[params:get(self.id.."track_type")].note_on(d)
+      if math.random(0,100)<=params:get(self.id.."probability") then 
+        self.play_fn[params:get(self.id.."track_type")].note_on(d)
+      end
     end
   end
 end
