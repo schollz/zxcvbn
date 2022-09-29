@@ -276,11 +276,9 @@ end
 function Track:parse_tli()
   local text=self.states[VTERM]:get_text()
   local tli_parsed=nil
-  local ok,err=pcall(function()
-    tli_parsed=tli:parse_tli(text,params:get(self.id.."track_type")==1)
-  end)
-  if not ok then
-    show_message("error parsing",2)
+  tli_parsed, err=tli:parse_tli(text,params:get(self.id.."track_type")==1)
+  if err~=nil then 
+    show_message(err))
     do return end
   end
   self.tli=tli_parsed
