@@ -665,13 +665,9 @@ function TLI:parse_pattern(text,use_hex)
     end
   end
 
-  local positions=self:parse_positions(lines)
+  local positions, total_wedges=self:parse_positions(lines)
 
-  local track={}
-  for i=1,#lines do -- TODO: position max!
-    table.insert(track,{on={},off={}})
-  end
-
+  -- parse the positions
   for i,pos in ipairs(positions) do
     local v=pos.el
     if use_hex then
@@ -681,7 +677,12 @@ function TLI:parse_pattern(text,use_hex)
     end
   end
 
-  print(json.encode(positions))
+  -- initialize the track
+  local track={}
+  for i=1,total_wedges do
+    table.insert(track,{on={},off={}})
+  end
+
   -- adjustments
   for _,p in ipairs(positions) do
     p.mods=p.mods or {}
@@ -696,7 +697,6 @@ function TLI:parse_pattern(text,use_hex)
       local arp_notes=self:get_arp(notes,p.stop-p.start,p.mods.r,p.mods.t)
       local skip=p.mods.s or 0
       local j=0
-      print(json.encode(track))
       for i=p.start,p.stop-1,skip+1 do
         j=j+1
         if j<=#arp_notes then
@@ -777,7 +777,7 @@ function TLI:parse_positions(lines)
     elast=nil
   end
 
-  return entities
+  return entities, total_wedges
 end
 
 function TLI:get_arp(input,steps,shape,length)
