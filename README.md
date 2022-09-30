@@ -6,6 +6,7 @@ tracker of limited input.
 
 ## todo
 
+- [ ] on mutes, do note off
 - [ ] cache parsers for notes and chain
 - [ ] allow chains to playthrough only once
 - [ ] Mute groups with alt+#
