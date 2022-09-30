@@ -401,6 +401,8 @@ function Sample:keyboard(k,v)
     self:do_move(-1)
   elseif k=="RIGHT" and v==1 then
     self:do_move(1)
+  elseif k=="SPACE" then 
+    self:audition(v>0)
   end
 end
 
