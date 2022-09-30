@@ -370,6 +370,10 @@ Engine_Zxcvbn : CroneEngine {
             var compressible=msg[15];
             var compressing=msg[16];
             var send_pos=msg[17];
+            var db_first=db+db_add;
+            if (retrig>0,{
+                db_first=db;
+            });
             if (bufs.at(filename).notNil,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
@@ -383,7 +387,7 @@ Engine_Zxcvbn : CroneEngine {
                     compressible: compressible,
                     compressing: compressing,
                     buf: bufs.at(filename),
-                    amp: (db+db_add).dbamp,
+                    amp: db_first.dbamp,
                     filter: filter,
                     rate: rate*pitch.midiratio,
                     pos: pos,
@@ -448,6 +452,10 @@ Engine_Zxcvbn : CroneEngine {
             var compressible=msg[15];
             var compressing=msg[16];
             var watch=msg[17];
+            var db_first=db+db_add;
+            if (retrig>0,{
+                db_first=db;
+            });
             if (bufs.at(filename).notNil,{
                 var buf=bufs.at(filename);
                 if (syns.at(id).notNil,{
@@ -462,7 +470,7 @@ Engine_Zxcvbn : CroneEngine {
                     compressible: compressible,
                     compressing: compressing,
                     buf: buf,
-                    amp: (db+db_add).dbamp,
+                    amp: db_first.dbamp,
                     pan: pan,
                     filter: filter,
                     pitch: pitch,

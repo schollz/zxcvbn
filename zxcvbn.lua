@@ -158,8 +158,30 @@ pattern c
   params:set("1db",-10)
   params:set("2db",-1)
   params:set("3db",-7.7)
-  params:set("3play",1)
-  params:set("track",3)
+  -- params:set("3play",1)
+
+  tracks[4]:load_text([[
+chain a b 
+ 
+ppl 8 
+ 
+pattern b 
+0 x5 v-1
+-
+ 
+pattern a
+0 v12 
+1 2 
+0 v6 
+4 a 1 2 
+0 v8 
+7 8 a b v8
+e e e x4 n-1
+f x8 n1
+    ]])
+  params:set("4sample_file",_path.code.."zxcvbn/lib/yelidek_kit.wav")
+  params:set("4track_type",1)
+  params:set("track",4)
   clock.run(function()
     clock.sleep(1)
     sequencer:hard_restart()
