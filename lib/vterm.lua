@@ -172,6 +172,11 @@ function VTerm:paste()
   self.history_dirty=true
 end
 
+function VTerm:blank()
+  self:load_text("")
+  self.history_dirty=true
+end
+
 function VTerm:load_text(text)
   self.text=text
   self.lines={}
@@ -258,6 +263,8 @@ function VTerm:keyboard(k,v)
     if v>0 then
       self:move_cursor(-1,0)
     end
+  elseif k=="CTRL+N" then
+    self:blank()
   elseif k=="CTRL+Z" then
     self:undo()
   elseif k=="CTRL+Y" then

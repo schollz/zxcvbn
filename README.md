@@ -11,8 +11,8 @@ tracker of limited input.
 - [ ] why is source bpm off
 - [ ] allow chains to playthrough only once
 - [ ] yedilik drum load (place slices)
-- [ ] Ctrl N makes new (can be undoed)
 - [ ] Mute groups with alt+#
+- [ ] TEST Ctrl N makes new (can be undoed)
 - [ ] TEST copy / paste
 - [ ] TEST undo / redo
 - [ ] TEST retrig/volume w/ crow
