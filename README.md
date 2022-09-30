@@ -7,6 +7,7 @@ tracker of limited input.
 ## todo
 
 
+- [ ] use blend_mode to highlight the region being played
 - [ ] TEST wedges define wedges per-line, everything runs at 24ppqn wedge = pulses per line
 - [ ] on mutes, do note off
 - [ ] cache parsers for notes and chain
