@@ -394,14 +394,18 @@ function Sample:keyboard(k,v)
   elseif k=="MINUS" and v==1 then
     self:do_zoom(-1)
   elseif k=="UP" and v==1 then
-    self:sel_cursor(self.ci+1)
+    self:do_zoom(1)
   elseif k=="DOWN" and v==1 then
-    self:sel_cursor(self.ci-1)
+    self:do_zoom(-1)
   elseif k=="LEFT" and v==1 then
-    self:do_move(-1)
+    self:sel_cursor(self.ci+1)
   elseif k=="RIGHT" and v==1 then
+    self:sel_cursor(self.ci-1)
+  elseif k=="SHIFT+LEFT" and v>0 then 
+    self:do_move(-1)
+  elseif k=="SHIFT+RIGHT" and v>0 then 
     self:do_move(1)
-  elseif k=="SPACE" then 
+  elseif k=="SPACE" or k=="ENTER" then 
     self:audition(v>0)
   end
 end
