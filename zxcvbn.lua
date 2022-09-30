@@ -181,6 +181,7 @@ f x8 n1
     ]])
   params:set("4sample_file",_path.code.."zxcvbn/lib/yelidek_kit.wav")
   params:set("4track_type",1)
+  params:set("4play_through",2)
   params:set("track",4)
   clock.run(function()
     clock.sleep(1)
