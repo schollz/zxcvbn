@@ -51,6 +51,12 @@ function Track:init()
       end
     end
   end}
+  params:add{type="binary",name="mute",id=self.id.."mute",behavior="toggle",action=function(v)
+    if v==0 then
+      -- TODO if play off, turn off all notes
+    end
+  end}
+  params:add_number(self.id.."mute_group","mute group",1,9,1)
 
   params:add_number(self.id.."ppq","ppq",1,8,4)
 
@@ -100,7 +106,7 @@ function Track:init()
       end
     end)
   end
-  self.params={shared={"ppq","track_type","play","db","probability","pitch"}}
+  self.params={shared={"ppq","track_type","play","db","probability","pitch","mute","mute_group"}}
   self.params["sliced sample"]={"sample_file","slices","bpm","play_through","gate","filter","decimate","pan","compressing","compressible"} -- only show if midi is enabled
   self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"} -- only show if midi is enabled
   self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible"}
@@ -269,6 +275,7 @@ function Track:init()
 
 end
 
+
 function Track:dumps()
   local data={states={}}
   for i,v in ipairs(self.states) do
@@ -326,7 +333,7 @@ function Track:parse_tli()
 end
 
 function Track:emit(beat,ppq)
-  if params:get(self.id.."play")==0 or ppq~=params:get(self.id.."ppq") then
+  if params:get(self.id.."play")==0 or params:get(self.id.."mute")==1 or ppq~=params:get(self.id.."ppq")  then
     do return end
   end
   if self.tli~=nil and self.tli.track~=nil then

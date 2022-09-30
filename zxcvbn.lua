@@ -217,6 +217,7 @@ end
 
 ctrl_on=false
 shift_on=false
+alt_on=false
 function keyboard.code(k,v)
   if string.find(k,"CTRL") then
     ctrl_on=v>0
@@ -224,13 +225,33 @@ function keyboard.code(k,v)
   elseif string.find(k,"SHIFT") then
     shift_on=v>0
     do return end
+  elseif string.find(k,"ALT") then
+    alt_on=v>0
+    do return end
   end
   k=shift_on and "SHIFT+"..k or k
   k=ctrl_on and "CTRL+"..k or k
+  k=alt_on and "ALT+"..k or k
   for i,_ in ipairs(tracks) do
     if k=="CTRL+"..i then
       params:set("track",i)
       do return end
+    end
+  end
+  if alt_on and tonumber(k)~=nil and tonumber(k)>=1 and tonumber(k)<=9 then 
+    -- mute group
+    local mute_group=tonumber(k)
+    local do_mute=-1
+    for i,_ in ipairs(tracks) do 
+      if params:get(i.."mute_group")==mute_group then 
+        if do_mute<0 then 
+          do_mute=1-params:get(i.."mute")
+        end
+        params:set(i.."mute",do_mute)
+      end
+    end
+    if do_mute>-1 then 
+      show_message((do_mute==1 and "muted" or "unmuted").." group "..mute_group)
     end
   end
   tracks[params:get("track")]:keyboard(k,v)
