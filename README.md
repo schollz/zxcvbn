@@ -7,14 +7,8 @@ tracker of limited input.
 ## todo
 
 - [ ] cache parsers for notes and chain
-- [ ] if nothing is playing then reset clock when playing starts
-- [ ] why is source bpm off
 - [ ] allow chains to playthrough only once
-- [ ] yedilik drum load (place slices)
 - [ ] Mute groups with alt+#
-- [ ] TEST Ctrl N makes new (can be undoed)
-- [ ] TEST copy / paste
-- [ ] TEST undo / redo
 - [ ] TEST retrig/volume w/ crow
 - [ ] TEST retrig/volume w/ midi
 - [ ] TEST retrig/volume w/ melodic
@@ -29,6 +23,12 @@ tracker of limited input.
 - [x] ~~retrigger should start at 1, not 0~~ nvm
 - [x] ~~scroll shows hex for sample type =1?~~ 
 - [ ] ~~show type on the left bar~~ nvm
+- [x] TEST Ctrl N makes new (can be undoed)
+- [x] TEST copy / paste
+- [x] TEST undo / redo
+- [x] yedilik drum load (place slices)
+- [x] if nothing is playing then reset clock when playing starts
+- [x] why is source bpm off
 
 
 ## tli syntax
