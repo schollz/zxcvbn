@@ -135,19 +135,19 @@ chain a b c
  
 ppq 4
 ppl 2
-
+ 
 pattern a
 0 n0
 1
 2
 3
-
+ 
 pattern b
 2 n0
 3 n2
-
+ 
 pattern c
-3 r5 n-2
+3 x5 n-2
 -
   ]])
   params:set("3play_through",2)
@@ -167,7 +167,7 @@ pattern c
 end
 
 function reset_clocks()
-  for i,_ in ipairs(sequencer_beats) do 
+  for i,_ in ipairs(sequencer_beats) do
     sequencer_beats[i]=0
   end
   sequencer:hard_restart()
@@ -269,7 +269,7 @@ function redraw()
   screen.level(0)
   screen.move(3,6)
   screen.text_center(params:get("track"))
-  for i,v in ipairs(tracks[params:get("track")].scroll) do 
+  for i,v in ipairs(tracks[params:get("track")].scroll) do
     screen.move(3,6+(i*8))
     screen.text_center(v)
   end
@@ -417,36 +417,34 @@ function params_sidechain()
   end
 end
 
-
-
-  function params_midi()  
-    -- midi
-    midi_device={}
-    midi_device_list={}
-    for i,dev in pairs(midi.devices) do
-      if dev.port~=nil then
-        local connection=midi.connect(dev.port)
-        local name=string.lower(dev.name).." "..i
-        print("adding "..name.." as midi device")
-        table.insert(midi_device_list,name)
-        table.insert(midi_device,{
-          name=name,
-          note_on=function(note,vel,ch) connection:note_on(note,vel,ch) end,
-          note_off=function(note,vel,ch) connection:note_off(note,vel,ch) end,
-        })
-        connection.event=function(data)
-          local msg=midi.to_msg(data)
-          if msg.type=="clock" then
-            do return end
-          end
-          if msg.type=='start' or msg.type=='continue' then
-            -- OP-1 fix for transport
-            reset()
-          elseif msg.type=="stop" then
-          elseif msg.type=="note_on" then
-          end
+function params_midi()
+  -- midi
+  midi_device={}
+  midi_device_list={}
+  for i,dev in pairs(midi.devices) do
+    if dev.port~=nil then
+      local connection=midi.connect(dev.port)
+      local name=string.lower(dev.name).." "..i
+      print("adding "..name.." as midi device")
+      table.insert(midi_device_list,name)
+      table.insert(midi_device,{
+        name=name,
+        note_on=function(note,vel,ch) connection:note_on(note,vel,ch) end,
+        note_off=function(note,vel,ch) connection:note_off(note,vel,ch) end,
+      })
+      connection.event=function(data)
+        local msg=midi.to_msg(data)
+        if msg.type=="clock" then
+          do return end
+        end
+        if msg.type=='start' or msg.type=='continue' then
+          -- OP-1 fix for transport
+          reset()
+        elseif msg.type=="stop" then
+        elseif msg.type=="note_on" then
         end
       end
     end
-
   end
+
+end

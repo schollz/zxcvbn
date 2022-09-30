@@ -51,7 +51,7 @@ function Sample:load_sample(path,is_melodic,slices)
   self.cursors={}
   self.cursor_durations={}
   self.kick={}
-  for i=1,self.slice_num do 
+  for i=1,self.slice_num do
     table.insert(self.cursors,0)
     table.insert(self.kick,-48)
     table.insert(self.cursor_durations,0)
@@ -255,9 +255,9 @@ function Sample:play(d)
           params:get("kick_compressing"),
         params:get("kick_compressible"))
       end
+    elseif not d.on then
+      engine.slice_off(d.id)
     end
-  elseif not d.on then 
-    engine.slice_off(d.id)
   end
 end
 

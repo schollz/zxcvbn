@@ -3,6 +3,25 @@ local Track={}
 VTERM=1
 SAMPLE=2
 
+function string.split(pString,pPattern)
+  local Table={} -- NOTE: use {n = 0} in Lua-5.0
+  local fpat="(.-)"..pPattern
+  local last_end=1
+  local s,e,cap=pString:find(fpat,1)
+  while s do
+    if s~=1 or cap~="" then
+      table.insert(Table,cap)
+    end
+    last_end=e+1
+    s,e,cap=pString:find(fpat,last_end)
+  end
+  if last_end<=#pString then
+    cap=pString:sub(last_end)
+    table.insert(Table,cap)
+  end
+  return Table
+end
+
 function Track:new(o)
   o=o or {}
   setmetatable(o,self)
@@ -22,12 +41,12 @@ function Track:init()
 
   params:add{type="binary",name="play",id=self.id.."play",behavior="toggle",action=function(v)
     -- reset the clocks if this is the first thing to play
-    if v==1 then 
+    if v==1 then
       local play_count=0
-      for i,_ in ipairs(tracks) do 
+      for i,_ in ipairs(tracks) do
         play_count=play_count+params:get(i.."play")
       end
-      if play_count==1 then 
+      if play_count==1 then
         reset_clocks()
       end
     end
@@ -112,7 +131,7 @@ function Track:init()
 
   -- keep track of notes
   self.notes_on={}
-  for i=1,#self.track_type_options do 
+  for i=1,#self.track_type_options do
     table.insert(self.notes_on,{})
   end
 
@@ -183,25 +202,25 @@ function Track:init()
     note_off=function(d) end,
   })
   -- crow 1+2
-  for i=1,2 do 
+  for i=1,2 do
     table.insert(self.play_fn,{
       note_on=function(d)
         local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0))
-        local note=d.m + params:get(self.id.."pitch")
-        if level>0 then 
+        local note=d.m+params:get(self.id.."pitch")
+        if level>0 then
           crow.output[i+1].action=string.format("ar(%3.3f,%3.3f,%3.3f)",
-                params:get(self.id.."attack"),params:get(self.id.."release"),level)
+          params:get(self.id.."attack"),params:get(self.id.."release"),level)
           crow.output[i].volts=(note-24)/12
           crow.output[i+1](true)
         end
-        if d.mods.x~=nil and d.mods.x>0 then 
+        if d.mods.x~=nil and d.mods.x>0 then
           clock.run(function()
-            for i=1,d.mods.x do 
+            for i=1,d.mods.x do
               clock.sleep(d.duration_scaled/(d.mods.x+1))
               crow.output[i+1](false)
-              level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0)*(i+1)
-              note=d.m + params:get(self.id.."pitch")*(i+1)
-              if level>0 then 
+              level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
+              note=d.m+params:get(self.id.."pitch")*(i+1)
+              if level>0 then
                 crow.output[i].volts=(note-24)/12
                 crow.output[i+1](true)
               end
@@ -209,7 +228,7 @@ function Track:init()
           end)
         end
       end,
-      note_off=function(d)  
+      note_off=function(d)
         crow.output[i+1](false)
       end,
     })
@@ -220,19 +239,19 @@ function Track:init()
     note_on=function(d)
       self.notes_on[6][d.m]=true
       local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0))
-      local note=d.m + params:get(self.id.."pitch")
-      if vel>0 then 
+      local note=d.m+params:get(self.id.."pitch")
+      if vel>0 then
         midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
         midi_device[params:get(self.id.."midi_dev")].notes[d.m]=note
       end
-      if d.mods.x~=nil and d.mods.x>0 then 
+      if d.mods.x~=nil and d.mods.x>0 then
         clock.run(function()
-          for i=1,d.mods.x do 
+          for i=1,d.mods.x do
             clock.sleep(d.duration_scaled/(d.mods.x+1))
             midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
             vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
-            note=d.m + params:get(self.id.."pitch")*(i+1)
-            if vel>0 then 
+            note=d.m+params:get(self.id.."pitch")*(i+1)
+            if vel>0 then
               midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
               midi_device[params:get(self.id.."midi_dev")].notes[d.m]=note
             end
@@ -240,9 +259,9 @@ function Track:init()
         end)
       end
     end,
-    note_off=function(d) 
+    note_off=function(d)
       local note=midi_device[params:get(self.id.."midi_dev")].notes[d.m]
-      if note~=nil then 
+      if note~=nil then
         midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
       end
     end,
@@ -278,9 +297,11 @@ end
 function Track:parse_tli()
   local text=self.states[VTERM]:get_text()
   local tli_parsed=nil
-  tli_parsed, err=tli:parse_tli(text,params:get(self.id.."track_type")==1)
-  if err~=nil then 
-    show_message(err))
+  tli_parsed,err=tli:parse_tli(text,params:get(self.id.."track_type")==1)
+  if err~=nil then
+    print("error: "..err)
+    local foo=string.split(err,":")
+    show_message(foo[#foo])
     do return end
   end
   self.tli=tli_parsed
@@ -301,7 +322,7 @@ function Track:parse_tli()
   end
   -- add flag to turn off on notes
   self.flag_parsed=true
-  return true 
+  return true
 end
 
 function Track:emit(beat,ppq)
@@ -336,10 +357,10 @@ function Track:emit(beat,ppq)
         end
       end
       d.duration_scaled=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq"))
-      if d.m~=nil then 
+      if d.m~=nil then
         self:scroll_add(params:get(self.id.."track_type")==1 and d.m or string.lower(musicutil.note_num_to_name(d.m)))
       end
-      if math.random(0,100)<=params:get(self.id.."probability") then 
+      if math.random(0,100)<=params:get(self.id.."probability") then
         self.play_fn[params:get(self.id.."track_type")].note_on(d)
       end
     end
@@ -373,7 +394,7 @@ function Track:select(selected)
 end
 
 function Track:scroll_add(m)
-  for i=1,6 do 
+  for i=1,6 do
     self.scroll[i]=self.scroll[i+1]
   end
   self.scroll[7]=m
