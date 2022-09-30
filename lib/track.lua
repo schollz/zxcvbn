@@ -21,6 +21,16 @@ function Track:init()
   end)
 
   params:add{type="binary",name="play",id=self.id.."play",behavior="toggle",action=function(v)
+    -- reset the clocks if this is the first thing to play
+    if v==1 then 
+      local play_count=0
+      for i,_ in ipairs(tracks) do 
+        play_count=play_count+params:get(i.."play")
+      end
+      if play_count==1 then 
+        reset_clocks()
+      end
+    end
   end}
 
   params:add_number(self.id.."ppq","ppq",1,8,4)

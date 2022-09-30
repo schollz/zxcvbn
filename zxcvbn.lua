@@ -85,7 +85,7 @@ function init()
   end)
 
   -- start lattice
-  local sequencer=lattice:new{}
+  sequencer=lattice:new{}
   sequencer_beats={}
   for ppq=1,8 do
     sequencer_beats[ppq]=0
@@ -164,6 +164,13 @@ pattern c
     clock.sleep(1)
     sequencer:hard_restart()
   end)
+end
+
+function reset_clocks()
+  for i,_ in ipairs(sequencer_beats) do 
+    sequencer_beats[i]=0
+  end
+  sequencer:hard_restart()
 end
 
 function debounce_params()
