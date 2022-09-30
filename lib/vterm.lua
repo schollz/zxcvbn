@@ -113,11 +113,11 @@ end
 
 function VTerm:save()
   if self.on_save==nil then
-    do return end 
+    do return end
   end
   local success=self.on_save(table.concat(self.lines,"\n"))
-  if not success then 
-    do return end 
+  if not success then
+    do return end
   end
   self.history_dirty=false
   -- remove future history
@@ -132,43 +132,58 @@ function VTerm:save()
 end
 
 function VTerm:undo()
-  if #self.history==0 then 
-    do return end 
+  if #self.history==0 then
+    do return end
   end
-  if self.history_dirty then 
+  if self.history_dirty then
     self.history_pos=#self.history
     self.history_dirty=false
   elseif self.history_pos>1 then
     self.history_pos=self.history_pos-1
   end
   self:load_text(self.history[self.history_pos])
+  show_message("undo")
 end
 
 function VTerm:redo()
   if self.history_pos<#self.history and self.history_pos>0 then
     self.history_pos=self.history_pos+1
     self:load_text(self.history[self.history_pos])
+    show_message("redo")
   end
 end
 
 function VTerm:copy()
   -- copy the current line
   self.copied=""..self.lines[self.cursor.row]
+  show_message("copied")
 end
 
 function VTerm:paste()
   -- paste the line after the current
-  if self.copied==nil then 
-    do return end 
+  if self.copied==nil then
+    do return end
   end
   local lines={}
-  for i,v in ipairs(self.lines) do 
-    table.insert(lines,v)
-    if i==self.cursor.row then 
+  for i,v in ipairs(self.lines) do
+    if i==self.cursor.row then
       table.insert(lines,self.copied)
     end
+    table.insert(lines,v)
   end
-  self.copied=nil
+  self:load_text(table.concat(lines,"\n"))
+  self.history_dirty=true
+  show_message("pasted")
+end
+
+function VTerm:remove()
+  local lines={}
+  for i,v in ipairs(self.lines) do
+    if i~=self.cursor.row then
+      table.insert(lines,v)
+    end
+  end
+  self:load_text(table.concat(lines,"\n"))
   self.history_dirty=true
 end
 
@@ -214,7 +229,7 @@ function VTerm:move_cursor(row,col)
     self.cursor.x=screen.text_extents(line:sub(self.view.col,self.cursor.col))+2
   end
   while self.cursor.col<self.view.col do
-    self.view.col=self.view.col-1 
+    self.view.col=self.view.col-1
   end
   if self.cursor.col==0 then
     self.cursor.x=1
@@ -239,7 +254,7 @@ function VTerm:keyboard(k,v)
       if self.cursor.col<#self.lines[self.cursor.row] then
         self:move_cursor(0,1)
         self:cursor_delete()
-      elseif self.cursor.col==#self.lines[self.cursor.row] and self.cursor.row<#self.lines then 
+      elseif self.cursor.col==#self.lines[self.cursor.row] and self.cursor.row<#self.lines then
         local first_pos=self.cursor.col
         self:move_cursor(1,-10000)
         self:cursor_delete()
@@ -264,18 +279,34 @@ function VTerm:keyboard(k,v)
       self:move_cursor(-1,0)
     end
   elseif k=="CTRL+N" then
-    self:blank()
+    if v==1 then
+      self:blank()
+    end
   elseif k=="CTRL+Z" then
-    self:undo()
+    if v==1 then
+      self:undo()
+    end
   elseif k=="CTRL+Y" then
-    self:redo()
+    if v==1 then
+      self:redo()
+    end
   elseif k=="CTRL+C" then
-    self:copy()
+    if v==1 then
+      self:copy()
+    end
   elseif k=="CTRL+V" then
-    self:paste()
+    if v==1 then
+      self:paste()
+    end
+  elseif k=="CTRL+X" then
+    if v==1 then
+      self:remove()
+    end
   elseif k=="CTRL+S" then
-    show_message("saved",2)
-    self:save()
+    if v==1 then
+      show_message("saved",2)
+      self:save()
+    end
   elseif v==1 then
     local unknown=false
     if k=="SPACE" then
@@ -374,13 +405,13 @@ function VTerm:redraw()
     end
     if self.cursor.row==i then
       self.cursor.blink=self.cursor.blink+1
-      if self.cursor.blink<7 then 
+      if self.cursor.blink<7 then
         screen.level(5)
         screen.move(self.cursor.x+x_offset,8*(i-self.view.row+1)-6+y_offset)
         screen.line(self.cursor.x+x_offset,8*(i-self.view.row+1)+2+y_offset)
         screen.stroke()
       end
-      if self.cursor.blink==10 then 
+      if self.cursor.blink==10 then
         self.cursor.blink=0
       end
     end
