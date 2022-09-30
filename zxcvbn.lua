@@ -20,10 +20,6 @@ tli=tli_:new()
 lattice=require("lattice")
 musicutil=require("musicutil")
 
--- global division definitions
-possible_divisions={1/32,1/24,1/16,1/12,1/8,1/6,1/4,1/3,1/2,1,2,4}
-possible_division_options={"1/32","1/24","1/16","1/12","1/8","1/6","1/4","1/3","1/2","1","2","4"}
-
 -- debouncer
 debounce_fn={}
 
@@ -85,20 +81,15 @@ function init()
   end)
 
   -- start lattice
-  sequencer=lattice:new{}
-  sequencer_beats={}
-  for ppq=1,8 do
-    sequencer_beats[ppq]=0
-    sequencer:new_pattern({
-      action=function(t)
-        sequencer_beats[ppq]=sequencer_beats[ppq]+1
-        for _,track in ipairs(tracks) do
-          track:emit(sequencer_beats[ppq],ppq)
-        end
-      end,
-      division=1/(4*ppq),
-    })
-  end
+  clock_pulse=0
+  clock.run(function()
+    while true do 
+      clock_pulse=clock_pulse+1
+      for _, track in ipairs(tracks) do 
+        track:emit(pulse)
+      end 
+    end
+  end)
 
   params:set("1track_type",2)
   params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
@@ -190,10 +181,11 @@ f x8 n1
 end
 
 function reset_clocks()
-  for i,_ in ipairs(sequencer_beats) do
-    sequencer_beats[i]=0
-  end
-  sequencer:hard_restart()
+  -- TODO: redo
+  -- for i,_ in ipairs(sequencer_beats) do
+  --   sequencer_beats[i]=0
+  -- end
+  -- sequencer:hard_restart()
 end
 
 function debounce_params()

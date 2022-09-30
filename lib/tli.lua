@@ -652,9 +652,7 @@ function TLI:chord_to_midi(c,midi_near)
   return p
 end
 
-function TLI:parse_pattern(text,division,use_hex)
-  division=division or 16
-
+function TLI:parse_pattern(text,use_hex)
   local trim_=function(s)
     return (s:gsub("^%s*(.-)%s*$","%1"))
   end
@@ -667,10 +665,10 @@ function TLI:parse_pattern(text,division,use_hex)
     end
   end
 
-  local positions=self:parse_positions(lines,division)
+  local positions=self:parse_positions(lines)
 
   local track={}
-  for i=1,#lines*division do
+  for i=1,#lines do -- TODO: position max!
     table.insert(track,{on={},off={}})
   end
 
@@ -731,10 +729,12 @@ function TLI:parse_pattern(text,division,use_hex)
   return {track=track,positions=positions}
 end
 
-function TLI:parse_positions(lines,division)
+function TLI:parse_positions(lines)
   local elast=nil
   local entities={}
+  local total_wedges=0
   for i,line in ipairs(lines) do
+    local wedges=24*4 -- 24 ppqn, 4 qn per measure
     local ele={}
     local er_rotation=0
     for w in line:gmatch("%S+") do
@@ -744,6 +744,8 @@ function TLI:parse_positions(lines,division)
           ele[#ele].mods[c]=tonumber(w:sub(2))
           if c=="o" and ele[#ele].mods[c]~=nil then 
             er_rotation=ele[#ele].mods[c]
+          elseif c=="w" and ele[#ele].mods[c]~=nil then
+            wedges=ele[#ele].mods[c]
           end
           ele[#ele].mods[c]=ele[#ele].mods[c] or w:sub(2)
         end
@@ -752,10 +754,11 @@ function TLI:parse_positions(lines,division)
       end
     end
 
-    local pos=self.er(#ele,division,er_rotation)
+    local pos=self.er(#ele,wedges,er_rotation)
     local ei=0
+    local ti=0
     for pi,p in ipairs(pos) do
-      ti=pi+(i-1)*division
+      ti=ti+1
       if p then
         if elast~=nil and ele[ei+1].e~="-" then
           table.insert(entities,{el=elast.el,start=elast.start,stop=ti,mods=elast.mods})
@@ -1018,7 +1021,7 @@ function TLI:parse_tli_(text,use_hex)
       if next(current_pattern)~=nil then
         data.patterns[current_pattern.pattern]=current_pattern
       end
-      current_pattern={text="",division=data.meta.ppl or 16}
+      current_pattern={text=""}
       current_pattern.pattern=fi[2]
       table.insert(pattern_chain,fi[2])
     elseif fi[1]=="chain" then
@@ -1032,11 +1035,7 @@ function TLI:parse_tli_(text,use_hex)
         error(err)
       end
     elseif next(current_pattern)~=nil then
-      if fi[1]=="ppl" then
-        current_pattern.division=tonumber(fi[2])
-      else
-        current_pattern.text=current_pattern.text..line.."\n"
-      end
+      current_pattern.text=current_pattern.text..line.."\n"
     elseif #fi==2 then
       data.meta[fi[1]]=tonumber(fi[2])
       data.meta[fi[1]]=data.meta[fi[1]] or fi[2]
@@ -1047,7 +1046,7 @@ function TLI:parse_tli_(text,use_hex)
   end
 
   for k,pattern in pairs(data.patterns) do
-    data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,pattern.division,use_hex)
+    data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,use_hex)
   end
 
   -- default to a chain of how the patterns are defined
@@ -1088,22 +1087,6 @@ function TLI:test()
   -- tli:parse_positions("a4 - . b5 r90\n\n- - 0\nCm . ")
   --do_test('tli:get_arp({1,2,3},8,"ud",4)')
   -- tli:parse_pattern("Cm7;arp=ud;skip=1;len=6;vel=50\n-  Am . d4\n ")
-  --   local data=tli:parse_tli([[
-  -- # ignore this
-
-  -- chain a b a b c
-
-  -- pattern=a
-  -- Am/C
-  -- C/G
-  -- Dm
-  -- F/C
-
-  -- pattern=b division=8
-  -- c4 d4 - - - - - . .
-  -- e5 . . .
-
-  -- ]])
 
   json=require("json")
 
@@ -1119,7 +1102,6 @@ function TLI:test()
   -- # pattern definitions
 
   -- pattern a
-  -- division 8
   -- c4 v30 r4 z5 d4 v60
   -- #Cm xu y2 z5 v40
   -- ]])
