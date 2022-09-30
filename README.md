@@ -6,6 +6,13 @@ tracker of limited input.
 
 ## todo
 
+- [ ] cache parsers for notes and chain
+- [ ] if nothing is playing then reset clock when playing starts
+- [ ] why is source bpm off
+- [ ] allow chains to playthrough only once
+- [ ] yedilik drum load (place slices)
+- [ ] Ctrl N makes new (can be undoed)
+- [ ] Mute groups with alt+#
 - [ ] TEST copy / paste
 - [ ] TEST undo / redo
 - [ ] TEST retrig/volume w/ crow
