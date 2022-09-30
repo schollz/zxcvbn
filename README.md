@@ -6,7 +6,8 @@ tracker of limited input.
 
 ## todo
 
-- [ ] major: define wedges per-line, everything runs at 24ppqn wedge = pulses per line
+
+- [ ] TEST wedges define wedges per-line, everything runs at 24ppqn wedge = pulses per line
 - [ ] on mutes, do note off
 - [ ] cache parsers for notes and chain
 - [ ] allow chains to playthrough only once
