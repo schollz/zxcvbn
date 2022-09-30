@@ -6,6 +6,7 @@ tracker of limited input.
 
 ## todo
 
+- [ ] major: define wedges per-line, everything runs at 24ppqn wedge = pulses per line
 - [ ] on mutes, do note off
 - [ ] cache parsers for notes and chain
 - [ ] allow chains to playthrough only once
@@ -53,9 +54,9 @@ some parameters are not available for all instruments.
 - [x] t1 (arp time (in steps))
 - [ ] u??
 - [x] v99 (volume add, db	)
-- [ ] w11 (stretch)()
+- [ ] w10 (wedges)
 - [x] x8 (retrig 8 times) (v-1 makes a delay type thing)
-- [ ] y1 
+- [ ] y11 (stretchy)()
 - [ ] z6  reverb send
 
 
@@ -80,7 +81,6 @@ crow 1
 -> means it will send to crow 1+2
 
 chain a b a a b
-ppq 4 -> pulses per quarter note (creates division of 1/(4*ppq))
 
 pattern a
 0
