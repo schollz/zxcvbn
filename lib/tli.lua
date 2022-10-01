@@ -428,7 +428,7 @@ function TLI:note_to_midi(n,midi_near)
       end
     end
   end
-  if #notes==0 then 
+  if #notes==0 then
     error("no notes found")
   end
   return notes
@@ -450,8 +450,6 @@ function TLI:chord_to_midi(c,midi_near)
   end
   local db=self.database
   local db_chords=self.db_chords
-
-
 
   chord_match=""
 
@@ -665,7 +663,7 @@ function TLI:parse_pattern(text,use_hex)
     end
   end
 
-  local positions, total_wedges=self:parse_positions(lines)
+  local positions,total_wedges=self:parse_positions(lines)
 
   -- parse the positions
   for i,pos in ipairs(positions) do
@@ -732,7 +730,7 @@ end
 function TLI:parse_positions(lines)
   local elast=nil
   local entities={}
-  local total_wedges=0
+  local wedge_index=0
   for i,line in ipairs(lines) do
     local wedges=24*4 -- 24 ppqn, 4 qn per measure
     local ele={}
@@ -742,7 +740,7 @@ function TLI:parse_positions(lines)
       if string.byte(c)>string.byte("g") and string.byte(c)<=string.byte("z") then
         if #ele>0 then
           ele[#ele].mods[c]=tonumber(w:sub(2))
-          if c=="o" and ele[#ele].mods[c]~=nil then 
+          if c=="o" and ele[#ele].mods[c]~=nil then
             er_rotation=ele[#ele].mods[c]
           elseif c=="w" and ele[#ele].mods[c]~=nil then
             wedges=ele[#ele].mods[c]
@@ -756,28 +754,27 @@ function TLI:parse_positions(lines)
 
     local pos=self.er(#ele,wedges,er_rotation)
     local ei=0
-    local ti=0
     for pi,p in ipairs(pos) do
-      ti=ti+1
+      wedge_index=wedge_index+1
       if p then
         if elast~=nil and ele[ei+1].e~="-" then
-          table.insert(entities,{el=elast.el,start=elast.start,stop=ti,mods=elast.mods})
+          table.insert(entities,{el=elast.el,start=elast.start,stop=wedge_index,mods=elast.mods})
           mods=nil
           elast=nil
         end
         if ele[ei+1].e~="-" and ele[ei+1].e~="." then
-          elast={el=ele[ei+1].e,start=ti,mods=ele[ei+1].mods}
+          elast={el=ele[ei+1].e,start=wedge_index,mods=ele[ei+1].mods}
         end
         ei=ei+1
       end
     end
   end
   if elast~=nil then
-    table.insert(entities,{el=elast.el,start=elast.start,stop=ti+1,mods=elast.mods})
+    table.insert(entities,{el=elast.el,start=elast.start,stop=wedge_index+1,mods=elast.mods})
     elast=nil
   end
 
-  return entities, total_wedges
+  return entities,wedge_index
 end
 
 function TLI:get_arp(input,steps,shape,length)
@@ -979,13 +976,13 @@ end
 
 function TLI:parse_tli(text,use_hex)
   local data={}
-  local _, err =
-      pcall(
-          function()
-              data = self:parse_tli_(text,use_hex)
-          end
-      )
-  return data,err 
+  local _,err=
+  pcall(
+    function()
+      data=self:parse_tli_(text,use_hex)
+    end
+  )
+  return data,err
 end
 
 function TLI:parse_tli_(text,use_hex)
@@ -1031,7 +1028,7 @@ function TLI:parse_tli_(text,use_hex)
         table.insert(w,fi[i])
       end
       data.chain,err=parse_chain(table.concat(w," "))
-      if err ~= nil then 
+      if err~=nil then
         error(err)
       end
     elseif next(current_pattern)~=nil then
@@ -1057,7 +1054,7 @@ function TLI:parse_tli_(text,use_hex)
   -- combine the chain
   data.track={}
   for _,p in ipairs(data.chain) do
-    if data.patterns[p]==nil or data.patterns[p].parsed==nil or data.patterns[p].parsed.track==nil then 
+    if data.patterns[p]==nil or data.patterns[p].parsed==nil or data.patterns[p].parsed.track==nil then
       error("pattern "..p.." not found")
     end
     for _,v in ipairs(data.patterns[p].parsed.track) do
@@ -1130,6 +1127,5 @@ ppl 8
   print("\n###############################\n")
 
 end
-
 
 return TLI
