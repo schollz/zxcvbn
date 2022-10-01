@@ -8,6 +8,7 @@ Engine_Zxcvbn : CroneEngine {
     var syns;
     var bufs; 
     var oscs;
+    var mx;
     // Zxcvbn ^
 
     *new { arg context, doneCallback;
@@ -17,6 +18,7 @@ Engine_Zxcvbn : CroneEngine {
     alloc {
         // Zxcvbn specific v0.0.1
         var s=context.server;
+
 
         buses = Dictionary.new();
         syns = Dictionary.new();
@@ -325,35 +327,37 @@ Engine_Zxcvbn : CroneEngine {
 
 
         context.server.sync;
-        buses.put("busIn",Bus.audio(s,2));
-        buses.put("busInNSC",Bus.audio(s,2));
-        buses.put("busSC",Bus.audio(s,2));
-        buses.put("padFx",Bus.audio(s,2));
+        buses.put("busCompressible",Bus.audio(s,2));
+        buses.put("busNotCompressible",Bus.audio(s,2));
+        buses.put("busCompressing",Bus.audio(s,2));
+        buses.put("busReverb",Bus.audio(s,2));
         context.server.sync;
-        syns.put("main",Synth.new(\main,[\outBus,0,\sidechain_mult,8,\inBus,buses.at("busIn"),\inBusNSC,buses.at("busInNSC"),\inSC,buses.at("busSC")]));
+        mx = MxSamplesZ(Server.default,100,buses.at("busCompressible").index,buses.at("busNotCompressible").index,buses.at("busCompressing"),buses.at("busReverb"));
+        context.server.sync;
+        syns.put("main",Synth.new(\main,[\outBus,0,\sidechain_mult,8,\inBus,buses.at("busCompressible"),\inBusNSC,buses.at("busNotCompressible"),\inSC,buses.at("busCompressing")]));
         NodeWatcher.register(syns.at("main"));
         context.server.sync;
-        syns.put("padFx", Synth.new(\padFx, [
-            out: buses.at("busIn"),
-            outsc: buses.at("busSC"),
-            outnsc: buses.at("busInNSC"),
+        syns.put("reverb", Synth.new(\padFx, [
+            out: buses.at("busCompressible"),
+            outsc: buses.at("busCompressing"),
+            outnsc: buses.at("busNotCompressible"),
             compressible: 1,
             compressing: 0,
-            in: buses.at("padFx"), gate: 0], syns.at("main"), \addBefore));
-        NodeWatcher.register(syns.at("padFx"));
+            in: buses.at("busReverb"), gate: 0], syns.at("main"), \addBefore));
+        NodeWatcher.register(syns.at("reverb"));
         context.server.sync;
 
         syns.put("audioInL",Synth.new("defAudioIn",[ch:0,
-            out: buses.at("busIn"),
-            outsc: buses.at("busSC"),
-            outnsc: buses.at("busInNSC"),
+            out: buses.at("busCompressible"),
+            outsc: buses.at("busCompressing"),
+            outnsc: buses.at("busNotCompressible"),
             compressible: 0,
             compressing: 0,
             pan:-1], syns.at("main"), \addBefore));
         syns.put("audioInR",Synth.new("defAudioIn",[ch:1,
-            out: buses.at("busIn"),
-            outsc: buses.at("busSC"),
-            outnsc: buses.at("busInNSC"),
+            out: buses.at("busCompressible"),
+            outsc: buses.at("busCompressing"),
+            outnsc: buses.at("busNotCompressible"),
             compressible: 0,
             compressing: 0,
             pan:1], syns.at("main"), \addBefore));
@@ -384,7 +388,7 @@ Engine_Zxcvbn : CroneEngine {
             var key=msg[1];
             var val=msg[2];
             ["padFx: putting",key,val].postln;
-            syns.at("padFx").set(key,val);
+            syns.at("reverb").set(key,val);
         });
 
         this.addCommand("slice_off","s",{ arg msg;
@@ -425,9 +429,9 @@ Engine_Zxcvbn : CroneEngine {
                     });
                 });
                 syns.put(id,Synth.new("slice"++bufs.at(filename).numChannels, [
-                    out: buses.at("busIn"),
-                    outsc: buses.at("busSC"),
-                    outnsc: buses.at("busInNSC"),
+                    out: buses.at("busCompressible"),
+                    outsc: buses.at("busCompressing"),
+                    outnsc: buses.at("busNotCompressible"),
                     compressible: compressible,
                     compressing: compressing,
                     buf: bufs.at(filename),
@@ -444,9 +448,9 @@ Engine_Zxcvbn : CroneEngine {
                         (retrig).do{ arg i;
                             (duration_total/ (retrig+1) ).wait;
                             syns.put(id,Synth.new("slice"++bufs.at(filename).numChannels, [
-                                out: buses.at("busIn"),
-                                outsc: buses.at("busSC"),
-                                outnsc: buses.at("busInNSC"),
+                                out: buses.at("busCompressible"),
+                                outsc: buses.at("busCompressing"),
+                                outnsc: buses.at("busNotCompressible"),
                                 compressible: compressible,
                                 compressing: compressing,
                                 buf: bufs.at(filename),
@@ -508,9 +512,9 @@ Engine_Zxcvbn : CroneEngine {
                     });
                 });
                 syns.put(id,Synth.new("playerInOut"++buf.numChannels, [
-                    out: buses.at("busIn"),
-                    outsc: buses.at("busSC"),
-                    outnsc: buses.at("busInNSC"),
+                    out: buses.at("busCompressible"),
+                    outsc: buses.at("busCompressing"),
+                    outnsc: buses.at("busNotCompressible"),
                     compressible: compressible,
                     compressing: compressing,
                     buf: buf,
@@ -530,9 +534,9 @@ Engine_Zxcvbn : CroneEngine {
                         (retrig).do{ arg i;
                             (duration/ (retrig+1) ).wait;
                             syns.put(id,Synth.new("playerInOut"++buf.numChannels, [
-                                out: buses.at("busIn"),
-                                outsc: buses.at("busSC"),
-                                outnsc: buses.at("busInNSC"),
+                                out: buses.at("busCompressible"),
+                                outsc: buses.at("busCompressing"),
+                                outnsc: buses.at("busNotCompressible"),
                                 compressible: compressible,
                                 compressing: compressing,
                                 buf: buf,
@@ -579,9 +583,9 @@ Engine_Zxcvbn : CroneEngine {
                 decay1L: decay1L,
                 decay2: decay2,
                 clicky: clicky,
-                out: buses.at("busIn"),
-                outsc: buses.at("busSC"),
-                outnsc: buses.at("busInNSC"),
+                out: buses.at("busCompressible"),
+                outsc: buses.at("busCompressing"),
+                outnsc: buses.at("busNotCompressible"),
                 compressible: compressible,
                 compressing: compressing,
             ],syns.at("main"),\addBefore).onFree({"freed!"});
@@ -607,9 +611,9 @@ Engine_Zxcvbn : CroneEngine {
                     attack: attack,
                     release: release,
                     duration: duration,
-                    out: buses.at("padFx"),
+                    out: buses.at("busReverb"),
                 ],
-                syns.at("padFx"),\addBefore));
+                syns.at("reverb"),\addBefore));
                 NodeWatcher.register(syns.at(id));
             };
         });
@@ -644,9 +648,9 @@ Engine_Zxcvbn : CroneEngine {
                 index: rrand(100,8000),
                 pan: rrand(-0.9,0.9),
                 duration: duration,
-                out: buses.at("busIn"),
-                outsc: buses.at("busSC"),
-                outnsc: buses.at("busInNSC"),
+                out: buses.at("busCompressible"),
+                outsc: buses.at("busCompressing"),
+                outnsc: buses.at("busNotCompressible"),
             ],syns.at("main"),\addBefore));
         });
         
@@ -657,9 +661,9 @@ Engine_Zxcvbn : CroneEngine {
                 freq: freq,
                 pan: rrand(-0.9,0.9),
                 duration: duration,
-                out: buses.at("busIn"),
-                outsc: buses.at("busSC"),
-                outnsc: buses.at("busInNSC"),
+                out: buses.at("busCompressible"),
+                outsc: buses.at("busCompressing"),
+                outnsc: buses.at("busNotCompressible"),
             ],syns.at("main"),\addBefore));
         });
 
@@ -697,6 +701,20 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
+        this.addCommand("mx","sffffffffff", { arg msg;
+            var folder=msg[1].asString;
+            var note=msg[2];
+            var velocity=msg[3];
+            var amp=msg[4];
+            var pan=msg[5];
+            var attack=msg[6];
+            var release=msg[7];
+            var duration=msg[8];
+            var sendCompressible=msg[9];
+            var sendCompressing=msg[10];
+            var sendReverb=msg[11];
+            mx.note(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb);
+        });
 
         // ^ Zxcvbn specific
 

@@ -185,10 +185,22 @@ f x8 n1
   params:set("4sample_file",_path.code.."zxcvbn/lib/yelidek_kit.wav")
   params:set("4track_type",1)
   params:set("4play_through",2)
-  params:set("4play",1)
+  -- params:set("4play",1)
   params:set("track",4)
   clock.run(function()
     clock.sleep(1)
+    engine.mx(
+      _path.audio.."mx.samples/steinway_model_b",
+      60,120,1.0,0,0.01,2,2,0,0,0
+    )
+    clock.sleep(0.5)
+    engine.mx(_path.audio.."mx.samples/steinway_model_b",72,120,1.0,0,0.01,2,2,0,0,0)
+    engine.mx(_path.audio.."mx.samples/steinway_model_b",72+5,120,1.0,0,0.01,2,2,0,0,0)
+    engine.mx(_path.audio.."mx.samples/steinway_model_b",72+7,120,1.0,0,0.01,2,2,0,0,0)
+    clock.sleep(2)
+    engine.mx(_path.audio.."mx.samples/steinway_model_b",72,120,1.0,0,0.01,2,2,0,0,1.0)
+    engine.mx(_path.audio.."mx.samples/steinway_model_b",72+5,120,1.0,0,0.01,2,2,0,0,1.0)
+    engine.mx(_path.audio.."mx.samples/steinway_model_b",72+7,120,1.0,0,0.01,2,2,0,0,1.0)
   end)
 end
 
