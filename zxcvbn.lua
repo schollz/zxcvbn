@@ -132,7 +132,10 @@ G/B;3
   params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   params:set("3track_type",1)
   tracks[3]:load_text([[
-00...................00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000chain a
+chain d 
+ 
+pattern d 
+0123 ru s11 t8 w96
  
 pattern a
 0 n0 w24
@@ -186,21 +189,9 @@ f x8 n1
   params:set("4track_type",1)
   params:set("4play_through",2)
   -- params:set("4play",1)
-  params:set("track",4)
+  params:set("track",3)
   clock.run(function()
     clock.sleep(1)
-    engine.mx(
-      _path.audio.."mx.samples/steinway_model_b",
-      60,120,1.0,0,0.01,2,2,0,0,0
-    )
-    clock.sleep(0.5)
-    engine.mx(_path.audio.."mx.samples/steinway_model_b",72,120,1.0,0,0.01,2,2,0,0,0)
-    engine.mx(_path.audio.."mx.samples/steinway_model_b",72+5,120,1.0,0,0.01,2,2,0,0,0)
-    engine.mx(_path.audio.."mx.samples/steinway_model_b",72+7,120,1.0,0,0.01,2,2,0,0,0)
-    clock.sleep(2)
-    engine.mx(_path.audio.."mx.samples/steinway_model_b",72,120,1.0,0,0.01,2,2,0,0,1.0)
-    engine.mx(_path.audio.."mx.samples/steinway_model_b",72+5,120,1.0,0,0.01,2,2,0,0,1.0)
-    engine.mx(_path.audio.."mx.samples/steinway_model_b",72+7,120,1.0,0,0.01,2,2,0,0,1.0)
   end)
 end
 
