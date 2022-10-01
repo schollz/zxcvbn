@@ -102,21 +102,16 @@ function init()
     end
   end)
 
-  params:set("1track_type",2)
-  params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
-  --   tracks[1]:load_text([[
-  -- chain a
-  -- pattern a
-  -- ppl 32
-  -- c4 c4 c5 c3 c4
-  -- #Cmaj;4 xud z5 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4
-  -- #Am/C;4 xud z5
-  -- #Em/B;3 xud z5
-  -- #G/B;2 xud z5
-
-  --   ]])
-
-  -- tracks[1]:parse_tli()
+  params:set("1track_type",4)
+  tracks[1]:load_text([[
+chain a
+ 
+pattern a
+Cmaj;3 w192
+Am/C;4
+Em/B;3
+G/B;3
+          ]])
 
   params:set("2track_type",3)
   tracks[2]:load_text([[
