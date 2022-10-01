@@ -275,7 +275,6 @@ function Track:init()
 
 end
 
-
 function Track:dumps()
   local data={states={}}
   for i,v in ipairs(self.states) do
@@ -332,13 +331,13 @@ function Track:parse_tli()
   return true
 end
 
-function Track:emit(beat,ppq)
-  if params:get(self.id.."play")==0 or params:get(self.id.."mute")==1 or ppq~=params:get(self.id.."ppq")  then
+function Track:emit(beat)
+  if params:get(self.id.."play")==0 or params:get(self.id.."mute")==1 then
     do return end
   end
   if self.tli~=nil and self.tli.track~=nil then
-    --print("beat",beat,"ppq",ppq)
     local i=(beat-1)%#self.tli.track+1
+    --print("beati",beat,i,#self.tli.track)
     local t=self.tli.track[i]
     for _,d in ipairs(t.off) do
       if d.m~=nil then
@@ -363,7 +362,8 @@ function Track:emit(beat,ppq)
           end
         end
       end
-      d.duration_scaled=d.duration*(clock.get_beat_sec()/params:get(self.id.."ppq"))
+      d.duration_scaled=d.duration*(clock.get_beat_sec()/24)
+      print("d.duration_scaled",d.duration_scaled,"d.duration",d.duration)
       if d.m~=nil then
         self:scroll_add(params:get(self.id.."track_type")==1 and d.m or string.lower(musicutil.note_num_to_name(d.m)))
       end
@@ -422,11 +422,6 @@ function Track:keyboard(k,v)
   if k=="TAB" then
     if v==1 and params:get(self.id.."track_type")<3 then
       self.state=3-self.state
-    end
-  elseif k=="CTRL+P" then
-    if v==1 then
-      params:set(self.id.."play",1-params:get(self.id.."play"))
-      show_message(params:get(self.id.."play")==0 and "stopped" or "playing")
     end
   end
   self.states[self.state]:keyboard(k,v)
