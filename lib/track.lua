@@ -32,7 +32,7 @@ end
 
 function Track:init()
   -- initialize parameters
-  self.track_type_options={"sliced sample","melodic sample","infinite pad","crow 1+2","crow 3+4","midi"}
+  self.track_type_options={"sliced sample","melodic sample","mx.samples","infinite pad","crow 1+2","crow 3+4","midi"}
   params:add_option(self.id.."track_type","type",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
@@ -77,10 +77,10 @@ function Track:init()
   params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
 
   local params_menu={
-    {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(param:get(),true)end},
+    {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="db",name="volume",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=0},
-    {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(param:get(),true)end},
+    {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
@@ -107,9 +107,10 @@ function Track:init()
     end)
   end
   self.params={shared={"ppq","track_type","play","db","probability","pitch","mute","mute_group"}}
-  self.params["sliced sample"]={"sample_file","slices","bpm","play_through","gate","filter","decimate","pan","compressing","compressible"} -- only show if midi is enabled
+  self.params["sliced sample"]={"sample_file","slices","bpm","play_through","gate","filter","decimate","pan","compressing","compressible","attack","release"} -- only show if midi is enabled
   self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"} -- only show if midi is enabled
   self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible"}
+  self.params["mx.samples"]={"db","attack","pan","release","compressing","compressible"}
   self.params["crow 1+2"]={"attack","release","crow_sustain"}
   self.params["crow 3+4"]={"attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
@@ -192,6 +193,24 @@ function Track:init()
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
         gate=params:get(self.id.."gate")/100,
       }
+    end,
+    note_off=function(d) end,
+  })
+  -- mx.samples
+  table.insert(self.play_fn,{
+    note_on=function(d)
+      local folder=_path.audio.."mx.samples/steinway_model_b" -- TODO: choose from option
+      local note=d.m+params:get(self.id.."pitch")
+      local velocity=util.clamp(util.linlin(-48,12,0,127,params:get(self.id.."db"))+(d.mods.v or 0),1,127)
+      local amp=util.dbamp(params:get(self.id.."db"))
+      local pan=params:get(self.id.."pan")
+      local attack=params:get(self.id.."attack")/1000
+      local release=params:get(self.id.."release")/1000
+      local duration=d.duration_scaled
+      local sendCompressible=0
+      local sendCompressing=0
+      local sendReverb=0.3
+      engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
     end,
     note_off=function(d) end,
   })

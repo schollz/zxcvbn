@@ -227,6 +227,8 @@ function Sample:play(d)
   d.compressible=d.compressible or params:get(self.id.."compressible")
   d.filter=musicutil.note_num_to_freq(params:get(self.id.."filter"))
   d.decimate=d.decimate or params:get(self.id.."decimate")
+  d.attack=d.attack or params:get(self.id.."attack")/1000
+  d.release=d.release or params:get(self.id.."release")/1000
   if self.is_melodic then
     if d.on then
       local sampleStart=self.cursors[1]
@@ -282,7 +284,7 @@ function Sample:play(d)
         d.decimate,
         d.compressible,
         d.compressing,
-      d.watch)
+      d.watch,d.attack,d.release)
       if self.kick[d.ci]>-48 then
         engine.kick(
           musicutil.note_num_to_freq(params:get("kick_basenote")),
@@ -397,15 +399,15 @@ function Sample:keyboard(k,v)
     self:do_zoom(1)
   elseif k=="DOWN" and v==1 then
     self:do_zoom(-1)
-  elseif k=="LEFT" and v==1 then
-    self:sel_cursor(self.ci+1)
-  elseif k=="RIGHT" and v==1 then
+  elseif k=="SHIFT+LEFT" and v==1 then
     self:sel_cursor(self.ci-1)
-  elseif k=="SHIFT+LEFT" and v>0 then 
+  elseif k=="SHIFT+RIGHT" and v==1 then
+    self:sel_cursor(self.ci+1)
+  elseif k=="LEFT" and v>0 then
     self:do_move(-1)
-  elseif k=="SHIFT+RIGHT" and v>0 then 
+  elseif k=="RIGHT" and v>0 then
     self:do_move(1)
-  elseif k=="SPACE" or k=="ENTER" then 
+  elseif k=="SPACE" or k=="ENTER" then
     self:audition(v>0)
   end
 end

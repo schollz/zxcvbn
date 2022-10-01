@@ -695,12 +695,12 @@ function TLI:parse_pattern(text,use_hex)
       local arp_notes=self:get_arp(notes,p.stop-p.start,p.mods.r,p.mods.t)
       local skip=p.mods.s or 0
       local j=0
-      for i=p.start,p.stop-1,skip+1 do
+      for i=p.start,p.stop-1,skip do
         j=j+1
         if j<=#arp_notes then
-          table.insert(track[i].on,{m=arp_notes[j],mods=p.mods,duration=p.stop-p.start})
+          table.insert(track[i].on,{m=arp_notes[j],mods=p.mods,duration=skip})
           if i+1+skip<=#track then
-            table.insert(track[i+1+skip].off,{m=arp_notes[j]})
+            table.insert(track[i+skip].off,{m=arp_notes[j]})
           end
         end
       end
@@ -963,8 +963,10 @@ function TLI:get_arp(input,steps,shape,length)
       local j=math.random(i)
       s[i],s[j]=s[j],s[i]
     end
+  elseif shape=="u" then
+    -- already in shape u, do nothing :)
   else
-    error("arp shape not understood")
+    error("arp shape '"..shape.."' not understood")
   end
 
   local final={}

@@ -220,7 +220,7 @@ Engine_Zxcvbn : CroneEngine {
 
         (1..2).do({arg ch;
         SynthDef("slice"++ch,{
-            arg amp=0, buf=0, rate=1, pos=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000; 
+            arg amp=0, buf=0, rate=1, pos=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
             var snd;
             var snd_pos = Phasor.ar(
                 trig: Impulse.kr(0),
@@ -230,7 +230,7 @@ Engine_Zxcvbn : CroneEngine {
             );
             SendReply.kr(Impulse.kr(10)*send_pos,'/position',[snd_pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
             snd = BufRd.ar(ch,buf,snd_pos,interpolation:4);
-            snd = snd * Env.asr(0.01, 1, 0.01).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
+            snd = snd * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
             snd = Pan2.ar(snd,pan);
             snd = RLPF.ar(snd,filter,0.707);
 
@@ -400,7 +400,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("slice_on","ssfffffffffffffff",{ arg msg;
+        this.addCommand("slice_on","ssfffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -418,6 +418,8 @@ Engine_Zxcvbn : CroneEngine {
             var compressible=msg[15];
             var compressing=msg[16];
             var send_pos=msg[17];
+            var attack=msg[18];
+            var release=msg[19];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
@@ -435,6 +437,8 @@ Engine_Zxcvbn : CroneEngine {
                     compressible: compressible,
                     compressing: compressing,
                     buf: bufs.at(filename),
+                    attack: attack,
+                    release: release,
                     amp: db_first.dbamp,
                     filter: filter,
                     rate: rate*pitch.midiratio,
@@ -454,6 +458,8 @@ Engine_Zxcvbn : CroneEngine {
                                 compressible: compressible,
                                 compressing: compressing,
                                 buf: bufs.at(filename),
+                                attack: attack,
+                                release: release,
                                 amp: (db+(db_add*(i+1))).dbamp,
                                 filter: filter,
                                 rate: rate*((pitch.sign)*(i+1)+pitch).midiratio,
