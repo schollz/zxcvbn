@@ -24,8 +24,52 @@ Engine_Zxcvbn : CroneEngine {
         oscs = Dictionary.new();
 
         oscs.put("position",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("progress",msg[3],msg[3]); }, '/position'));
+        oscs.put("audition",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("audition",msg[3],msg[3]); }, '/audition'));
 
         context.server.sync;
+
+
+        (1..2).do({arg ch;
+        SynthDef("playerOneShot"++ch,{ 
+            arg bufnum, id=0.0,amp=0.25, rate=1.0,sampleStart=0.0,sampleEnd=1.0, watch=0.0, xfade=0.01,t_free=0,attack=0.005,release=1000000;
+
+            // vars
+            var snd,pos,sampleDuration,sampleInit;
+            var duration=BufDur.ir(bufnum);
+            var frames=BufFrames.ir(bufnum);
+
+            sampleStart=sampleStart-(xfade/2);
+            sampleInit=Select.kr(sampleStart<0,[sampleStart,sampleStart+sampleEnd]);
+            sampleStart=Select.kr(sampleStart<0,[sampleStart,0]);
+            sampleEnd=sampleEnd+(xfade/2);
+            sampleEnd=Select.kr(sampleEnd>duration,[sampleEnd,duration]);
+            sampleDuration=(sampleEnd-sampleStart)/rate.abs;
+
+            pos=Phasor.ar(
+                trig:Impulse.kr(0),
+                rate:rate/context.server.sampleRate,
+                start:((sampleStart*(rate>0))+(sampleEnd*(rate<0))),
+                end:((sampleEnd*(rate>0))+(sampleStart*(rate<0))),
+                resetPos:sampleInit
+            );
+
+            snd=BufRd.ar(ch,bufnum,pos/duration*frames,
+                loop:1,
+                interpolation:4
+            );
+            snd=Pan2.ar(snd,0);
+
+            snd=snd*amp*EnvGen.ar(Env.new([0,1,1,0],[xfade/2,sampleDuration-xfade,xfade/2]),doneAction:2);
+            snd=snd*EnvGen.ar(Env.new([1,0],[xfade/2]),gate:t_free,doneAction:2);
+            // envelopes
+            snd=snd*EnvGen.ar(Env.perc(attack,release),doneAction:2);
+
+            SendReply.kr(Impulse.kr(10),'/audition',[A2K.kr(pos)]);                      
+
+            Out.ar(0,snd);
+        }).add; 
+        });
+
 
         SynthDef("defAudioIn",{
             arg ch=0,lpf=20000,lpfqr=0.707,hpf=20,hpfqr=0.909,pan=0,amp=1.0;
@@ -617,6 +661,40 @@ Engine_Zxcvbn : CroneEngine {
                 outsc: buses.at("busSC"),
                 outnsc: buses.at("busInNSC"),
             ],syns.at("main"),\addBefore));
+        });
+
+
+        this.addCommand("audition_off","", { arg msg;
+            if (syns.at("audition").notNil,{
+                if (syns.at("audition").isRunning,{
+                    syns.at("audition").set(\t_free,1);
+                });
+            });
+        });
+
+
+        this.addCommand("audition_on","sff", { arg msg;
+            var server=context.server;
+            var dontLoad=false;
+            if (bufs.at("audition").notNil,{
+                dontLoad=bufs.at("audition").path==msg[1];
+                if (syns.at("audition").notNil,{
+                    if (syns.at("audition").isRunning,{
+                        syns.at("audition").set(\t_free,1);
+                    });
+                });
+            });
+            if (dontLoad==true,{
+                syns.put("audition",Synth.head(server,"playerOneShot"++bufs.at("audition").numChannels,[\bufnum,bufs.at("audition"),\sampleStart,msg[2],\sampleEnd,msg[3],\watch,15]));
+                NodeWatcher.register(syns.at("audition"));
+            },{
+                Buffer.read(server,msg[1],action:{ arg buf;
+                    postln("loaded "++msg[1]++"into buf "++buf.bufnum);
+                    bufs.put("audition",buf);
+                    syns.put("audition",Synth.head(server,"playerOneShot"++bufs.at("audition").numChannels,[\bufnum,bufs.at("audition"),\sampleStart,msg[2],\sampleEnd,msg[3],\watch,15]));
+                    NodeWatcher.register(syns.at("audition"));
+                });
+            });
         });
 
 

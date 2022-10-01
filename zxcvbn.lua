@@ -69,6 +69,9 @@ function init()
       print("file edited ok!")
       rerun()
     end,
+    audition=function(args)
+      screens[2]:set_pos(tonumber(args[1]))
+    end,
   }
   osc.event=function(path,args,from)
     if string.sub(path,1,1)=="/" then
@@ -87,16 +90,16 @@ function init()
     end
   end)
 
-  -- start lattice
-  clock_pulse=0
-  clock.run(function()
-    while true do 
-      clock_pulse=clock_pulse+1
-      for _, track in ipairs(tracks) do 
-        track:emit(pulse)
-      end 
-    end
-  end)
+  -- -- start lattice
+  -- clock_pulse=0
+  -- clock.run(function()
+  --   while true do
+  --     clock_pulse=clock_pulse+1
+  --     for _, track in ipairs(tracks) do
+  --       track:emit(pulse)
+  --     end
+  --   end
+  -- end)
 
   params:set("1track_type",2)
   params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
@@ -183,7 +186,6 @@ f x8 n1
   params:set("track",4)
   clock.run(function()
     clock.sleep(1)
-    sequencer:hard_restart()
   end)
 end
 
@@ -237,19 +239,19 @@ function keyboard.code(k,v)
       do return end
     end
   end
-  if alt_on and tonumber(k)~=nil and tonumber(k)>=1 and tonumber(k)<=9 then 
+  if alt_on and tonumber(k)~=nil and tonumber(k)>=1 and tonumber(k)<=9 then
     -- mute group
     local mute_group=tonumber(k)
     local do_mute=-1
-    for i,_ in ipairs(tracks) do 
-      if params:get(i.."mute_group")==mute_group then 
-        if do_mute<0 then 
+    for i,_ in ipairs(tracks) do
+      if params:get(i.."mute_group")==mute_group then
+        if do_mute<0 then
           do_mute=1-params:get(i.."mute")
         end
         params:set(i.."mute",do_mute)
       end
     end
-    if do_mute>-1 then 
+    if do_mute>-1 then
       show_message((do_mute==1 and "muted" or "unmuted").." group "..mute_group)
     end
   end
@@ -262,7 +264,11 @@ end
 
 function key(k,z)
   screens[screen_ind]:key(k,z)
-  
+
+end
+
+function show_progress(val)
+  show_message_progress=util.clamp(val,0,100)
 end
 
 function show_message(message,seconds)
@@ -287,15 +293,24 @@ function draw_message()
     screen.move(x,y+7)
     screen.level(10)
     screen.text_center(show_message_text)
-    screen.update()
-    screen.blend_mode(13)
-    screen.rect(x-w/2,y,w,9)
-    screen.level(10)
-    screen.fill()
-    screen.blend_mode(0)
-    screen.level(0)
-    screen.rect(x-w/2,y,w,10)
-    screen.stroke()
+    if show_message_progress~=nil and show_message_progress>0 then
+      screen.update()
+      screen.blend_mode(13)
+      screen.rect(x-w/2,y,w*(show_message_progress/100),9)
+      screen.level(10)
+      screen.fill()
+      screen.blend_mode(0)
+    else
+      screen.update()
+      screen.blend_mode(13)
+      screen.rect(x-w/2,y,w,9)
+      screen.level(10)
+      screen.fill()
+      screen.blend_mode(0)
+      screen.level(0)
+      screen.rect(x-w/2,y,w,10)
+      screen.stroke()
+    end
     if show_message_clock==0 then
       show_message_text=""
       show_message_progress=0
@@ -306,6 +321,18 @@ end
 function redraw()
   screen.clear()
   screens[screen_ind]:redraw()
+
+  screen.level(7)
+  screen.rect(0,0,6,66)
+  screen.fill()
+  screen.level(0)
+  screen.move(3,6)
+  screen.text_center(params:get("track"))
+  for i,v in ipairs(tracks[params:get("track")].scroll) do
+    screen.move(3,6+(i*8))
+    screen.text_center(v)
+  end
+
   draw_message()
   screen.update()
 end

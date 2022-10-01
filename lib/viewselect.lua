@@ -15,10 +15,18 @@ function ViewSelect:new(o)
 end
 
 function ViewSelect:init()
+  self.is_playing=false
   self.k3_held=0
   self.k3_hold_time=20
   self.k3_hold_min=5
   self.debounce_regen=0
+  self.audiowaveform="/home/we/dust/code/zxcvbn/lib/audiowaveform"
+  self.path_to_pngs=_path.data.."zxcvbn/pngs/"
+
+  local foo=util.os_capture(self.audiowaveform.." --help")
+  if not string.find(foo,"Options") then
+    self.audiowaveform="audiowaveform"
+  end
   self:regen("/home/we/dust/audio/")
 end
 
@@ -28,7 +36,7 @@ function ViewSelect:regen(path)
   -- for _,v in ipairs(self.ls) do
   --   print(v[1],v[2])
   -- end
-  self.view={1,6}
+  self.view={1,7}
   self.current=1
 end
 
@@ -121,12 +129,12 @@ function ViewSelect:enc(k,d)
     self.current=current
     if self.current>self.view[2] then
       self.view[2]=self.current
-      self.view[1]=self.view[2]-5
+      self.view[1]=self.view[2]-6
     elseif self.current<self.view[1] then
       self.view[1]=self.current
-      self.view[2]=self.view[1]+5
+      self.view[2]=self.view[1]+6
     end
-    self.debounce_regen=2
+    self.debounce_regen=5
   end
 end
 
@@ -140,11 +148,7 @@ function ViewSelect:key(k,z)
           print(self.ls[self.current][1])
           self:regen(self.ls[self.current][1])
         else
-          if self.is_playing then
-            print("stopping")
-          else
-            -- TODO: Play
-          end
+          self:audition(not self.is_playing)
         end
       end
       self.k3_held=0
@@ -152,6 +156,53 @@ function ViewSelect:key(k,z)
   elseif k==2 and z==1 then
     self:regen(self.ls[1][1])
   end
+end
+
+function ViewSelect:audition(on)
+  if on then
+    if self.path~=nil then
+      engine.audition_on(self.path,0,self.duration)
+    end
+  else
+    engine.audition_off()
+  end
+  self.is_playing=on
+end
+
+function ViewSelect:get_render(path)
+  print("getting render for "..path)
+  self.path=path
+  self.pathname,self.filename,self.ext=string.match(self.path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
+  self.path_to_dat=_path.data.."zxcvbn/dats/"..self.filename..".dat"
+  if not util.file_exists(self.path_to_dat) then
+    local cmd=string.format("%s -q -i %s -o %s -z %d -b 8",self.audiowaveform,self.path,self.path_to_dat,2)
+    print(cmd)
+    os.execute(cmd)
+  end
+  print("getting audio file info",self.path)
+  self.ch,self.samples,self.sample_rate=audio.file_info(self.path)
+  if self.samples<10 or self.samples==nil then
+    print("ERROR PROCESSING FILE: "..path)
+    do return end
+  end
+  self.duration=self.samples/self.sample_rate
+  print("duration",self.duration)
+
+  self.width=120
+  self.height=16
+  local view={0,self.duration}
+  local path_to_rendered=string.format("%s%s_%3.3f_%3.3f_%d_%d.png",self.path_to_pngs,self.filename,view[1],view[2],self.width,self.height)
+  if not util.file_exists(path_to_rendered) then
+    local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0",self.audiowaveform,self.path_to_dat,path_to_rendered,view[1],view[2],self.width,self.height)
+    print(cmd)
+    os.execute(cmd)
+  end
+  self.path_to_rendered=path_to_rendered
+end
+
+function ViewSelect:set_pos(x)
+  self.show_pos=x
+  self.show=7
 end
 
 function ViewSelect:redraw()
@@ -179,19 +230,37 @@ function ViewSelect:redraw()
     if self.debounce_regen==0 then
       if self.is_playing then
         print("stopping")
+        self.is_playing=false
       end
       if string.sub(self.ls[self.current][1],-1)~="/" then
         print("loading",self.ls[self.current][1])
+        self:get_render(self.ls[self.current][1])
       end
     end
   end
   for i=self.view[1],self.view[2] do
     local j=i-self.view[1]+1
     screen.level(self.current==i and 15 or 2)
-    screen.move(1,7+j*7)
+    screen.move(1+7,j*7)
     if self.ls[i]~=nil and self.ls[i][2]~=nil then
       screen.text(self.ls[i][2])
     end
+  end
+  if self.path_to_rendered~=nil then
+    screen.display_png(self.path_to_rendered,7,50)
+  end
+  if self.show~=nil and self.show>0 then
+    self.show=self.show-1
+    if self.show==0 then
+      self.is_playing=false
+    end
+    local pos=util.linlin(0,self.duration,7,128,self.show_pos)
+    screen.aa(1)
+    screen.level(self.show*2+1)
+    screen.move(pos,64-self.height+1)
+    screen.line(pos,64)
+    screen.stroke()
+    screen.aa(0)
   end
   return self.current_folder:gsub("/home/we/dust/","")
 end
