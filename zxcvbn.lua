@@ -15,11 +15,12 @@ parse_chain=include("lib/parse_chain")
 track_=include("lib/track")
 vterm_=include("lib/vterm")
 sample_=include("lib/sample")
+viewselect_=include("lib/viewselect")
+tracker_=include("lib/tracker")
 tli_=include("lib/tli")
 tli=tli_:new()
 lattice=require("lattice")
 musicutil=require("musicutil")
-
 -- debouncer
 debounce_fn={}
 
@@ -27,6 +28,12 @@ engine.name="Zxcvbn"
 
 function init()
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
+
+  -- setup screens
+  screens={}
+  screen_ind=2
+  table.insert(screens,tracker_:new())
+  table.insert(screens,viewselect_:new())
 
   -- add major parameters
   params_audioin()
@@ -246,15 +253,16 @@ function keyboard.code(k,v)
       show_message((do_mute==1 and "muted" or "unmuted").." group "..mute_group)
     end
   end
-  tracks[params:get("track")]:keyboard(k,v)
+  screens[screen_ind]:keyboard(k,v)
 end
 
 function enc(k,d)
-  tracks[params:get("track")]:enc(k,d)
+  screens[screen_ind]:enc(k,d)
 end
 
 function key(k,z)
-  tracks[params:get("track")]:key(k,z)
+  screens[screen_ind]:key(k,z)
+  
 end
 
 function show_message(message,seconds)
@@ -297,21 +305,8 @@ end
 
 function redraw()
   screen.clear()
-  tracks[params:get("track")]:redraw()
-
-  screen.level(7)
-  screen.rect(0,0,6,66)
-  screen.fill()
-  screen.level(0)
-  screen.move(3,6)
-  screen.text_center(params:get("track"))
-  for i,v in ipairs(tracks[params:get("track")].scroll) do
-    screen.move(3,6+(i*8))
-    screen.text_center(v)
-  end
-
+  screens[screen_ind]:redraw()
   draw_message()
-
   screen.update()
 end
 
