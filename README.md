@@ -7,7 +7,7 @@ tracker of limited input.
 ## todo
 
 
-- [ ] add sample selector from old one
+- [x] add sample selector from old one
 - [ ] use blend_mode to highlight the region being played
 - [ ] TEST wedges define wedges per-line, everything runs at 24ppqn wedge = pulses per line
 - [ ] on mutes, do note off

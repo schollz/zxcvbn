@@ -278,6 +278,10 @@ function VTerm:keyboard(k,v)
     if v>0 then
       self:move_cursor(-1,0)
     end
+  elseif k=="CTRL+P" then
+    if v==1 then
+      params:set(self.id.."play",1-params:get(self.id.."play"))
+    end
   elseif k=="CTRL+N" then
     if v==1 then
       self:blank()

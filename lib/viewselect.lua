@@ -219,9 +219,9 @@ function ViewSelect:redraw()
     if self.k3_held==self.k3_hold_time then
       if string.sub(self.ls[self.current][1],-1)~="/" then
         print(self.ls[self.current][1])
-        self.load_sample(self.ls[self.current][1])
         show_message("loaded "..self.ls[self.current][2])
         show_progress(100)
+        params:set(params:get("track").."sample_file",self.ls[self.current][1])
       end
     end
   end

@@ -731,8 +731,8 @@ function TLI:parse_positions(lines)
   local elast=nil
   local entities={}
   local wedge_index=0
+  local wedges=24*4 -- 24 ppqn, 4 qn per measure
   for i,line in ipairs(lines) do
-    local wedges=24*4 -- 24 ppqn, 4 qn per measure
     local ele={}
     local er_rotation=0
     for w in line:gmatch("%S+") do

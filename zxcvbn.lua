@@ -31,7 +31,7 @@ function init()
 
   -- setup screens
   screens={}
-  screen_ind=2
+  screen_ind=1
   table.insert(screens,tracker_:new())
   table.insert(screens,viewselect_:new())
 
@@ -90,30 +90,31 @@ function init()
     end
   end)
 
-  -- -- start lattice
-  -- clock_pulse=0
-  -- clock.run(function()
-  --   while true do
-  --     clock_pulse=clock_pulse+1
-  --     for _, track in ipairs(tracks) do
-  --       track:emit(pulse)
-  --     end
-  --   end
-  -- end)
+  -- start lattice
+  clock_pulse=0
+  clock.run(function()
+    while true do
+      clock_pulse=clock_pulse+1
+      for _,track in ipairs(tracks) do
+        track:emit(clock_pulse)
+        clock.sync(1/96)
+      end
+    end
+  end)
 
   params:set("1track_type",2)
   params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
-  tracks[1]:load_text([[
-chain a
-pattern a
-ppl 32
-c4 c4 c5 c3 c4
-#Cmaj;4 xud z5 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4
-#Am/C;4 xud z5
-#Em/B;3 xud z5
-#G/B;2 xud z5
- 
-  ]])
+  --   tracks[1]:load_text([[
+  -- chain a
+  -- pattern a
+  -- ppl 32
+  -- c4 c4 c5 c3 c4
+  -- #Cmaj;4 xud z5 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4 c4
+  -- #Am/C;4 xud z5
+  -- #Em/B;3 xud z5
+  -- #G/B;2 xud z5
+
+  --   ]])
 
   -- tracks[1]:parse_tli()
 
@@ -122,23 +123,19 @@ c4 c4 c5 c3 c4
 chain a
  
 pattern a
-ppl 32
-Cmaj;3
+Cmaj;3 w192
 Am/C;4
-Em/B;3 
+Em/B;3
 G/B;3
-        ]])
+          ]])
 
   params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   params:set("3track_type",1)
   tracks[3]:load_text([[
-chain a b c
- 
-ppq 4
-ppl 2
+00...................00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000chain a
  
 pattern a
-0 n0
+0 n0 w24
 1
 2
 3
@@ -150,7 +147,7 @@ pattern b
 pattern c
 3 x5 n-2
 -
-  ]])
+    ]])
   params:set("3play_through",2)
   params:set("1compressible",1)
   params:set("2compressible",1)
@@ -162,27 +159,33 @@ pattern c
   -- params:set("3play",1)
 
   tracks[4]:load_text([[
-chain a b 
+chain c*2 (a b)*2
  
-ppl 8 
+pattern c 
+0 w24 n0
+9 a b c
+1 4 x8 v-4 w48 
+5 6 7 8 w36 
+9 a b c w24
  
 pattern b 
-0 x5 v-1
--
+0 x5 v-1 w24 n0
  
 pattern a
-0 v12 
-1 2 
-0 v6 
-4 a 1 2 
-0 v8 
+0 v12 w24
+1 2
+0 v6
+4 a 1 2
+0 v8
 7 8 a b v8
 e e e x4 n-1
 f x8 n1
-    ]])
+]])
+
   params:set("4sample_file",_path.code.."zxcvbn/lib/yelidek_kit.wav")
   params:set("4track_type",1)
   params:set("4play_through",2)
+  params:set("4play",1)
   params:set("track",4)
   clock.run(function()
     clock.sleep(1)
@@ -254,6 +257,12 @@ function keyboard.code(k,v)
     if do_mute>-1 then
       show_message((do_mute==1 and "muted" or "unmuted").." group "..mute_group)
     end
+  elseif k=="CTRL+P" then
+    if v==1 then
+      params:set(params:get("track").."play",1-params:get(params:get("track").."play"))
+      show_message(params:get(params:get("track").."play")==0 and "stopped" or "playing")
+    end
+    do return end
   end
   screens[screen_ind]:keyboard(k,v)
 end
