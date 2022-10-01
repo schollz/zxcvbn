@@ -408,7 +408,9 @@ function Sample:keyboard(k,v)
   elseif k=="RIGHT" and v>0 then
     self:do_move(1)
   elseif k=="SPACE" or k=="ENTER" then
-    self:audition(v>0)
+    if v==1 then
+      self:audition(v>0)
+    end
   end
 end
 

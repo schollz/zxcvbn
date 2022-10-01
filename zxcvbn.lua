@@ -157,7 +157,13 @@ pattern c
   -- params:set("3play",1)
 
   tracks[4]:load_text([[
-chain c*2 (a b)*2
+chain d*2 b
+ 
+pattern d 
+0 w48 a 4 b 
+0 d n-8 4 1 
+b 4 0 c x4
+ 
  
 pattern c 
 0 w24 n0
@@ -168,6 +174,7 @@ pattern c
  
 pattern b 
 0 x5 v-1 w24 n0
+0 x3 n2 
  
 pattern a
 0 v12 w24
