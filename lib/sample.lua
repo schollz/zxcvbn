@@ -395,9 +395,9 @@ function Sample:keyboard(k,v)
     self:do_zoom(1)
   elseif k=="MINUS" and v==1 then
     self:do_zoom(-1)
-  elseif k=="UP" and v==1 then
+  elseif k=="UP" and v>0 then
     self:do_zoom(1)
-  elseif k=="DOWN" and v==1 then
+  elseif k=="DOWN" and v>0 then
     self:do_zoom(-1)
   elseif k=="SHIFT+LEFT" and v==1 then
     self:sel_cursor(self.ci-1)
