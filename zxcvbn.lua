@@ -97,8 +97,8 @@ function init()
       clock_pulse=clock_pulse+1
       for _,track in ipairs(tracks) do
         track:emit(clock_pulse)
-        clock.sync(1/96)
       end
+      clock.sync(1/24)
     end
   end)
 
