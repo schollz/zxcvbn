@@ -235,9 +235,10 @@ function Track:init()
         local note=d.m+params:get(self.id.."pitch")
         if level>0 then
           local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack"),params:get(self.id.."release"),level)
-          crow.output[i+1].action=crow_asl
-          crow.output[i].volts=(note-24)/12
-          crow.output[i+1](true)
+          -- print(crow_asl)
+          -- crow.output[i+1].action=crow_asl
+          -- crow.output[i].volts=(note-24)/12
+          -- crow.output[i+1](true)
         end
         if d.mods.x~=nil and d.mods.x>0 then
           clock.run(function()
@@ -255,7 +256,7 @@ function Track:init()
         end
       end,
       note_off=function(d)
-        crow.output[i+1](false)
+        -- crow.output[i+1](false)
       end,
     })
   end
