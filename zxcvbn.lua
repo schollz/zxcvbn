@@ -392,6 +392,7 @@ function params_action()
       do return end
     end
     for i,s in ipairs(data.tracks) do
+      print("loads",i,s)
       tracks[i]:loads(s)
     end
   end
