@@ -226,15 +226,16 @@ function Track:init()
     end,
     note_off=function(d) end,
   })
-  -- crow 1+2
-  for i=1,2 do
+  -- crow 1+2 & 3+4
+  for ii=1,2 do
+    local i=ii==1 and 1 or 3
     table.insert(self.play_fn,{
       note_on=function(d)
         local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0))
         local note=d.m+params:get(self.id.."pitch")
         if level>0 then
-          crow.output[i+1].action=string.format("ar(%3.3f,%3.3f,%3.3f)",
-          params:get(self.id.."attack"),params:get(self.id.."release"),level)
+          local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack"),params:get(self.id.."release"),level)
+          crow.output[i+1].action=crow_asl
           crow.output[i].volts=(note-24)/12
           crow.output[i+1](true)
         end
@@ -385,7 +386,7 @@ function Track:emit(beat)
         end
       end
       d.duration_scaled=d.duration*(clock.get_beat_sec()/24)
-      print("d.duration_scaled",d.duration_scaled,"d.duration",d.duration)
+      --print("d.duration_scaled",d.duration_scaled,"d.duration",d.duration)
       if d.m~=nil then
         self:scroll_add(params:get(self.id.."track_type")==1 and d.m or string.lower(musicutil.note_num_to_name(d.m)))
       end
