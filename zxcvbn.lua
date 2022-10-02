@@ -42,7 +42,7 @@ function init()
   params_midi()
 
   -- setup tracks
-  params:add_number("track","track",1,4,1)
+  params:add_number("track","track",1,9,1)
   params:set_action("track",function(x)
     for i,track in ipairs(tracks) do
       track:select(i==x)
@@ -50,7 +50,7 @@ function init()
   end)
 
   tracks={}
-  for i=1,4 do
+  for i=1,9 do
     table.insert(tracks,track_:new{id=i})
   end
 
@@ -191,7 +191,26 @@ f x8 n1
   params:set("4track_type",1)
   params:set("4play_through",2)
   -- params:set("4play",1)
-  params:set("track",3)
+  params:set("track",5)
+  params:set("5track_type",5)
+  tracks[5]:load_text([[
+chain a 
+ 
+pattern a
+Am;2 ru s6 w48
+Em/B;2 ru s6 
+]])
+  params:set("5play",1)
+  params:set("6track_type",6)
+  tracks[6]:load_text([[
+chain a 
+ 
+pattern a
+Am;4 ru s6 w48
+ 
+]])
+  params:set("6play",1)
+
   clock.run(function()
     clock.sleep(1)
   end)
