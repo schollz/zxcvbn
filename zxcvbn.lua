@@ -194,11 +194,11 @@ f x8 n1
   params:set("track",5)
   params:set("5track_type",5)
   tracks[5]:load_text([[
-chain a 
+chain a
  
 pattern a
-Am;2 ru s6 w48
-Em/B;2 ru s6 
+Am;2 ru s12 w96
+Em/B;2 ru s12 
 ]])
   params:set("5play",1)
   params:set("6track_type",6)
@@ -206,7 +206,7 @@ Em/B;2 ru s6
 chain a 
  
 pattern a
-Am;4 ru s6 w48
+Am;4 rdico s12 t6 w96
  
 ]])
   params:set("6play",1)
