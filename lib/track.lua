@@ -309,7 +309,10 @@ function Track:loads(s)
     do return end
   end
   for i,v in ipairs(data.states) do
-    self.states[i]=self.states[i]:loads(v)
+    if v~="{}" then
+      print("track: loads",i,v)
+      self.states[i]:loads(v)
+    end
   end
   self.state=data.state
 end
