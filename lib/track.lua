@@ -111,11 +111,11 @@ function Track:init()
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
     {id="release",name="release",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
     {id="gate",name="gate",min=0,max=100,exp=false,div=1,default=100,unit="%"},
-    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
-    {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="decimate",name="decimate",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="pitch",name="pitch",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
-    -- {id="send_main",name="main send",min=0,max=1,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+   {id="send_reverb",name="send reverb",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
   }
   for _,pram in ipairs(params_menu) do
     params:add{
@@ -132,14 +132,14 @@ function Track:init()
     end)
   end
   self.params={shared={"ppq","track_type","play","db","probability","pitch","mute","mute_group"}}
-  self.params["sliced sample"]={"sample_file","slices","bpm","play_through","gate","filter","decimate","pan","compressing","compressible","attack","release"} -- only show if midi is enabled
-  self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"} -- only show if midi is enabled
-  self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible"}
-  self.params["mx.samples"]={"db","attack","pan","release","compressing","compressible"}
+  self.params["sliced sample"]={"sample_file","slices","bpm","play_through","gate","filter","decimate","pan","compressing","compressible","attack","release","send_reverb"}
+  self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"} 
+  self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible","send_reverb"}
+  self.params["mx.samples"]={"db","attack","pan","release","compressing","compressible","send_reverb"}
   self.params["crow 1+2"]={"attack","release","crow_sustain"}
   self.params["crow 3+4"]={"attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
-  self.params["mx.synths"]={"db","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4"}
+  self.params["mx.synths"]={"db","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","sub","send_reverb"}
 
   -- define the shortcodes here
   self.mods={
@@ -220,10 +220,15 @@ function Track:init()
       local pan=params:get(self.id.."pan")
       local attack=params:get(self.id.."attack")/1000
       local release=params:get(self.id.."release")/1000
+      local sub=params:get(self.id.."sub")
+      local mods={}
+      for i=1,4 do 
+        table.insert(mods,params:get(self.id.."mod"..i))
+      end
       local duration=d.duration_scaled
       local sendCompressible=0
       local sendCompressing=0
-      local sendReverb=0.3
+      local sendReverb=0.0
       engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
     end,
   })
