@@ -366,7 +366,7 @@ Engine_Zxcvbn : CroneEngine {
 		}).add;
 
 		// https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
-		SynthDef("PolyPerc",{
+		SynthDef("polyperc",{
 			arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
 			mod1=0,mod2=0,mod3=0,mod4=0,pan=0,duration=600;
@@ -389,7 +389,7 @@ Engine_Zxcvbn : CroneEngine {
 		}).add;
 
 		// https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41
-		SynthDef("piano",{
+		SynthDef("dreadpiano",{
 			arg hz=220,amp=1.0,pan=0,gate=1,
 			sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,

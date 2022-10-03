@@ -32,7 +32,7 @@ end
 
 function Track:init()
   -- initialize parameters
-  self.track_type_options={"sliced sample","melodic sample","mx.samples","infinite pad","crow 1+2","crow 3+4","midi"}
+  self.track_type_options={"sliced sample","melodic sample","mx.samples","mx.synths","infinite pad","crow 1+2","crow 3+4","midi"}
   params:add_option(self.id.."track_type","type",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
@@ -65,6 +65,25 @@ function Track:init()
   params:add_number(self.id.."mute_group","mute group",1,9,1)
 
   params:add_number(self.id.."ppq","ppq",1,8,4)
+
+  -- mx.synths stuff
+  self.mx_synths={"synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","polyperc","dreadpiano","aaaaaa","triangles"}
+  params:add_option(self.id.."mx_synths",self.mx_synths)
+  local params_menu={
+    {id="mod1",name="mod 1",min=-1,max=1,exp=false,div=0.01,default=0},
+    {id="mod2",name="mod 2",min=-1,max=1,exp=false,div=0.01,default=0},
+    {id="mod3",name="mod 3",min=-1,max=1,exp=false,div=0.01,default=0},
+    {id="mod4",name="mod 4",min=-1,max=1,exp=false,div=0.01,default=0},
+  }
+  for _,pram in ipairs(params_menu) do
+    params:add{
+      type="control",
+      id=self.id..pram.id,
+      name=pram.name,
+      controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
+      formatter=pram.formatter,
+    }
+  end
 
   -- midi stuff
   params:add_option(self.id.."midi_dev","midi",midi_device_list,1)
@@ -120,6 +139,7 @@ function Track:init()
   self.params["crow 1+2"]={"attack","release","crow_sustain"}
   self.params["crow 3+4"]={"attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
+  self.params["mx.synths"]={"db","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4"}
 
   -- define the shortcodes here
   self.mods={
@@ -205,6 +225,19 @@ function Track:init()
       local sendCompressing=0
       local sendReverb=0.3
       engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
+    end,
+  })
+  -- mx.synths
+  table.insert(self.play_fn,{
+    note_on=function(d)
+      local synth=params:string(self.id.."mx_synths")
+      local note=d.m+params:get(self.id.."pitch")
+      local amp=util.dbamp(params:get(self.id.."db")+(d.mods.v or 0))
+      local pan=params:get(self.id.."pan")
+      local attack=params:get(self.id.."attack")/1000
+      local release=params:get(self.id.."release")/1000
+      local duration=d.duration_scaled
+      engine.mx_synths(synth,note,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
     end,
   })
   -- infinite pad
