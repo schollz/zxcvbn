@@ -650,7 +650,7 @@ function TLI:chord_to_midi(c,midi_near)
   return p
 end
 
-function TLI:parse_pattern(text,use_hex)
+function TLI:parse_pattern(text,use_hex,default_wedges)
   local trim_=function(s)
     return (s:gsub("^%s*(.-)%s*$","%1"))
   end
@@ -663,7 +663,7 @@ function TLI:parse_pattern(text,use_hex)
     end
   end
 
-  local positions,total_wedges=self:parse_positions(lines)
+  local positions,total_wedges=self:parse_positions(lines,default_wedges)
 
   -- parse the positions
   for i,pos in ipairs(positions) do
@@ -677,61 +677,41 @@ function TLI:parse_pattern(text,use_hex)
 
   -- initialize the track
   local track={}
-  for i=1,total_wedges do
-    table.insert(track,{on={},off={}})
-  end
 
   -- adjustments
   for _,p in ipairs(positions) do
     p.mods=p.mods or {}
     if p.mods.r~=nil then
-      print("DOING ARP")
       -- introduce as an arp
       local notes={}
       for _,note in ipairs(p.parsed) do
         table.insert(notes,note.m)
       end
-      --function TLI:get_arp(input,steps,shape,length)
       local arp_notes=self:get_arp(notes,p.stop-p.start,p.mods.r,p.mods.t)
       local skip=p.mods.s or 0
       local j=0
       for i=p.start,p.stop-1,skip do
         j=j+1
         if j<=#arp_notes then
-          table.insert(track[i].on,{m=arp_notes[j],mods=p.mods,duration=skip})
-          if i+1+skip<=#track then
-            table.insert(track[i+skip].off,{m=arp_notes[j]})
-          end
+          table.insert(track,{start=i,m=arp_notes[j],mods=p.mods,duration=skip})
         end
       end
     else
       -- introduce normally
       for i,note in ipairs(p.parsed) do
-        table.insert(track[p.start].on,{m=note.m,mods=p.mods,duration=p.stop-p.start})
-        table.insert(track[(p.stop-1)%#track+1].off,{m=note.m})
+        table.insert(track,{start=p.start,m=note.m,mods=p.mods,duration=p.stop-p.start})
       end
     end
   end
 
-  -- for i,v in ipairs(track) do
-  --   local s=i.." "
-  --   if next(v.on) then
-  --     s=s..to_string(v.on)
-  --   end
-  --   if next(v.off) then
-  --     s=s.."off["..to_string(v.off).."]"
-  --   end
-  --   print(s)
-  -- end
-
-  return {track=track,positions=positions}
+  return {track=track,positions=positions,wedges=total_wedges}
 end
 
-function TLI:parse_positions(lines)
+function TLI:parse_positions(lines,default_wedges)
   local elast=nil
   local entities={}
   local wedge_index=0
-  local wedges=24*4 -- 24 ppqn, 4 qn per measure
+  local wedges=default_wedges or 24*4 -- 24 ppqn, 4 qn per measure
   for i,line in ipairs(lines) do
     local ele={}
     local er_rotation=0
@@ -1010,6 +990,7 @@ function TLI:parse_tli_(text,use_hex)
   local data={chain={},patterns={},meta={}}
   local current_pattern={}
   local pattern_chain={}
+  local default_wedges=24*4
   for _,line in ipairs(lines) do
     local fi=fields(line)
     if line=="" then
@@ -1038,6 +1019,8 @@ function TLI:parse_tli_(text,use_hex)
     elseif #fi==2 then
       data.meta[fi[1]]=tonumber(fi[2])
       data.meta[fi[1]]=data.meta[fi[1]] or fi[2]
+    elseif string.sub(line,1,1)=="w" then
+      default_wedges=tonumber(string.sub(line,2))
     end
   end
   if next(current_pattern)~=nil then
@@ -1045,7 +1028,7 @@ function TLI:parse_tli_(text,use_hex)
   end
 
   for k,pattern in pairs(data.patterns) do
-    data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,use_hex)
+    data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,use_hex,default_wedges)
   end
 
   -- default to a chain of how the patterns are defined
@@ -1055,79 +1038,19 @@ function TLI:parse_tli_(text,use_hex)
 
   -- combine the chain
   data.track={}
-  for _,p in ipairs(data.chain) do
+  local pos=0
+  for i,p in ipairs(data.chain) do
     if data.patterns[p]==nil or data.patterns[p].parsed==nil or data.patterns[p].parsed.track==nil then
       error("pattern "..p.." not found")
     end
-    for _,v in ipairs(data.patterns[p].parsed.track) do
+    for j,v in ipairs(data.patterns[p].parsed.track) do
+      v.start=pos+v.start
       table.insert(data.track,v)
     end
+    pos=pos+data.patterns[p].parsed.wedges
   end
+  data.chain_lenth=pos
   return data
-end
-
-function TLI:test()
-  print("\n############ tests ############\n")
-
-  -- do_test=function(fn)
-  --   local f=load('return '..fn)
-  --   local val=f()
-  --   print(string.format("%s ->\n%s",fn,to_string(val)))
-  -- end
-
-  --do_test('tli:note_to_midi("c4")')
-  --do_test('tli:note_to_midi("d",72)')
-  --do_test('tli:chord_to_midi("Cm/G")')
-  -- do_test('tli:note_to_midi("c4b3c#4")')
-  -- do_test('tli:hex_to_midi("012a")')
-
-  --do_test('tli.er(3,8,1)')
-  --do_test('tli:parse_entity("Cm7^4;v=40")')
-  -- tli:parse_positions("a4 - . b5 r90\n\n- - 0\nCm . ")
-  --do_test('tli:get_arp({1,2,3},8,"ud",4)')
-  -- tli:parse_pattern("Cm7;arp=ud;skip=1;len=6;vel=50\n-  Am . d4\n ")
-
-  json=require("json")
-
-  --   local data=tli:parse_tli([[
-  -- # ignore this
-  -- file test.wav
-  -- bpm 123
-
-  -- ppq 8
-
-  -- chain a
-
-  -- # pattern definitions
-
-  -- pattern a
-  -- c4 v30 r4 z5 d4 v60
-  -- #Cm xu y2 z5 v40
-  -- ]])
-
-  local data=tli__:parse_tli([[
-pattern a
-ppl 8
-0123 xud z4
-]],true)
-
-  print(json.encode(data))
-
-  for k,v in pairs(data.patterns) do
-    print("pattern",k,json.encode(v.parsed.positions))
-  end
-  -- print("OK")
-  for k,v in ipairs(data.track) do
-    if next(v.off) then
-      print(k,json.encode(v.off))
-    end
-    if next(v.on) then
-      print(k,json.encode(v.on))
-    end
-  end
-
-  print("\n###############################\n")
-
 end
 
 return TLI
