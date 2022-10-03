@@ -7,6 +7,7 @@ tracker of limited input.
 ## todo
 
 
+- [ ] add mx.synths and special shortcode to change the parameters j???
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] have tli keep track of originating line and highlight it
 - [ ] use blend_mode to highlight the region being played
