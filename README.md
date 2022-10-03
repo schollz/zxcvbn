@@ -7,6 +7,8 @@ tracker of limited input.
 ## todo
 
 
+- [ ] have tli keep track of originating line and highlight it
+- [ ] midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [x] add sample selector from old one
 - [ ] use blend_mode to highlight the region being played
 - [ ] TEST wedges define wedges per-line, everything runs at 24ppqn wedge = pulses per line
