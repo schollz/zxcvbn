@@ -9,6 +9,8 @@ function TLI:new(o)
 end
 
 function TLI:init()
+  self.cache={}
+
   self.hex_to_num={}
   self.hex_to_num["0"]=1
   self.hex_to_num["1"]=2
@@ -957,6 +959,11 @@ function TLI:get_arp(input,steps,shape,length)
 end
 
 function TLI:parse_tli(text,use_hex)
+  local key=text..(use_hex and "hex" or "")
+  if self.cache[key]~=nil then 
+    print("using cache")
+    return self.cache[key]
+  end
   local data={}
   local _,err=
   pcall(
@@ -964,6 +971,9 @@ function TLI:parse_tli(text,use_hex)
       data=self:parse_tli_(text,use_hex)
     end
   )
+  if err==nil then 
+    self.cache[key]=data 
+  end
   return data,err
 end
 
