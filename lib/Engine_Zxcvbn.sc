@@ -840,7 +840,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("slice_on","ssfffffffffffffffff",{ arg msg;
+        this.addCommand("slice_on","ssffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -857,9 +857,10 @@ Engine_Zxcvbn : CroneEngine {
             var decimate=msg[14];
             var compressible=msg[15];
             var compressing=msg[16];
-            var send_pos=msg[17];
-            var attack=msg[18];
-            var release=msg[19];
+            var send_reverb=msg[17];
+            var send_pos=msg[18];
+            var attack=msg[19];
+            var release=msg[20];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
@@ -877,6 +878,7 @@ Engine_Zxcvbn : CroneEngine {
                     outreverb: buses.at("busReverb"),
                     compressible: compressible,
                     compressing: compressing,
+                    sendreverb: send_reverb,
                     buf: bufs.at(filename),
                     attack: attack,
                     release: release,
@@ -897,6 +899,7 @@ Engine_Zxcvbn : CroneEngine {
                                 outsc: buses.at("busCompressing"),
                                 outnsc: buses.at("busNotCompressible"),
                                 outreverb: buses.at("busReverb"),
+                                sendreverb: send_reverb,
                                 compressible: compressible,
                                 compressing: compressing,
                                 buf: bufs.at(filename),
@@ -930,7 +933,7 @@ Engine_Zxcvbn : CroneEngine {
             });            
         });
 
-        this.addCommand("melodic_on","ssfffffffffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -947,7 +950,8 @@ Engine_Zxcvbn : CroneEngine {
             var retrig=msg[14];
             var compressible=msg[15];
             var compressing=msg[16];
-            var watch=msg[17];
+            var send_reverb=msg[17];
+            var watch=msg[18];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
@@ -964,6 +968,7 @@ Engine_Zxcvbn : CroneEngine {
                     outsc: buses.at("busCompressing"),
                     outnsc: buses.at("busNotCompressible"),
                     outreverb: buses.at("busReverb"),
+                    sendreverb: send_reverb,
                     compressible: compressible,
                     compressing: compressing,
                     buf: buf,
@@ -987,6 +992,7 @@ Engine_Zxcvbn : CroneEngine {
                                 outsc: buses.at("busCompressing"),
                                 outnsc: buses.at("busNotCompressible"),
                                 outreverb: buses.at("busReverb"),
+                                sendreverb: send_reverb,
                                 compressible: compressible,
                                 compressing: compressing,
                                 buf: buf,
@@ -1023,6 +1029,7 @@ Engine_Zxcvbn : CroneEngine {
             var clicky=msg[9];
             var compressing=msg[10];
             var compressible=msg[11];
+            var send_reverb=msg[12];
             Synth.new("kick",[
                 basefreq: basefreq,
                 ratio: ratio,
@@ -1039,6 +1046,7 @@ Engine_Zxcvbn : CroneEngine {
                 outreverb: buses.at("busReverb"),
                 compressible: compressible,
                 compressing: compressing,
+                sendreverb: send_reverb,
             ],syns.at("main"),\addBefore).onFree({"freed!"});
         });
 
