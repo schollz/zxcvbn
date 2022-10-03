@@ -151,6 +151,7 @@ function Track:init()
     p=function(x) params:set(self.id.."pan",(x/100)*2-1) end,
     m=function(x) params:set(self.id.."decimate",x/100) end,
     n=function(x) params:set(self.id.."pitch",x) end,
+    z=function(x) params:set(self.id.."send_reverb",x) end,
   }
 
   -- initialize track data
