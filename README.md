@@ -7,7 +7,7 @@ tracker of limited input.
 ## todo
 
 
-- [ ] midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
+- [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] have tli keep track of originating line and highlight it
 - [ ] use blend_mode to highlight the region being played
 - [ ] on mutes, do note off
