@@ -7,11 +7,9 @@ tracker of limited input.
 ## todo
 
 
-- [ ] have tli keep track of originating line and highlight it
 - [ ] midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
-- [x] add sample selector from old one
+- [ ] have tli keep track of originating line and highlight it
 - [ ] use blend_mode to highlight the region being played
-- [ ] TEST wedges define wedges per-line, everything runs at 24ppqn wedge = pulses per line
 - [ ] on mutes, do note off
 - [ ] cache parsers for notes and chain
 - [ ] allow chains to playthrough only once
@@ -21,6 +19,9 @@ tracker of limited input.
 - [ ] TEST retrig/volume w/ melodic
 - [ ] random parameter choices with '?' (e.g. m?)
 - [ ] padfx as a global reverb send?
+- [ ] padfx + audioin as options?
+- [x] add sample selector from old one
+- [x] TEST wedges define wedges per-line, everything runs at 24ppqn wedge = pulses per line
 - [x] slice should send duration_total as well as duration_slice (duration_slice is switched by type and not affected by retrig rate) (need to test)
 - [x] in chaining, support "*" to multiply patterns?
 - [x] delete key should move previous line to current line
