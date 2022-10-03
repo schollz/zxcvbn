@@ -58,7 +58,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
 		SynthDef("casio",{
@@ -86,7 +87,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp / 5;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
 		SynthDef("icarus",{
@@ -149,7 +151,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
 		// port of STK's Rhodey (yamaha DX7-style Fender Rhodes) https://sccode.org/1-522
@@ -192,7 +195,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
 
@@ -224,7 +228,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
 		SynthDef("malone",{
@@ -268,33 +273,9 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
-
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
-
-
-		// another resonate thing
-		// http://sccode.org/1-4EG
-		// (
-		// {
-		// 	var attack=1;
-		// 	var dur=2;
-		// 	var spread=0.8;
-		// 	var freq=110;
-		// 	var num=8;
-		// 	var harm = Array.geom(num, 1, 1.5);
-		// 	var harma = Array.geom(num, 0.5, 0.8);
-		// 	var detune = Array.fill(num, { LFNoise2.kr(1,0.01,1) });
-		// 	var source = SelectX.ar(MouseX.kr(),[PinkNoise.ar,BrownNoise.ar]);
-		// 	var bandwidth = Rand(0.001,0.01);
-		// 	var generator = [
-		// 		SinOsc.ar(freq*harm*detune, mul:harma*0.3),
-		// 		Resonz.ar(source, freq*harm*detune, bandwidth, mul:harma) * 50
-		// 	].wchoose([0.2,0.8]);
-		// 	var snd = Splay.ar(generator,spread);
-		// 	snd
-		// }.play;
-		// )
 
 		// http://sccode.org/1-51n
 		SynthDef("kalimba",{
@@ -331,7 +312,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
 		SynthDef("mdapiano",{
@@ -362,7 +344,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp / 6;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
 		// https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
@@ -385,7 +368,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp / 12;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
 		// https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41
@@ -427,7 +411,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp / 5;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
 		SynthDef("aaaaaa",{
@@ -500,7 +485,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * env * amp / 5;
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
 		SynthDef("triangles",{
@@ -542,6 +528,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
         // </mx.synths>
