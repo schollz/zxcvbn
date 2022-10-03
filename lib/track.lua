@@ -143,10 +143,7 @@ function Track:init()
   table.insert(self.states,sample_:new{id=self.id})
 
   -- keep track of notes
-  self.notes_on={}
-  for i=1,#self.track_type_options do
-    table.insert(self.notes_on,{})
-  end
+  self.midi_notes={}
 
   self.scroll={"","","","","","",""}
 
@@ -159,7 +156,6 @@ function Track:init()
         do return end
       end
       local id=self.id.."_"..d.m
-      self.notes_on[1][d.m]=true
       self.states[SAMPLE]:play{
         on=true,
         id=id,
@@ -173,13 +169,6 @@ function Track:init()
         pitch=params:get(self.id.."pitch"),
         gate=params:get(self.id.."gate")/100,
       }
-    end,
-    note_off=function(d)
-      -- if d.m==nil then
-      --   do return end
-      -- end
-      -- local id=self.id.."_"..d.m
-      -- self.states[SAMPLE]:play{on=false,id=self.id.."_"..d.m}
     end,
   })
   -- melodic sample
@@ -200,7 +189,6 @@ function Track:init()
         gate=params:get(self.id.."gate")/100,
       }
     end,
-    note_off=function(d) end,
   })
   -- mx.samples
   table.insert(self.play_fn,{
@@ -218,7 +206,6 @@ function Track:init()
       local sendReverb=0.3
       engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
     end,
-    note_off=function(d) end,
   })
   -- infinite pad
   table.insert(self.play_fn,{
@@ -230,7 +217,6 @@ function Track:init()
         params:get(self.id.."release")/1000,
       d.duration_scaled)
     end,
-    note_off=function(d) end,
   })
   -- crow 1+2 & 3+4
   for ii=1,2 do
@@ -262,21 +248,17 @@ function Track:init()
           end)
         end
       end,
-      note_off=function(d)
-        -- crow.output[i+1](false)
-      end,
     })
   end
 
   -- midi device
   table.insert(self.play_fn,{
     note_on=function(d)
-      self.notes_on[6][d.m]=true
       local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0))
       local note=d.m+params:get(self.id.."pitch")
       if vel>0 then
         midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
-        midi_device[params:get(self.id.."midi_dev")].notes[d.m]=note
+        self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=v.duration}
       end
       if d.mods.x~=nil and d.mods.x>0 then
         clock.run(function()
@@ -287,16 +269,10 @@ function Track:init()
             note=d.m+params:get(self.id.."pitch")*(i+1)
             if vel>0 then
               midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
-              midi_device[params:get(self.id.."midi_dev")].notes[d.m]=note
+              self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=v.duration}
             end
           end
         end)
-      end
-    end,
-    note_off=function(d)
-      local note=midi_device[params:get(self.id.."midi_dev")].notes[d.m]
-      if note~=nil then
-        midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
       end
     end,
   })
@@ -367,6 +343,21 @@ function Track:parse_tli()
 end
 
 function Track:emit(beat)
+  -- turn off any midi notes
+  if next(self.midi_notes)~=nil then 
+    local to_remove={}
+    for note,v in pairs(self.midi_notes) do 
+      v.duration=v.duration-1
+      if v.duration==0 then 
+        -- note off
+        midi_device[v.device].note_off(note,0,params:get(self.id.."midi_ch"))
+        table.insert(to_remove,note)
+      end
+    end
+    for _, note in ipairs(to_remove) do 
+      self.midi_notes[note]=nil 
+    end
+  end
   if params:get(self.id.."play")==0 or params:get(self.id.."mute")==1 then
     do return end
   end
@@ -387,13 +378,6 @@ function Track:emit(beat)
       end
       if self.flag_parsed then
         self.flag_parsed=nil
-        for i,notes_on in ipairs(self.notes_on) do
-          for m,_ in pairs(notes_on) do
-            print("notes_on",m)
-            self.play_fn[i]:note_off({m=m})
-            self.notes_on[i][m]=nil
-          end
-        end
       end
       d.duration_scaled=d.duration*(clock.get_beat_sec()/24)
       --print("d.duration_scaled",d.duration_scaled,"d.duration",d.duration)
