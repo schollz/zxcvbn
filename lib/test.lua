@@ -1,23 +1,20 @@
 json=require("json")
 parse_chain=require("parse_chain")
 tli_=require("tli")
-d
 tli=tli_:new()
 local data,err=tli:parse_tli([[
-chain (b b a)*2 a
-
+chain a b
+ 
+w12
+ 
 pattern b
-C#m7
+C#m7 ru s3 t8
 pattern a
-d3
+d3 d4 
+c3
   ]])
+print(json.encode(data))
 
-if err ~= nil then 
-    print("error",err)
-else
-    for i,v in ipairs(data.track) do
-    if next(v.on)~=nil then 
-        print(i,json.encode(v.on))
-    end
-    end
+for i,v in pairs(data.track) do
+  print(i,json.encode(v))
 end
