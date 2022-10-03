@@ -1049,7 +1049,7 @@ function TLI:parse_tli_(text,use_hex)
     end
     pos=pos+data.patterns[p].parsed.wedges
   end
-  data.chain_lenth=pos
+  data.wedges=pos
   return data
 end
 

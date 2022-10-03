@@ -342,6 +342,10 @@ function Track:parse_tli()
     do return end
   end
   self.tli=tli_parsed
+  self.track={}
+  for _,v in ipairs(tli_parsed.track) do
+    self.track[v.start]=v
+  end
   -- update the meta
   if self.tli.meta~=nil then
     for k,v in pairs(self.tli.meta) do
@@ -366,16 +370,14 @@ function Track:emit(beat)
   if params:get(self.id.."play")==0 or params:get(self.id.."mute")==1 then
     do return end
   end
-  if self.tli~=nil and self.tli.track~=nil then
-    local i=(beat-1)%#self.tli.track+1
+  if self.tli~=nil and self.track~=nil then
+    local i=(beat-1)%#self.tli.wedges+1
     --print("beati",beat,i,#self.tli.track)
-    local t=self.tli.track[i]
-    for _,d in ipairs(t.off) do
-      if d.m~=nil then
-        self.play_fn[params:get(self.id.."track_type")].note_off(d)
-      end
+    local t=self.track[i]
+    if t==nil then
+      do return end
     end
-    for _,d in ipairs(t.on) do
+    for _,d in ipairs(t) do
       if d.mods~=nil then
         for k,v in pairs(d.mods) do
           if self.mods[k]~=nil then

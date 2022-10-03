@@ -8,13 +8,18 @@ chain a b
 w12
  
 pattern b
-C#m7 ru s3 t8
+0 0 1 2
+ 
 pattern a
-d3 d4 
-c3
-  ]])
-print(json.encode(data))
+a
+  ]],true)
 
-for i,v in pairs(data.track) do
-  print(i,json.encode(v))
+if err~=nil then
+  print(err)
+else
+  print(json.encode(data))
 end
+
+-- for i,v in pairs(data.track) do
+--   print(i,json.encode(v))
+-- end
