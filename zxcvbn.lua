@@ -470,20 +470,21 @@ function params_audioin()
       }
       params:set_action("audioin"..pram.id..lr,function(v)
         print(lr,pram.id,v)
-        --engine.audioin_set(lr,pram.id,v)
+        engine.audionin_set(lr,pram.id,v)
         if params:get("audioin_linked")==2 then
           if pram.id~="pan" then
             params:set("audioin"..pram.id..lrs[3-lri],v,true)
-            --engine.audioin_set(lrs[3-lri],pram.id,v)
+            engine.audionin_set(lrs[3-lri],pram.id,v)
           else
             params:set("audioin"..pram.id..lrs[3-lri],-v,true)
-            --engine.audioin_set(lrs[3-lri],pram.id,-1*v)
+            engine.audionin_set(lrs[3-lri],pram.id,-1*v)
           end
         end
       end)
     end
   end
-  params:set("audioinpanR",1)
+  params:set("audioinpanR",0.1)
+  params:set("audioinpanL",-0.1)
 end
 
 function params_sidechain()

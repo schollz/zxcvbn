@@ -49,6 +49,12 @@ function Track:init()
       if play_count==1 then
         reset_clocks()
       end
+    else
+      if params:get(self.id.."track_type")==5 then
+        crow.output[2](false)
+      elseif params:get(self.id.."track_type")==6 then
+        crow.output[4](false)
+      end
     end
   end}
   params:add{type="binary",name="mute",id=self.id.."mute",behavior="toggle",action=function(v)
@@ -234,11 +240,12 @@ function Track:init()
         local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0))
         local note=d.m+params:get(self.id.."pitch")
         if level>0 then
-          local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack"),params:get(self.id.."release"),level)
+          -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
+          local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,level,d.duration_scaled,params:get(self.id.."release")/1000)
           print(i+1,crow_asl)
           crow.output[i+1].action=crow_asl
           crow.output[i].volts=(note-24)/12
-          crow.output[i+1](true)
+          crow.output[i+1]()
         end
         if d.mods.x~=nil and d.mods.x>0 then
           clock.run(function()
@@ -249,7 +256,7 @@ function Track:init()
               note=d.m+params:get(self.id.."pitch")*(i+1)
               if level>0 then
                 crow.output[i].volts=(note-24)/12
-                crow.output[i+1](true)
+                crow.output[i+1]()
               end
             end
           end)

@@ -381,6 +381,7 @@ Engine_Zxcvbn : CroneEngine {
             var lr=msg[1];
             var key=msg[2];
             var val=msg[3];
+            ["audioIn"++lr,key,val].postln;
             syns.at("audioIn"++lr).set(key,val);
         });
 
