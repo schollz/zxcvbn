@@ -15,6 +15,7 @@ import (
 )
 
 var flagFilename string
+var flagTopNumber int
 
 type Output struct {
 	Error  string        `json:"error,omitempty"`
@@ -24,6 +25,7 @@ type Output struct {
 
 func init() {
 	flag.StringVar(&flagFilename, "filename", "", "filename")
+	flag.IntVar(&flagTopNumber, "num", 16, "max number of onsets")
 }
 func main() {
 	flag.Parse()
@@ -40,6 +42,12 @@ func main() {
 }
 
 func run() (top16 []float64, err error) {
+	defer func() {
+		if recover() != nil {
+			err = errors.New("panic occurred")
+		}
+	}()
+
 	onsets, err := getOnsets()
 	if err != nil {
 		return
@@ -79,9 +87,9 @@ func findWindows(data []float64) (top16 []float64, err error) {
 		return len(windows[i].data) > len(windows[j].data)
 	})
 
-	top16 = make([]float64, 16)
+	top16 = make([]float64, flagTopNumber)
 	for i, w := range windows {
-		if i == 16 {
+		if i == flagTopNumber {
 			break
 		}
 		top16[i] = average(w.data)
@@ -141,8 +149,9 @@ func getOnsets() (onsets []float64, err error) {
 	}
 
 	joblist := []job{}
-	for _, algo := range []string{"energy", "hfc", "complex", "kl", "specdiff"} {
-		for _, threshold := range []float64{1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1} {
+
+	for _, algo := range []string{"energy", "hfc", "complex", "specdiff"} {
+		for _, threshold := range []float64{1.0, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.1} {
 			joblist = append(joblist, job{algo, threshold})
 		}
 	}
