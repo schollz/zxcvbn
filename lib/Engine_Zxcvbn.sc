@@ -56,9 +56,9 @@ Engine_Zxcvbn : CroneEngine {
 			}!2);
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
             snd = snd * env * amp / 8;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -85,9 +85,9 @@ Engine_Zxcvbn : CroneEngine {
 			snd = LPF.ar(snd,Clip.kr(hz*artifacts,20,18000));
 			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
             snd = snd * env * amp / 5;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -149,9 +149,9 @@ Engine_Zxcvbn : CroneEngine {
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 
             snd = snd * env * amp / 8;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -193,9 +193,9 @@ Engine_Zxcvbn : CroneEngine {
 			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
 
             snd = snd * env * amp / 8;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -226,9 +226,9 @@ Engine_Zxcvbn : CroneEngine {
 			snd=snd+(Amplitude.kr(snd)*VarLag.kr(LFNoise0.kr(1),1,warp:\sine).range(0.1,1.0)*klankyvol*Klank.ar(`[[hz, hz*2+2, hz*4+5, hz*8+2], nil, [1, 1, 1, 1]], PinkNoise.ar([0.007, 0.007])));
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
             snd = snd * env * amp / 8;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -271,9 +271,9 @@ Engine_Zxcvbn : CroneEngine {
 
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
             snd = snd * env * amp / 8;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -310,9 +310,9 @@ Engine_Zxcvbn : CroneEngine {
 
 			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
             snd = snd * env * amp;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -342,9 +342,9 @@ Engine_Zxcvbn : CroneEngine {
 			);
 			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
             snd = snd * env * amp / 6;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -366,9 +366,9 @@ Engine_Zxcvbn : CroneEngine {
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
             snd = snd * env * amp / 12;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -409,9 +409,9 @@ Engine_Zxcvbn : CroneEngine {
 			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
 
             snd = snd * env * amp / 5;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -483,9 +483,9 @@ Engine_Zxcvbn : CroneEngine {
 			snd = Balance2.ar(snd[0], snd[1], Lag.kr(pan,0.1)).tanh;
 
             snd = snd * env * amp / 5;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -525,9 +525,9 @@ Engine_Zxcvbn : CroneEngine {
 
 			snd = Pan2.ar(snd,Lag.kr(pan,0.1));
             snd = snd * env * amp / 8;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd); 
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
@@ -583,9 +583,9 @@ Engine_Zxcvbn : CroneEngine {
             snd=Pan2.ar(snd,pan,amp);
             snd=RHPF.ar(snd,hpf,hpfqr);
             snd=RLPF.ar(snd,lpf,lpfqr);
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
         }).add;
 
@@ -641,7 +641,7 @@ Engine_Zxcvbn : CroneEngine {
 
             Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd*amp);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd*amp);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
         }).add;
         });
@@ -654,9 +654,9 @@ Engine_Zxcvbn : CroneEngine {
             env = EnvGen.kr(Env([clicky,1, decay1L, 0], [0.0,decay1, decay2], -4), doneAction: Done.freeSelf),
             sig = SinOsc.ar(fcurve, 0.5pi, preamp).distort * env ;
             snd = (sig*amp).tanh!2;
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
         }).send(context.server);
 
@@ -681,7 +681,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = Splay.ar(snd);
             snd = snd * EnvGen.ar(Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)),\gate.kr(1) * ToggleFF.kr(1-TDelay.kr(DC.kr(1),\duration.kr(1))),doneAction:2);
             snd = snd * -30.dbamp * \amp.kr(1);
-            Out.ar(\out.kr(0), snd);
+            Out.ar(\out.kr(0), (1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
         }).send(context.server);
 
@@ -693,7 +693,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * EnvGen.ar(Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)),\gate.kr(1) * ToggleFF.kr(1-TDelay.kr(DC.kr(1),\duration.kr(1))),doneAction:2);
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
             snd = snd * -10.dbamp * \amp.kr(1);
-            Out.ar(\out.kr(0), snd);
+            Out.ar(\out.kr(0), (1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
         }).send(context.server);
 
@@ -705,7 +705,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * EnvGen.ar(Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)),\gate.kr(1) * ToggleFF.kr(1-TDelay.kr(DC.kr(1),\duration.kr(1))),doneAction:2);
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
             snd = snd * -50.dbamp * \amp.kr(1);
-            Out.ar(\out.kr(0), snd);
+            Out.ar(\out.kr(0), (1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
         }).send(context.server);
 
@@ -722,9 +722,9 @@ Engine_Zxcvbn : CroneEngine {
             snd = MoogFF.ar(snd, 9000 * (1 - (0.5 *env)) + 100, 0);
             snd = snd + NHHall.ar(snd, 2);
             //snd = LPF.ar(snd, MouseY.kr(100,20000,1));
-            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
         }).send(context.server);
 
         (1..2).do({arg ch;
@@ -757,7 +757,7 @@ Engine_Zxcvbn : CroneEngine {
 
             Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd*amp);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd*amp);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
         }).send(context.server);
         });
@@ -1017,7 +1017,7 @@ Engine_Zxcvbn : CroneEngine {
         });
 
 
-        this.addCommand("kick","fffffffffff",{arg msg;
+        this.addCommand("kick","ffffffffffff",{arg msg;
             var basefreq=msg[1];
             var ratio=msg[2];
             var sweeptime=msg[3];
@@ -1179,8 +1179,8 @@ Engine_Zxcvbn : CroneEngine {
                 outreverb: buses.at("busReverb"),
                 compressible: sendCompressible,
                 compressing: sendCompressing,
-                sendreverb: sendReverb,
-            ],syns.at("main"),\addBefore).onFree({"freed!"});
+                sendreverb: sendReverb.postln,
+            ],syns.at("reverb"),\addBefore).onFree({"freed!"});
         });
 
 

@@ -152,7 +152,7 @@ function Track:init()
     p=function(x) params:set(self.id.."pan",(x/100)*2-1) end,
     m=function(x) params:set(self.id.."decimate",x/100) end,
     n=function(x) params:set(self.id.."pitch",x) end,
-    z=function(x) params:set(self.id.."send_reverb",x) end,
+    z=function(x) params:set(self.id.."send_reverb",x/100) end,
   }
 
   -- initialize track data
@@ -361,11 +361,17 @@ function Track:parse_tli()
   end
   self.tli=tli_parsed
   self.track={}
-  for _,v in ipairs(tli_parsed.track) do
+  if self.id==4 then
+    print(i,json.encode(tli_parsed.track))
+  end
+  for i,v in ipairs(tli_parsed.track) do
     if self.track[v.start]==nil then
       self.track[v.start]={}
     end
     table.insert(self.track[v.start],v)
+    if self.id==4 then
+      print(i,json.encode(v))
+    end
   end
   -- update the meta
   if self.tli.meta~=nil then
@@ -413,8 +419,8 @@ function Track:emit(beat)
       do return end
     end
     print("beati",beat,i,self.tli.wedges,json.encode(t))
-    for _,d in ipairs(t) do
-      print(json.encode(d))
+    for k,d in ipairs(t) do
+      print(k,json.encode(d))
       if d.mods~=nil then
         for k,v in pairs(d.mods) do
           if self.mods[k]~=nil then
