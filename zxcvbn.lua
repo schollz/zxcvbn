@@ -106,8 +106,10 @@ function init()
   tracks[1]:load_text([[
 chain a
  
+w96
+ 
 pattern a
-Cmaj;3 w192
+Cmaj;3 z100
 Am/C;4
 Em/B;3
 G/B;3
@@ -157,24 +159,25 @@ pattern c
   -- params:set("3play",1)
 
   tracks[4]:load_text([[
-chain d*2 b
+chain d
+ 
+w48 
  
 pattern d 
-0 w48 a 4 b 
+0 a 4 b 
 0 d n-8 4 1 
 b 4 0 c x4
  
- 
-pattern c 
+pattern c
 0 w24 n0
 9 a b c
-1 4 x8 v-4 w48 
-5 6 7 8 w36 
+1 4 x8 v-4 w48
+5 6 7 8 w36
 9 a b c w24
  
-pattern b 
+pattern b
 0 x5 v-1 w24 n0
-0 x3 n2 
+0 x3 n2
  
 pattern a
 0 v12 w24
@@ -185,6 +188,7 @@ pattern a
 7 8 a b v8
 e e e x4 n-1
 f x8 n1
+ 
 ]])
 
   params:set("4sample_file",_path.code.."zxcvbn/lib/yelidek_kit.wav")
@@ -208,8 +212,9 @@ pattern a
 Am;4 rdico s12 t6 w96
  
 ]])
-  params:set("track",2)
-  params:set("2play",1)
+  -- params:set("track",2)
+  -- params:set("2play",1)
+  params:set("track",4)
 
   clock.run(function()
     clock.sleep(1)

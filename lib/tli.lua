@@ -960,7 +960,7 @@ end
 
 function TLI:parse_tli(text,use_hex)
   local key=text..(use_hex and "hex" or "")
-  if self.cache[key]~=nil then 
+  if self.cache[key]~=nil then
     print("using cache")
     return self.cache[key]
   end
@@ -971,8 +971,8 @@ function TLI:parse_tli(text,use_hex)
       data=self:parse_tli_(text,use_hex)
     end
   )
-  if err==nil then 
-    self.cache[key]=data 
+  if err==nil then
+    self.cache[key]=data
   end
   return data,err
 end
@@ -1054,8 +1054,7 @@ function TLI:parse_tli_(text,use_hex)
       error("pattern "..p.." not found")
     end
     for j,v in ipairs(data.patterns[p].parsed.track) do
-      v.start=pos+v.start
-      table.insert(data.track,v)
+      table.insert(data.track,{start=pos+v.start,duration=v.duration,mods=v.mods,m=v.m})
     end
     pos=pos+data.patterns[p].parsed.wedges
   end
