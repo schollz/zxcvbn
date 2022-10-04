@@ -1147,9 +1147,9 @@ Engine_Zxcvbn : CroneEngine {
 
         this.addCommand("mx_synths","sffffffffffffff", { arg msg;
             var synth=msg[1].asString;
-            var note=msg[2];
-            var amp=msg[3];
-            var sub=msg[4];
+            var note=msg[2].postln;
+            var amp=msg[3].dbamp;
+            var sub=msg[4].dbamp;
             var pan=msg[5];
             var attack=msg[6];
             var release=msg[7];
@@ -1162,7 +1162,7 @@ Engine_Zxcvbn : CroneEngine {
             var sendCompressing=msg[14];
             var sendReverb=msg[15];
             Synth.new(synth,[
-                freq: note.midicps,
+                hz: note.midicps,
                 amp: amp,
                 sub: sub,
                 pan: pan,
