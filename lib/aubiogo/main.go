@@ -12,10 +12,15 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hypebeast/go-osc/osc"
+	log "github.com/schollz/logger"
 )
 
 var flagFilename string
 var flagTopNumber int
+var flagHost, flagAddress string
+var flagPort int
 
 type Output struct {
 	Error  string        `json:"error,omitempty"`
@@ -26,9 +31,16 @@ type Output struct {
 func init() {
 	flag.StringVar(&flagFilename, "filename", "", "filename")
 	flag.IntVar(&flagTopNumber, "num", 16, "max number of onsets")
+	flag.StringVar(&flagHost, "host", "localhost", "osc host")
+	flag.IntVar(&flagPort, "port", 10111, "port to use")
+	flag.StringVar(&flagAddress, "addr", "/progressbar", "osc address")
 }
+
 func main() {
 	flag.Parse()
+
+	log.SetLevel("error")
+
 	var out Output
 	var err error
 	now := time.Now()
@@ -128,6 +140,15 @@ func getRange(arr []float64, min, max float64) (rng []float64) {
 	return
 }
 
+func sendProgress(int progress) (err error) {
+	client := osc.NewClient(flagHost, flagPort)
+	msg := osc.NewMessage(flagAddress)
+	msg.Append("progress")
+	msg.Append(int32(progress))
+	err = client.Send(msg)
+	return
+}
+
 func getOnsets() (onsets []float64, err error) {
 	if flagFilename == "" {
 		err = fmt.Errorf("no filename")
@@ -137,6 +158,7 @@ func getOnsets() (onsets []float64, err error) {
 		err = fmt.Errorf("%s does not exist", flagFilename)
 		return
 	}
+
 
 	type job struct {
 		algo      string
@@ -156,8 +178,9 @@ func getOnsets() (onsets []float64, err error) {
 		}
 	}
 
-	jobs := make(chan job, len(joblist))
-	results := make(chan result, len(joblist))
+	numJobs := len(joblist)
+	jobs := make(chan job,numJobs)
+	results := make(chan result,numJobs)
 
 	numCPU := runtime.NumCPU()
 	runtime.GOMAXPROCS(numCPU)
@@ -186,7 +209,8 @@ func getOnsets() (onsets []float64, err error) {
 
 	data := [10000]float64{}
 	j := 0
-	for i := 0; i < len(joblist); i++ {
+	for i := 0; i <numJobs; i++ {
+		sendProgress(int(float64(i)/float64(numJobs)*100.0))
 		r := <-results
 		if r.err != nil {
 			err = r.err

@@ -64,6 +64,10 @@ function init()
     progress=function(args)
       tracks[params:get("track")]:set_position(tonumber(args[1]))
     end,
+    progressbar=function(args)
+      show_message(args[1])
+      show_progress(tonumber(args[2]))
+    end,
     oscnotify=function(args)
       print("file edited ok!")
       rerun()
