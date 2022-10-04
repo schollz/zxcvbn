@@ -33,7 +33,6 @@ function init()
   screens={}
   screen_ind=1
   table.insert(screens,tracker_:new())
-  table.insert(screens,viewselect_:new())
 
   -- add major parameters
   params_audioin()
