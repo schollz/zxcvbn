@@ -33,9 +33,6 @@ end
 function ViewSelect:regen(path)
   self.current_folder=path
   self.ls=self:list_all(self.current_folder)
-  -- for _,v in ipairs(self.ls) do
-  --   print(v[1],v[2])
-  -- end
   self.view={1,7}
   self.current=1
 end

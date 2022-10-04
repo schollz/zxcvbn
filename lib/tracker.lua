@@ -9,7 +9,7 @@ function Tracker:new(o)
 end
 
 function Tracker:init()
-
+  
 end
 
 function Tracker:keyboard(k,v)

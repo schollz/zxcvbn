@@ -2,6 +2,7 @@ local Track={}
 
 VTERM=1
 SAMPLE=2
+LOADSCREEN=3
 
 function string.split(pString,pPattern)
   local Table={} -- NOTE: use {n = 0} in Lua-5.0
@@ -163,6 +164,7 @@ function Track:init()
     return success
   end})
   table.insert(self.states,sample_:new{id=self.id})
+  table.insert(self.states,viewselect_:new{id=self.id})
 
   -- keep track of notes
   self.midi_notes={}
@@ -492,6 +494,16 @@ function Track:keyboard(k,v)
     if v==1 and params:get(self.id.."track_type")<3 then
       self.state=3-self.state
     end
+    do return end 
+  elseif k=="CTRL+L" then 
+    if v==1 then 
+      if self.state==LOADSCREEN then 
+        self.state=SAMPLE
+      else
+        self.state=LOADSCREEN
+      end
+    end
+    do return end 
   end
   self.states[self.state]:keyboard(k,v)
 end
