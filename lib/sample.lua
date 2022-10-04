@@ -66,11 +66,9 @@ function Sample:load_sample(path,is_melodic,slices)
 
   self.is_melodic=is_melodic
   if not is_melodic then
-    self.cursors=self:get_onsets(self.path,self.duration)
-    if self.cursors[1]>0.1 then
-      self.cursors[1]=0
-    end
-    self:do_move(0)
+    clock.run(function() 
+      self:get_onsets()
+    end)
   else
     self.cursors[2]=self.duration*0.6
     self.cursors[3]=self.duration*0.8
@@ -139,7 +137,7 @@ function Sample:loads(s)
   self:do_move(0)
 end
 
-function Sample:get_onsets(fname,duration)
+function Sample:get_onsets()
   self.path_to_cursors=_path.data.."/zxcvbn/cursors/"..self.filename.."_"..self.slice_num..".cursors"
   -- try to load the cached cursors
   if util.file_exists(self.path_to_cursors) then
@@ -155,61 +153,30 @@ function Sample:get_onsets(fname,duration)
     end
   end
 
-  -- define average function
-  local average=function(t)
-    local sum=0
-    for _,v in pairs(t) do -- Get the sum of all numbers in t
-      sum=sum+v
-    end
-    return sum/#t
-  end
-
   -- gather the onsets
-  local onsets={}
-  for _,algo in ipairs({"energy","hfc","complex","kl","specdiff"}) do
-    for threshold=1.0,0.1,-0.1 do
-      local cmd=string.format("aubioonset -i %s -B 128 -H 128 -t %2.1f -O %s",fname,threshold,algo)
-      print(cmd)
-      local s=util.os_capture(cmd)
-      for w in s:gmatch("%S+") do
-        local wn=tonumber(w)
-        if math.abs(duration-wn)>0.1 then
-          local found=false
-          for i,o in ipairs(onsets) do
-            if math.abs(wn-average(o.onset))<0.01 then
-              found=true
-              onsets[i].count=onsets[i].count+1
-              table.insert(onsets[i].onset,wn)
-              break
-            end
-          end
-          if not found then
-            table.insert(onsets,{onset={wn},count=1})
-          end
-        end
-      end
-    end
+  local data_s=util.os_capture(_path.code.."zxcvbn/lib/aubiogo/aubiogo --filename "..self.path.." --num "..self.slice_num)
+  local data=json.decode(data_s)
+  if data==nil then
+    print("error getting onset data!") 
+    do return end 
   end
-  table.sort(onsets,function(a,b) return a.count>b.count end)
-  local top_slices={}
-  local i=0
-  for _,o in ipairs(onsets) do
-    i=i+1
-    table.insert(top_slices,average(o.onset))
-    if i==self.slice_num then
-      break
-    end
+  if data.error~=nil then 
+    print("error getting onset data: "..data.error) 
+    do return end 
   end
-  table.sort(top_slices)
+  if data.result==nil then 
+  print("no onset results!")
+  do return end 
+  end    
+  self.cursors=data.result
+  self:do_move(0)
 
   -- save the top_slices
   local filename=self.path_to_cursors
   local file=io.open(self.path_to_cursors,"w+")
   io.output(file)
-  io.write(json.encode({cursors=top_slices}))
+  io.write(json.encode({cursors=self.cursors}))
   io.close(file)
-
-  return top_slices
 end
 
 function Sample:play(d)
