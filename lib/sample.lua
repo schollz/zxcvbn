@@ -254,7 +254,7 @@ function Sample:play(d)
         d.retrig,
         d.compressible,
         d.compressing,
-        d.send_reverb,
+        d.reverb,
       d.watch)
     else
       engine.melodic_off(self.id)
@@ -287,7 +287,7 @@ function Sample:play(d)
         d.decimate,
         d.compressible,
         d.compressing,
-        d.send_reverb,
+        d.reverb,
       d.watch,d.attack,d.release)
       if self.kick[d.ci]>-48 then
         engine.kick(
@@ -301,9 +301,9 @@ function Sample:play(d)
           params:get("kick_decay2")/1000,
           params:get("kick_clicky")/1000,
           params:get("kick_compressing"),
-        params:get("kick_compressible"),
-        d.send_reverb,
-      )
+          params:get("kick_compressible"),
+          d.reverb
+        )
       end
     elseif not d.on then
       engine.slice_off(d.id)

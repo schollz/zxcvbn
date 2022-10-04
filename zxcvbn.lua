@@ -113,7 +113,7 @@ Em/B;3
 G/B;3
           ]])
 
-  params:set("2track_type",3)
+  params:set("2track_type",4)
   tracks[2]:load_text([[
 chain a
  
@@ -200,7 +200,6 @@ pattern a
 Am;2 ru s12 w96
 Em/B;2 ru s12 
 ]])
-  params:set("5play",1)
   params:set("6track_type",6)
   tracks[6]:load_text([[
 chain a 
@@ -209,7 +208,8 @@ pattern a
 Am;4 rdico s12 t6 w96
  
 ]])
-  params:set("6play",1)
+  params:set("track",2)
+  params:set("2play",1)
 
   clock.run(function()
     clock.sleep(1)
