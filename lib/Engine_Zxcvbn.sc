@@ -1145,6 +1145,46 @@ Engine_Zxcvbn : CroneEngine {
             mx.note(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb);
         });
 
+        this.addCommand("mx_synths","sffffffffffffff", { arg msg;
+            var synth=msg[1].asString;
+            var note=msg[2];
+            var amp=msg[3];
+            var sub=msg[4];
+            var pan=msg[5];
+            var attack=msg[6];
+            var release=msg[7];
+            var mod1=msg[8];
+            var mod2=msg[9];
+            var mod3=msg[10];
+            var mod4=msg[11];
+            var duration=msg[12];
+            var sendCompressible=msg[13];
+            var sendCompressing=msg[14];
+            var sendReverb=msg[15];
+            Synth.new(synth,[
+                freq: note.midicps,
+                amp: amp,
+                sub: sub,
+                pan: pan,
+                attack: attack,
+                release: release,
+                mod1: mod1,
+                mod2: mod2,
+                mod3: mod3,
+                mod4: mod4,
+                duration: duration,
+                out: buses.at("busCompressible"),
+                outsc: buses.at("busCompressing"),
+                outnsc: buses.at("busNotCompressible"),
+                outreverb: buses.at("busReverb"),
+                compressible: sendCompressible,
+                compressing: sendCompressing,
+                sendreverb: sendReverb,
+            ],syns.at("main"),\addBefore).onFree({"freed!"});
+        });
+
+
+
         // ^ Zxcvbn specific
 
     }
