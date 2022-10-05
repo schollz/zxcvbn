@@ -138,6 +138,9 @@ function Sample:loads(s)
 end
 
 function Sample:get_onsets()
+  show_message("determing onsets",4)
+  show_progress(0)
+
   self.path_to_cursors=_path.data.."/zxcvbn/cursors/"..self.filename.."_"..self.slice_num..".cursors"
   -- try to load the cached cursors
   if util.file_exists(self.path_to_cursors) then
@@ -150,6 +153,7 @@ function Sample:get_onsets()
       if data~=nil then
         self.cursors=data.cursors
         self:do_move(0)
+        show_message("loaded track "..self.id,2)
         do return end
       end
     end
@@ -172,6 +176,7 @@ function Sample:get_onsets()
   end
   self.cursors=data.result
   self:do_move(0)
+  show_message("loaded track "..self.id,2)
 
   -- save the top_slices
   local filename=self.path_to_cursors
