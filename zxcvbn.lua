@@ -37,6 +37,7 @@ function init()
   -- add major parameters
   params_audioin()
   params_sidechain()
+  params_reverb()
   params_kick()
   params_midi()
 
@@ -106,7 +107,7 @@ function init()
     end
   end)
 
-  params:set("1track_type",4)
+  params:set("1track_type",5)
   tracks[1]:load_text([[
 chain a
  
@@ -225,7 +226,7 @@ Am;4 rdico s12 t6 w96
 ]])
   -- params:set("track",2)
   -- params:set("3play",1)
-  params:set("track",3)
+  params:set("track",1)
 
   clock.run(function()
     clock.sleep(1)
@@ -501,6 +502,27 @@ function params_audioin()
   end
   params:set("audioinpanR",0.1)
   params:set("audioinpanL",-0.1)
+end
+
+function params_reverb()
+  local params_menu={
+    {id="shimmer",name="shimmer",min=0,max=2,exp=false,div=0.01,default=0.0,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="tail",name="tail",min=0,max=8,exp=false,div=0.1,default=4.0,unit="s"},
+    {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+  }
+  params:add_group("ZEVERB",#params_menu)
+  for _,pram in ipairs(params_menu) do
+    params:add{
+      type="control",
+      id=pram.id,
+      name=pram.name,
+      controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
+      formatter=pram.formatter,
+    }
+    params:set_action(pram.id,function(v)
+      engine.reverb_set(pram.id,v)
+    end)
+  end
 end
 
 function params_sidechain()

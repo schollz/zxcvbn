@@ -710,32 +710,26 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\padFx, {
-            var snd, env;
+        	arg shimmer=1,tail=4;
+            var snd, snd2;
             snd = In.ar(\in.kr(0), 2);
-            snd = snd * -10.dbamp;
-            // snd = snd + (GVerb.ar(snd, 8) * -5.dbamp);
-            snd = snd + PitchShift.ar(snd, 0.2, 0.5);
-            snd = snd + PitchShift.ar(snd, 0.13, 0.2);
-            snd = DelayC.ar(snd, 0.2, SinOsc.ar(0.3, [0, pi]).linlin(-1,1,0,0.001));
-            env = Env.perc(0.2, 0.5, curve: -2).kr(Done.none, \gate.tr(0));
-            snd = snd * (1 - (0.9 * env));
-            snd = LPF.ar(snd, 9000 * (1 - (0.5 *env)) + 100);
-            // snd = snd + PitchShift.ar(snd, 0.2, 0.5);
-            // snd = snd + PitchShift.ar(snd, 0.13, 0.2);
-            // snd = DelayC.ar(snd, 0.2, SinOsc.ar(0.3, [0, pi]).linlin(-1,1,0,0.001));
-            // env = Env.perc(0.2, 0.5, curve: -2).kr(Done.none, \gate.tr(0));
-            // snd = snd * (1 - (0.9 * env));
-            // snd = MoogFF.ar(snd, 9000 * (1 - (0.5 *env)) + 100, 0);
-            // snd = snd + NHHall.ar(snd, 2);
-            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
-            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+			snd2 = DelayN.ar(snd, 0.03, 0.03);
+		    snd2 = snd2 + PitchShift.ar(snd, 0.13, 2,0,1,1*shimmer);
+		    snd2 = snd2 + PitchShift.ar(snd, 0.1, 4,0,1,0.5*shimmer);
+		    snd2 = snd2 + PitchShift.ar(snd, 0.1, 8,0,1,0.25*shimmer);
+			snd2 = DelayC.ar(snd2, 0.2, SinOsc.ar(0.3, [0, pi]).linlin(-1,1,0,0.001));
+			snd2 = CombN.ar(snd2, 0.1, {Rand(0.01,0.099)}!32, 0.1+(tail*2));
+			snd2 = SplayAz.ar(2, snd2);
+			5.do{snd2 = AllpassN.ar(snd2, 0.1, {Rand(0.01,0.099)}!2, 0.1+(tail*1.5))};
+			snd = LeakDC.ar(snd2);
+            Out.ar(\out.kr(0),\compressible.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);
         }).send(context.server);
 
         (1..2).do({arg ch;
         SynthDef("slice"++ch,{
-            arg amp=0, buf=0, rate=1, pos=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
-            var snd;
+            arg amp=0, buf=0, rate=1, pos=0, drive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
+            var snd,snd2;
             var snd_pos = Phasor.ar(
                 trig: Impulse.kr(0),
                 rate: rate * BufRateScale.ir(buf),
@@ -746,19 +740,24 @@ Engine_Zxcvbn : CroneEngine {
             snd = BufRd.ar(ch,buf,snd_pos,interpolation:4);
             snd = snd * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
             snd = Pan2.ar(snd,pan);
-            snd = RLPF.ar(snd,filter,0.707);
 
             // fx
-            snd = (snd * 30.dbamp).tanh * -10.dbamp;
             snd = SelectX.ar(\decimate.kr(0).lag(0.01), [snd, Latch.ar(snd, Impulse.ar(LFNoise2.kr(0.3).exprange(1000,16e3)))]);
-            snd = SelectX.ar(\pitch1.kr(0).lag(0.01), [snd, PitchShift.ar(snd, 0.2, 2)]);
-            snd = SelectX.ar(\pitch2.kr(0).lag(0.01), [snd, PitchShift.ar(snd, 0.03, 1.4)]);
-            snd = BHiShelf.ar(BLowShelf.ar(snd, 500, 1, -10), 3000, 1, -10);
-            snd = (snd * 10.dbamp).tanh * -10.dbamp;
-            snd = BHiShelf.ar(BLowShelf.ar(snd, 500, 1, 10), 3000, 1, 10);
-            snd = snd * -20.dbamp;
-            snd = RLPF.ar(snd,LinExp.kr(\filter.kr(1).lag(1)+0.01,0.01,1,100,16000),0.707);
-            snd = CompanderD.ar(snd);
+
+            // drive
+            snd2 = (snd * 30.dbamp).tanh * -10.dbamp;
+            snd2 = SelectX.ar(\pitch1.kr(0).lag(0.01), [snd2, PitchShift.ar(snd, 0.2, 2)]);
+            snd2 = SelectX.ar(\pitch2.kr(0).lag(0.01), [snd2, PitchShift.ar(snd, 0.03, 1.4)]);
+            snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, -10), 3000, 1, -10);
+            snd2 = (snd2 * 10.dbamp).tanh * -10.dbamp;
+            snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, 10), 3000, 1, 10);
+            snd2 = snd2 * -10.dbamp;
+
+            snd = SelectX.ar(drive,[snd,snd2]);
+
+            snd = Compander.ar(snd,snd,compression,0.5,clampTime:0.01,relaxTime:0.01);
+
+            snd = RLPF.ar(snd,filter,0.707);
 
             Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
@@ -829,7 +828,7 @@ Engine_Zxcvbn : CroneEngine {
             syns.at("audioIn"++lr).set(key,val);
         });
 
-        this.addCommand("padfx_set","sf",{ arg msg;
+        this.addCommand("reverb_set","sf",{ arg msg;
             var key=msg[1];
             var val=msg[2];
             ["padFx: putting",key,val].postln;
@@ -845,7 +844,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("slice_on","ssffffffffffffffffff",{ arg msg;
+        this.addCommand("slice_on","ssffffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -863,9 +862,11 @@ Engine_Zxcvbn : CroneEngine {
             var compressible=msg[15];
             var compressing=msg[16];
             var send_reverb=msg[17];
-            var send_pos=msg[18];
-            var attack=msg[19];
-            var release=msg[20];
+            var drive=msg[18];
+            var compression=msg[19];
+            var send_pos=msg[20];
+            var attack=msg[21];
+            var release=msg[22];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
@@ -893,6 +894,8 @@ Engine_Zxcvbn : CroneEngine {
                     pos: pos,
                     duration: (duration_slice * gate / (retrig + 1)),
                     decimate: decimate,
+                    drive: drive,
+                    compression: compression,
                     send_pos: send_pos,
                 ], syns.at("reverb"), \addBefore));
                 if (retrig>0,{
@@ -916,6 +919,8 @@ Engine_Zxcvbn : CroneEngine {
                                 pos: pos,
                                 duration: duration_slice * gate / (retrig + 1),
                                 decimate: decimate,
+			                    drive: drive,
+			                    compression: compression,
                                 send_pos: send_pos,
                             ], syns.at("reverb"), \addBefore));
                         };
