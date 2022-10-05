@@ -234,8 +234,8 @@ function VTerm:move_cursor(row,col)
   if self.cursor.col==0 then
     self.cursor.x=1
   end
-  if self.cursor.row>self.view.row+6 then
-    self.view.row=self.cursor.row-7
+  if self.cursor.row>self.view.row+5 then
+    self.view.row=self.cursor.row-6
   end
   if self.cursor.row<self.view.row then
     self.view.row=self.cursor.row
@@ -397,7 +397,7 @@ end
 function VTerm:redraw()
   screen.level(15)
   local x_offset=7
-  local y_offset=-2
+  local y_offset=7
   for i,line in ipairs(self.lines) do
     if i>=self.view.row then
       screen.level(15)
@@ -420,6 +420,16 @@ function VTerm:redraw()
       end
     end
   end
+
+  screen.level(15)
+  screen.move(8,6)
+  screen.text(params:string(self.id.."track_type"))
+  screen.blend_mode(1)
+  screen.level(5)
+  screen.rect(7,0,128,7)
+  screen.fill()
+  screen.blend_mode(0)
+
 end
 
 return VTerm

@@ -73,7 +73,7 @@ function init()
       rerun()
     end,
     audition=function(args)
-      screens[2]:set_pos(tonumber(args[1]))
+      tracks[params:get("track")].states[3]:set_pos(tonumber(args[1]))
     end,
   }
   osc.event=function(path,args,from)
@@ -129,7 +129,7 @@ Em/B;3
 G/B;3
           ]])
 
-  params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  -- params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   params:set("3track_type",1)
   tracks[3]:load_text([[
 chain d 
@@ -363,7 +363,7 @@ function redraw()
   screen.clear()
   screens[screen_ind]:redraw()
 
-  screen.level(7)
+  screen.level(5)
   screen.rect(0,0,6,66)
   screen.fill()
   screen.level(0)
