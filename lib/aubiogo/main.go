@@ -140,7 +140,7 @@ func getRange(arr []float64, min, max float64) (rng []float64) {
 	return
 }
 
-func sendProgress(int progress) (err error) {
+func sendProgress(progress int) (err error) {
 	client := osc.NewClient(flagHost, flagPort)
 	msg := osc.NewMessage(flagAddress)
 	msg.Append("progress")
@@ -158,7 +158,6 @@ func getOnsets() (onsets []float64, err error) {
 		err = fmt.Errorf("%s does not exist", flagFilename)
 		return
 	}
-
 
 	type job struct {
 		algo      string
@@ -179,8 +178,8 @@ func getOnsets() (onsets []float64, err error) {
 	}
 
 	numJobs := len(joblist)
-	jobs := make(chan job,numJobs)
-	results := make(chan result,numJobs)
+	jobs := make(chan job, numJobs)
+	results := make(chan result, numJobs)
 
 	numCPU := runtime.NumCPU()
 	runtime.GOMAXPROCS(numCPU)
@@ -209,8 +208,8 @@ func getOnsets() (onsets []float64, err error) {
 
 	data := [10000]float64{}
 	j := 0
-	for i := 0; i <numJobs; i++ {
-		sendProgress(int(float64(i)/float64(numJobs)*100.0))
+	for i := 0; i < numJobs; i++ {
+		sendProgress(int(float64(i) / float64(numJobs) * 100.0))
 		r := <-results
 		if r.err != nil {
 			err = r.err
