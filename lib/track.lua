@@ -114,6 +114,8 @@ function Track:init()
     {id="release",name="release",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
     {id="gate",name="gate",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="decimate",name="decimate",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="compression",name="compression",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="pitch",name="pitch",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
@@ -127,14 +129,9 @@ function Track:init()
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,
     }
-    params:set_action(self.id..pram.id,function(v)
-      if params:get(self.id.."track_type")==3 and string.find(pram.id,"compress") then
-        engine.padfx_set(pram.id,v)
-      end
-    end)
   end
   self.params={shared={"ppq","track_type","play","db","probability","pitch","mute","mute_group"}}
-  self.params["sliced sample"]={"sample_file","slices","bpm","play_through","gate","filter","decimate","pan","compressing","compressible","attack","release","send_reverb"}
+  self.params["sliced sample"]={"sample_file","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
   self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"}
   self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible","send_reverb"}
   self.params["mx.samples"]={"db","attack","pan","release","compressing","compressible","send_reverb"}
