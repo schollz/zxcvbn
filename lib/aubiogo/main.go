@@ -143,7 +143,7 @@ func getRange(arr []float64, min, max float64) (rng []float64) {
 func sendProgress(progress int) (err error) {
 	client := osc.NewClient(flagHost, flagPort)
 	msg := osc.NewMessage(flagAddress)
-	msg.Append("progress")
+	msg.Append("determining onsets")
 	msg.Append(int32(progress))
 	err = client.Send(msg)
 	return
@@ -171,8 +171,8 @@ func getOnsets() (onsets []float64, err error) {
 
 	joblist := []job{}
 
-	for _, algo := range []string{"energy", "hfc", "complex", "specdiff"} {
-		for _, threshold := range []float64{1.0, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.1} {
+	for _, algo := range []string{"energy", "hfc", "complex", "kl", "specdiff"} {
+		for _, threshold := range []float64{1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1} {
 			joblist = append(joblist, job{algo, threshold})
 		}
 	}
