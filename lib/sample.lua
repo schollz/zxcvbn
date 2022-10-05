@@ -148,7 +148,9 @@ function Sample:get_onsets()
     if content~=nil then
       local data=json.decode(content)
       if data~=nil then
-        do return data.cursors end
+        self.cursors=data.cursors
+        self:do_move(0)
+        do return end
       end
     end
   end
