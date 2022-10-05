@@ -494,16 +494,16 @@ function Track:keyboard(k,v)
     if v==1 and params:get(self.id.."track_type")<3 then
       self.state=3-self.state
     end
-    do return end 
-  elseif k=="CTRL+L" then 
-    if v==1 then 
-      if self.state==LOADSCREEN then 
+    do return end
+  elseif k=="CTRL+O" then
+    if v==1 then
+      if self.state==LOADSCREEN then
         self.state=SAMPLE
       else
         self.state=LOADSCREEN
       end
     end
-    do return end 
+    do return end
   end
   self.states[self.state]:keyboard(k,v)
 end

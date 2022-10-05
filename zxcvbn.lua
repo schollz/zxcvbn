@@ -88,7 +88,7 @@ function init()
   clock.run(function()
     while true do
       debounce_params()
-      clock.sleep(1/10)
+      clock.sleep(1/15)
       redraw()
     end
   end)
@@ -129,26 +129,33 @@ Em/B;3
 G/B;3
           ]])
 
-  -- params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   params:set("3track_type",1)
   tracks[3]:load_text([[
-chain d 
+chain a d*2 c d*2 b 
+ 
+w12 
  
 pattern d 
-0123 ru s11 t8 w96
+0123 ru s12 t8 w96 n0
  
 pattern a
-0 n0 w24
-1
+0 n0 
+0
 2
-3
+2 x2
+2 x3
+0
+0 0 
  
 pattern b
-2 n0
-3 n2
+2 x13 n2
+-
+-
+-
  
 pattern c
-3 x5 n-2
+2 x5 n-2
 -
     ]])
   params:set("3play_through",2)
@@ -198,7 +205,7 @@ f x8 n1
   params:set("4track_type",1)
   params:set("4play_through",2)
   -- params:set("4play",1)
-  params:set("track",5)
+
   params:set("5track_type",5)
   tracks[5]:load_text([[
 chain a
@@ -216,8 +223,8 @@ Am;4 rdico s12 t6 w96
  
 ]])
   -- params:set("track",2)
-  -- params:set("2play",1)
-  params:set("track",4)
+  params:set("3play",1)
+  params:set("track",3)
 
   clock.run(function()
     clock.sleep(1)
