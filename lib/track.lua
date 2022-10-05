@@ -326,7 +326,9 @@ end
 function Track:dumps()
   local data={states={}}
   for i,v in ipairs(self.states) do
-    data.states[i]=v:dumps()
+    if i==SAMPLE or i==VTERM then
+      data.states[i]=v:dumps()
+    end
   end
   data.state=self.state
   return json.encode(data)
@@ -338,9 +340,11 @@ function Track:loads(s)
     do return end
   end
   for i,v in ipairs(data.states) do
-    if v~="{}" then
-      print("track: loads",i,v)
-      self.states[i]:loads(v)
+    if i==SAMPLE or i==VTERM then
+      if v~="{}" then
+        print("track: loads",i,v)
+        self.states[i]:loads(v)
+      end
     end
   end
   self.state=data.state

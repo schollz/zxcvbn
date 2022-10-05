@@ -65,6 +65,7 @@ function init()
       tracks[params:get("track")]:set_position(tonumber(args[1]))
     end,
     progressbar=function(args)
+      print(args[1],args[2])
       show_message(args[1])
       show_progress(tonumber(args[2]))
     end,
@@ -223,7 +224,7 @@ Am;4 rdico s12 t6 w96
  
 ]])
   -- params:set("track",2)
-  params:set("3play",1)
+  -- params:set("3play",1)
   params:set("track",3)
 
   clock.run(function()

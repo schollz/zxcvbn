@@ -74,7 +74,7 @@ function ViewSelect:list_folders(path)
 end
 
 function ViewSelect:list_files(path)
-  local folder_string=util.os_capture("find "..path.." -maxdepth 1 -type f -name '*.wav' | sort")
+  local folder_string=util.os_capture("find "..path.." -maxdepth 1 -type f -name '*.wav' -o -name '*.flac' | sort")
   local files={}
   for s in folder_string:gmatch("%S+") do
     -- trim string
@@ -102,6 +102,12 @@ function ViewSelect:keyboard(code,value)
   elseif code=="UP" and value>0 then
     self:enc(2,-1)
   elseif code=="ENTER" then
+    if self.doing_load~=nil then
+      if value==0 then
+        self.doing_load=nil
+      end
+      do return end
+    end
     if self.k3_held==0 and value>0 then
       self:key(3,1)
     elseif self.k3_held>0 and value==0 then
@@ -216,9 +222,16 @@ function ViewSelect:redraw()
     if self.k3_held==self.k3_hold_time then
       if string.sub(self.ls[self.current][1],-1)~="/" then
         print(self.ls[self.current][1])
-        show_message("loaded "..self.ls[self.current][2])
-        show_progress(100)
-        params:set(params:get("track").."sample_file",self.ls[self.current][1])
+        self.k3_held=0
+        self.doing_load=true
+        clock.run(function()
+          show_message("loading... ",4)
+          show_progress(100)
+          clock.sleep(0.5)
+          params:set(params:get("track").."sample_file",self.ls[self.current][1])
+          clock.sleep(0.5)
+          tracks[self.id].state=2
+        end)
       end
     end
   end
