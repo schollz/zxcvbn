@@ -33,7 +33,7 @@ end
 function ViewSelect:regen(path)
   self.current_folder=path
   self.ls=self:list_all(self.current_folder)
-  self.view={1,7}
+  self.view={1,6}
   self.current=1
 end
 
@@ -126,10 +126,10 @@ function ViewSelect:enc(k,d)
     self.current=current
     if self.current>self.view[2] then
       self.view[2]=self.current
-      self.view[1]=self.view[2]-6
+      self.view[1]=self.view[2]-5
     elseif self.current<self.view[1] then
       self.view[1]=self.current
-      self.view[2]=self.view[1]+6
+      self.view[2]=self.view[1]+5
     end
     self.debounce_regen=5
   end
@@ -238,7 +238,7 @@ function ViewSelect:redraw()
   for i=self.view[1],self.view[2] do
     local j=i-self.view[1]+1
     screen.level(self.current==i and 15 or 2)
-    screen.move(1+7,j*7)
+    screen.move(1+7,j*7+7)
     if self.ls[i]~=nil and self.ls[i][2]~=nil then
       screen.text(self.ls[i][2])
     end
@@ -259,6 +259,16 @@ function ViewSelect:redraw()
     screen.stroke()
     screen.aa(0)
   end
+
+  screen.level(5)
+  screen.move(8,6)
+  screen.text("load sample")
+  screen.blend_mode(1)
+  screen.level(5)
+  screen.rect(7,0,128,7)
+  screen.fill()
+  screen.blend_mode(0)
+
   return self.current_folder:gsub("/home/we/dust/","")
 end
 

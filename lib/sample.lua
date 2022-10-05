@@ -66,7 +66,7 @@ function Sample:load_sample(path,is_melodic,slices)
 
   self.is_melodic=is_melodic
   if not is_melodic then
-    clock.run(function() 
+    clock.run(function()
       self:get_onsets()
     end)
   else
@@ -157,17 +157,17 @@ function Sample:get_onsets()
   local data_s=util.os_capture(_path.code.."zxcvbn/lib/aubiogo/aubiogo --filename "..self.path.." --num "..self.slice_num)
   local data=json.decode(data_s)
   if data==nil then
-    print("error getting onset data!") 
-    do return end 
+    print("error getting onset data!")
+    do return end
   end
-  if data.error~=nil then 
-    print("error getting onset data: "..data.error) 
-    do return end 
+  if data.error~=nil then
+    print("error getting onset data: "..data.error)
+    do return end
   end
-  if data.result==nil then 
-  print("no onset results!")
-  do return end 
-  end    
+  if data.result==nil then
+    print("no onset results!")
+    do return end
+  end
   self.cursors=data.result
   self:do_move(0)
 
@@ -511,12 +511,9 @@ function Sample:redraw()
   screen.move(6+x,6)
   screen.text_right(self.dec_to_hex[self.ci])
   screen.blend_mode(1)
-  screen.level(9)
+  screen.level(5)
   screen.rect(x,0,128,7)
   screen.fill()
-  -- screen.rect(x,0,11,7)
-  -- screen.fill()
-
   screen.blend_mode(0)
   screen.move(126,58)
   screen.level(15)
