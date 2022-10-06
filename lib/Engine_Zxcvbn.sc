@@ -671,6 +671,7 @@ Engine_Zxcvbn : CroneEngine {
                 compress_attack, compress_release);
             snd = snd + sndNSC;
             snd = LeakDC.ar(snd);
+            snd = RHPF.ar(snd,60,0.707);
             Out.ar(outBus,snd);
         }).send(context.server);
 

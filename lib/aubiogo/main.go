@@ -20,7 +20,7 @@ import (
 var flagFilename string
 var flagTopNumber int
 var flagHost, flagAddress string
-var flagPort int
+var flagPort, flagID int
 
 type Output struct {
 	Error  string        `json:"error,omitempty"`
@@ -31,6 +31,7 @@ type Output struct {
 func init() {
 	flag.StringVar(&flagFilename, "filename", "", "filename")
 	flag.IntVar(&flagTopNumber, "num", 16, "max number of onsets")
+	flag.IntVar(&flagID, "id", 1, "id to send back")
 	flag.StringVar(&flagHost, "host", "localhost", "osc host")
 	flag.IntVar(&flagPort, "port", 10111, "port to use")
 	flag.StringVar(&flagAddress, "addr", "/progressbar", "osc address")
@@ -50,6 +51,14 @@ func main() {
 	}
 	out.Timing = time.Since(now)
 	b, _ := json.Marshal(out)
+
+	sendProgress(100)
+	client := osc.NewClient(flagHost, flagPort)
+	msg := osc.NewMessage("/aubiodone")
+	msg.Append(int32(flagID))
+	msg.Append(string(b))
+	client.Send(msg)
+
 	fmt.Println(string(b))
 }
 
@@ -84,7 +93,8 @@ func MinMax(array []float64) (float64, float64) {
 
 func findWindows(data []float64) (top16 []float64, err error) {
 	min, max := MinMax(data)
-	win := 0.02
+	min = 0
+	win := 0.05
 	type Window struct {
 		min, max float64
 		data     []float64
@@ -143,7 +153,7 @@ func getRange(arr []float64, min, max float64) (rng []float64) {
 func sendProgress(progress int) (err error) {
 	client := osc.NewClient(flagHost, flagPort)
 	msg := osc.NewMessage(flagAddress)
-	msg.Append("determining onsets")
+	msg.Append(fmt.Sprintf("[%d] determining onsets", flagID))
 	msg.Append(int32(progress))
 	err = client.Send(msg)
 	return
@@ -171,8 +181,8 @@ func getOnsets() (onsets []float64, err error) {
 
 	joblist := []job{}
 
-	for _, algo := range []string{"energy", "hfc", "complex", "kl", "specdiff"} {
-		for _, threshold := range []float64{1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1} {
+	for _, algo := range []string{"energy", "hfc", "mkl", "specdiff", "specflux"} {
+		for _, threshold := range []float64{1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05} {
 			joblist = append(joblist, job{algo, threshold})
 		}
 	}

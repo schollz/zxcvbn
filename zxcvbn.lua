@@ -77,6 +77,11 @@ function init()
     audition=function(args)
       tracks[params:get("track")].states[3]:set_pos(tonumber(args[1]))
     end,
+    aubiodone=function(args)
+      local id=tonumber(args[1])
+      local data_s=args[2]
+      tracks[id].states[2]:got_onsets(data_s)
+    end,
   }
   osc.event=function(path,args,from)
     if string.sub(path,1,1)=="/" then
@@ -131,7 +136,7 @@ Em/B;3
 G/B;3
           ]])
 
-  params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  -- params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   params:set("3track_type",1)
   tracks[3]:load_text([[
 chain a d*2 c d*2 b 
