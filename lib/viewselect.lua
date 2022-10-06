@@ -196,7 +196,7 @@ function ViewSelect:get_render(path)
   local view={0,self.duration}
   local path_to_rendered=string.format("%s%s_%3.3f_%3.3f_%d_%d.png",self.path_to_pngs,self.filename,view[1],view[2],self.width,self.height)
   if not util.file_exists(path_to_rendered) then
-    local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0",self.audiowaveform,self.path_to_dat,path_to_rendered,view[1],view[2],self.width,self.height)
+    local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0 &",self.audiowaveform,self.path_to_dat,path_to_rendered,view[1],view[2],self.width,self.height)
     print(cmd)
     os.execute(cmd)
   end
@@ -215,7 +215,7 @@ function ViewSelect:redraw()
   if self.k3_held>0 then
     self.k3_held=self.k3_held+1
     if self.k3_held==self.k3_hold_min then
-      show_message("loading "..self.ls[self.current][2],2)
+      show_message(string.format("[%d] loading",self.id),2)
     elseif self.k3_held>self.k3_hold_min then
       show_progress((self.k3_held-self.k3_hold_min)/(self.k3_hold_time-self.k3_hold_min)*100)
     end
@@ -225,7 +225,7 @@ function ViewSelect:redraw()
         self.k3_held=0
         self.doing_load=true
         clock.run(function()
-          show_message("loading... ",4)
+          show_message(string.format("[%d] loading...",self.id),2)
           show_progress(100)
           clock.sleep(0.5)
           params:set(params:get("track").."sample_file",self.ls[self.current][1])

@@ -66,9 +66,7 @@ function Sample:load_sample(path,is_melodic,slices)
 
   self.is_melodic=is_melodic
   if not is_melodic then
-    clock.run(function()
-      self:get_onsets()
-    end)
+    self:get_onsets()
   else
     self.cursors[2]=self.duration*0.6
     self.cursors[3]=self.duration*0.8
@@ -153,14 +151,19 @@ function Sample:get_onsets()
       if data~=nil then
         self.cursors=data.cursors
         self:do_move(0)
-        show_message("loaded track "..self.id,2)
+        show_message(string.format("[%d] loaded",self.id),2)
         do return end
       end
     end
   end
 
   -- gather the onsets
-  local data_s=util.os_capture(_path.code.."zxcvbn/lib/aubiogo/aubiogo --filename "..self.path.." --num "..self.slice_num)
+  print("executing")
+  os.execute(_path.code.."zxcvbn/lib/aubiogo/aubiogo --id "..self.id.." --filename "..self.path.." --num "..self.slice_num.." &")
+  print("executed")
+end
+
+function Sample:got_onsets(data_s)
   local data=json.decode(data_s)
   if data==nil then
     print("error getting onset data!")
@@ -176,7 +179,7 @@ function Sample:get_onsets()
   end
   self.cursors=data.result
   self:do_move(0)
-  show_message("loaded track "..self.id,2)
+  show_message(string.format("[%d] loaded",self.id),2)
 
   -- save the top_slices
   local filename=self.path_to_cursors
@@ -463,7 +466,7 @@ function Sample:get_render()
     if self.view[1]>self.view[2] then
       self.view[1],self.view[2]=self.view[2],self.view[1]
     end
-    local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0",self.audiowaveform,self.path_to_dat,rendered,self.view[1],self.view[2],self.width,self.height)
+    local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0 &",self.audiowaveform,self.path_to_dat,rendered,self.view[1],self.view[2],self.width,self.height)
     print(cmd)
     os.execute(cmd)
   end
@@ -480,10 +483,13 @@ function Sample:redraw()
     show_cursor=true
   end
   self:debounce()
-  screen.aa(1)
-  screen.display_png(self:get_render(),x,y)
-  screen.aa(0)
-  screen.update()
+  local png_file=self:get_render()
+  if util.file_exists(png_file) then
+    screen.aa(1)
+    screen.display_png(self:get_render(),x,y)
+    screen.aa(0)
+    screen.update()
+  end
 
   for i,cursor in ipairs(self.cursors) do
     if cursor>=self.view[1] and cursor<=self.view[2] then

@@ -7,6 +7,7 @@ tracker of limited input.
 ## todo
 
 
+- [ ] rate changes (reversing??)
 - [ ] get reverb send working
 - [ ] add mx.synths and special shortcode to change the parameters j???
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
