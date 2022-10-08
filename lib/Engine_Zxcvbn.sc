@@ -740,7 +740,9 @@ Engine_Zxcvbn : CroneEngine {
             SendReply.kr(Impulse.kr(10)*send_pos,'/position',[snd_pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
             snd = BufRd.ar(ch,buf,snd_pos,interpolation:4);
             snd = snd * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
-            snd = Pan2.ar(snd,pan);
+	    snd=Pan2.ar(snd,0.0);
+	    snd=Pan2.ar(snd[0],1.neg+(2*pan))+Pan2.ar(snd[1],1+(2*pan));
+	    snd=Balance2.ar(snd[0],snd[1],pan);
 
             // fx
             snd = SelectX.ar(\decimate.kr(0).lag(0.01), [snd, Latch.ar(snd, Impulse.ar(LFNoise2.kr(0.3).exprange(1000,16e3)))]);
@@ -890,6 +892,7 @@ Engine_Zxcvbn : CroneEngine {
                     attack: attack,
                     release: release,
                     amp: db_first.dbamp,
+		    pan: pan,
                     filter: filter,
                     rate: rate*pitch.midiratio,
                     pos: pos,
@@ -912,6 +915,7 @@ Engine_Zxcvbn : CroneEngine {
                                 compressible: compressible,
                                 compressing: compressing,
                                 buf: bufs.at(filename),
+				pan: pan,
                                 attack: attack,
                                 release: release,
                                 amp: (db+(db_add*(i+1))).dbamp,

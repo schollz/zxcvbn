@@ -194,7 +194,7 @@ function Sample:play(d)
   d.on=d.on or false
   d.id=d.id or "audition"
   d.db=d.db or 0
-  d.pan=d.pan or 0
+  d.pan=d.pan or params:get(self.id.."pan")
   d.pitch=d.pitch or 0
   d.watch=d.watch or 0
   d.rate=d.rate or 1
@@ -246,6 +246,9 @@ function Sample:play(d)
       d.duration_total=d.duration_slice
       if params:get(self.id.."play_through")==2 and d.duration_slice>self.cursor_durations[d.ci] then
         d.duration_slice=self.cursor_durations[d.ci]
+      end
+      if d.duration_slice==0 then
+        do return end
       end
       --print("duration",d.duration,"gate",d.gate,"retrig",d.retrig,"rate",d.rate,"pitch",d.pitch)
       local send_pos=1
