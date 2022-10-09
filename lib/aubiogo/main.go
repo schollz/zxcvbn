@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -94,15 +95,19 @@ func MinMax(array []float64) (float64, float64) {
 func findWindows(data []float64) (top16 []float64, err error) {
 	min, max := MinMax(data)
 	min = 0
-	win := 0.05
+	win := 0.025
 	type Window struct {
 		min, max float64
 		data     []float64
+		avg      float64
 	}
 	windows := make([]Window, int((max-min)/win))
 	j := 0
 	for i := min; i < max-win; i += win {
-		windows[j] = Window{i, i + win, getRange(data, i, i+win)}
+		windows[j] = Window{i, i + win, getRange(data, i, i+win), max}
+		if len(windows[j].data) > 0 {
+			windows[j].avg = average(windows[j].data)
+		}
 		j++
 	}
 	sort.Slice(windows, func(i, j int) bool {
@@ -114,7 +119,17 @@ func findWindows(data []float64) (top16 []float64, err error) {
 		if i == flagTopNumber {
 			break
 		}
-		top16[i] = average(w.data)
+		top16[i] = w.avg
+	}
+	// make sure to get the first one
+	if top16[0] > 0.5 {
+		for i := 2; i < flagTopNumber; i++ {
+			top16[i] = windows[i].avg
+		}
+		sort.Slice(windows, func(i, j int) bool {
+			return windows[i].avg < windows[j].avg
+		})
+		top16[0] = windows[0].avg
 	}
 	sort.Float64s(top16)
 
@@ -169,6 +184,11 @@ func getOnsets() (onsets []float64, err error) {
 		return
 	}
 
+	duration, err := Length(flagFilename)
+	if err != nil {
+		return
+	}
+
 	type job struct {
 		algo      string
 		threshold float64
@@ -199,7 +219,7 @@ func getOnsets() (onsets []float64, err error) {
 			for j := range jobs {
 				var r result
 				var out []byte
-				out, r.err = exec.Command("aubioonset", "-i", flagFilename, "-B", "128", "-H", "128", "-t", fmt.Sprint(j.threshold), "-O", j.algo).Output()
+				out, r.err = exec.Command("aubioonset", "-i", flagFilename, "-B", "128", "-H", "128", "-t", fmt.Sprint(j.threshold), "-O", j.algo, "-M", fmt.Sprint(duration/32.0)).Output()
 				for _, line := range strings.Split(string(out), "\n") {
 					num, errNum := strconv.ParseFloat(line, 64)
 					if errNum == nil {
@@ -236,4 +256,38 @@ func getOnsets() (onsets []float64, err error) {
 	sort.Float64s(onsets)
 
 	return
+}
+
+// Length returns the length of the file in seconds
+func Length(fname string) (length float64, err error) {
+	stdout, stderr, err := ex("sox", fname, "-n", "stat")
+	if err != nil {
+		return
+	}
+	stdout += stderr
+	for _, line := range strings.Split(stdout, "\n") {
+		if strings.Contains(line, "Length") {
+			parts := strings.Fields(line)
+			length, err = strconv.ParseFloat(parts[len(parts)-1], 64)
+			return
+		}
+	}
+	return
+}
+
+func ex(args ...string) (string, string, error) {
+	log.Trace(strings.Join(args, " "))
+	baseCmd := args[0]
+	cmdArgs := args[1:]
+	cmd := exec.Command(baseCmd, cmdArgs...)
+	var outb, errb bytes.Buffer
+	cmd.Stdout = &outb
+	cmd.Stderr = &errb
+	err := cmd.Run()
+	if err != nil {
+		log.Errorf("%s -> '%s'", strings.Join(args, " "), err.Error())
+		log.Error(outb.String())
+		log.Error(errb.String())
+	}
+	return outb.String(), errb.String(), err
 }

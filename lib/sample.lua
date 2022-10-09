@@ -182,7 +182,7 @@ function Sample:got_onsets(data_s)
   show_message(string.format("[%d] loaded",self.id),2)
 
   -- save the top_slices
-  local filename=self.path_to_cursors
+  print("writing cursor file",self.path_to_cursors)
   local file=io.open(self.path_to_cursors,"w+")
   io.output(file)
   io.write(json.encode({cursors=self.cursors}))
