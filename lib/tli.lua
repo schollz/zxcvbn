@@ -9,6 +9,69 @@ function TLI:new(o)
 end
 
 function TLI:init()
+
+  self.fields=function(s)
+    local foo={}
+    for w in s:gmatch("%S+") do
+      table.insert(foo,w)
+    end
+    return foo
+  end
+
+  self.trim=function(s)
+    return (s:gsub("^%s*(.-)%s*$","%1"))
+  end
+  self.string_split=function(input_string,split_character)
+    local s=split_character~=nil and split_character or "%s"
+    local t={}
+    if split_character=="" then
+      for str in string.gmatch(input_string,".") do
+        table.insert(t,str)
+      end
+    else
+      for str in string.gmatch(input_string,"([^"..s.."]+)") do
+        table.insert(t,str)
+      end
+    end
+    return t
+  end
+
+  self.numdashcom=function(s)
+    local key="numdashcom"..s
+    if self.cache[key]~=nil then
+      do return self.cache[key] end
+    end
+
+    local t={}
+    for _,v in ipairs(self.string_split(s,",")) do
+      print(v)
+      local num=nil
+      for i,v2 in ipairs(self.string_split(v,"-")) do
+        local n=tonumber(v2)
+        if n~=nil then
+          if i==1 then
+            num={n,n}
+          elseif i==2 then
+            num[2]=n
+          end
+        end
+      end
+      if num~=nil then
+        for i=num[1],num[2] do
+          table.insert(t,i)
+        end
+      end
+    end
+
+    self.cache[key]=t
+    return t
+  end
+
+  self.numdashcomr=function(s)
+    local t=self.numdashcom(s)
+    return t[math.random(1,#t)]
+  end
+
   self.cache={}
 
   self.hex_to_num={}
@@ -64,20 +127,6 @@ function TLI:init()
     else
       return tostring(tbl)
     end
-  end
-  self.string_split=function(input_string,split_character)
-    local s=split_character~=nil and split_character or "%s"
-    local t={}
-    if split_character=="" then
-      for str in string.gmatch(input_string,".") do
-        table.insert(t,str)
-      end
-    else
-      for str in string.gmatch(input_string,"([^"..s.."]+)") do
-        table.insert(t,str)
-      end
-    end
-    return t
   end
 
   self.er=function(k,n,w)
@@ -653,13 +702,15 @@ function TLI:chord_to_midi(c,midi_near)
 end
 
 function TLI:parse_pattern(text,use_hex,default_wedges)
-  local trim_=function(s)
-    return (s:gsub("^%s*(.-)%s*$","%1"))
+  local key=text..(use_hex and "hex" or "")..default_wedges
+  if self.cache[key]~=nil then
+    print("using cache")
+    return self.cache[key]
   end
 
   local lines={}
   for line in text:gmatch("[^\r\n]+") do
-    line=trim_(line)
+    line=self.trim(line)
     if #line>0 then
       table.insert(lines,line)
     end
@@ -706,7 +757,12 @@ function TLI:parse_pattern(text,use_hex,default_wedges)
     end
   end
 
-  return {track=track,positions=positions,wedges=total_wedges}
+  local result={track=track,positions=positions,wedges=total_wedges}
+  if err==nil then
+    self.cache[key]=result
+  end
+
+  return result
 end
 
 function TLI:parse_positions(lines,default_wedges)
@@ -960,10 +1016,6 @@ end
 
 function TLI:parse_tli(text,use_hex)
   local key=text..(use_hex and "hex" or "")
-  if self.cache[key]~=nil then
-    print("using cache")
-    return self.cache[key]
-  end
   local data={}
   local _,err=
   pcall(
@@ -971,28 +1023,14 @@ function TLI:parse_tli(text,use_hex)
       data=self:parse_tli_(text,use_hex)
     end
   )
-  if err==nil then
-    self.cache[key]=data
-  end
   return data,err
 end
 
 function TLI:parse_tli_(text,use_hex)
 
-  local fields=function(s)
-    local foo={}
-    for w in s:gmatch("%S+") do
-      table.insert(foo,w)
-    end
-    return foo
-  end
-  local trim_=function(s)
-    return (s:gsub("^%s*(.-)%s*$","%1"))
-  end
-
   local lines={}
   for line in text:gmatch("[^\r\n]+") do
-    line=trim_(line)
+    line=self.trim(line)
     if #line>0 then
       table.insert(lines,line)
     end
@@ -1002,7 +1040,7 @@ function TLI:parse_tli_(text,use_hex)
   local pattern_chain={}
   local default_wedges=24*4
   for _,line in ipairs(lines) do
-    local fi=fields(line)
+    local fi=self.fields(line)
     if line=="" then
     elseif string.sub(line,1,1)=="#" then
       -- skip comments

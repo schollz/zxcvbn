@@ -427,7 +427,7 @@ function Track:emit(beat)
       if d.mods~=nil then
         for k,v in pairs(d.mods) do
           if self.mods[k]~=nil then
-            self.mods[k](v)
+            self.mods[k](tli.numdashcomr(v))
           end
         end
       end
