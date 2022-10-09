@@ -15,6 +15,8 @@ function ViewSelect:new(o)
 end
 
 function ViewSelect:init()
+  self.attempting_render={}
+  self.attempting_render2={}
   self.is_playing=false
   self.k3_held=0
   self.k3_hold_time=20
@@ -137,7 +139,7 @@ function ViewSelect:enc(k,d)
       self.view[1]=self.current
       self.view[2]=self.view[1]+5
     end
-    self.debounce_regen=5
+    self.debounce_regen=2
   end
 end
 
@@ -172,35 +174,48 @@ function ViewSelect:audition(on)
   self.is_playing=on
 end
 
-function ViewSelect:get_render(path)
-  print("getting render for "..path)
-  self.path=path
-  self.pathname,self.filename,self.ext=string.match(self.path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
-  self.path_to_dat=_path.data.."zxcvbn/dats/"..self.filename..".dat"
-  if not util.file_exists(self.path_to_dat) then
-    local cmd=string.format("%s -q -i %s -o %s -z %d -b 8",self.audiowaveform,self.path,self.path_to_dat,2)
-    print(cmd)
-    os.execute(cmd)
-  end
-  print("getting audio file info",self.path)
-  self.ch,self.samples,self.sample_rate=audio.file_info(self.path)
-  if self.samples<10 or self.samples==nil then
-    print("ERROR PROCESSING FILE: "..path)
+function ViewSelect:get_render()
+  if self.path_to_render==nil then
     do return end
   end
-  self.duration=self.samples/self.sample_rate
-  print("duration",self.duration)
+  local path=self.path_to_render
+  self.path=path
+  if (self.path_to_dat==nil or not util.file_exists(self.path_to_dat)) and
+    self.attempting_render[self.path]==nil then
+    self.attempting_render[self.path]=true
+    self.attempting_render2[self.path]=nil
+    self.pathname,self.filename,self.ext=string.match(self.path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
+    self.path_to_dat=_path.data.."zxcvbn/dats/"..self.filename..".dat"
+    if not util.file_exists(self.path_to_dat) then
+      local cmd=string.format("%s -q -i %s -o %s -z %d -b 8 &",self.audiowaveform,self.path,self.path_to_dat,2)
+      print(cmd)
+      os.execute(cmd)
+    end
+  elseif self.attempting_render[self.path]==true and util.file_exists(self.path_to_dat) and self.attempting_render2[self.path]==nil then
+    self.attempting_render[self.path]=nil
+    self.attempting_render2[self.path]=true
 
-  self.width=120
-  self.height=16
-  local view={0,self.duration}
-  local path_to_rendered=string.format("%s%s_%3.3f_%3.3f_%d_%d.png",self.path_to_pngs,self.filename,view[1],view[2],self.width,self.height)
-  if not util.file_exists(path_to_rendered) then
-    local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0 &",self.audiowaveform,self.path_to_dat,path_to_rendered,view[1],view[2],self.width,self.height)
-    print(cmd)
-    os.execute(cmd)
+    self.width=120
+    self.height=16
+    local path_to_rendered=string.format("%s%s_%d_%d.png",self.path_to_pngs,self.filename,self.width,self.height)
+
+    if not util.file_exists(path_to_rendered) then
+      self.ch,self.samples,self.sample_rate=audio.file_info(self.path)
+      if self.samples<10 or self.samples==nil then
+        print("ERROR PROCESSING FILE: "..path)
+        do return end
+      end
+      self.duration=self.samples/self.sample_rate
+      local view={0,self.duration}
+      local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0 &",self.audiowaveform,self.path_to_dat,path_to_rendered,view[1],view[2],self.width,self.height)
+      print(cmd)
+      os.execute(cmd)
+    end
+    self.path_to_render_ready=path_to_rendered
+  elseif self.path_to_render_ready~=nil and util.file_exists(self.path_to_render_ready) then
+    self.path_to_rendered=self.path_to_render_ready
   end
-  self.path_to_rendered=path_to_rendered
+  return self.path_to_rendered
 end
 
 function ViewSelect:set_pos(x)
@@ -243,8 +258,8 @@ function ViewSelect:redraw()
         self.is_playing=false
       end
       if string.sub(self.ls[self.current][1],-1)~="/" then
-        print("loading",self.ls[self.current][1])
-        self:get_render(self.ls[self.current][1])
+        self.path_to_render=self.ls[self.current][1]
+        self.path_to_dat=nil
       end
     end
   end
@@ -256,8 +271,9 @@ function ViewSelect:redraw()
       screen.text(self.ls[i][2])
     end
   end
-  if self.path_to_rendered~=nil then
-    screen.display_png(self.path_to_rendered,7,50)
+  local render_f=self:get_render()
+  if render_f~=nil then
+    screen.display_png(render_f,7,50)
   end
   if self.show~=nil and self.show>0 then
     self.show=self.show-1
