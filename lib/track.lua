@@ -39,6 +39,70 @@ function Track:init()
     -- rerun show/hiding
     self:select(self.selected)
   end)
+  -- sliced sample
+  params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
+  params:set_action(self.id.."sample_file",function(x)
+    print("sample_file",x)
+    if util.file_exists(x) and string.sub(x,-1)~="/" then
+      self:load_sample(x)
+    end
+  end)
+  params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
+  params:add_number(self.id.."slices","slices",1,16,16)
+  params:add_number(self.id.."bpm","bpm",10,600,math.floor(clock.get_tempo()))
+
+  -- midi stuff
+  params:add_option(self.id.."midi_dev","midi",midi_device_list,1)
+  params:add_number(self.id.."midi_ch","midi ch",1,16,1)
+
+  -- mx.synths stuff
+  self.mx_synths={"synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","polyperc","dreadpiano","aaaaaa","triangles"}
+  params:add_option(self.id.."mx_synths","synth",self.mx_synths)
+  local params_menu={
+    {id="mod1",name="mod 1",min=-1,max=1,exp=false,div=0.01,default=0},
+    {id="mod2",name="mod 2",min=-1,max=1,exp=false,div=0.01,default=0},
+    {id="mod3",name="mod 3",min=-1,max=1,exp=false,div=0.01,default=0},
+    {id="mod4",name="mod 4",min=-1,max=1,exp=false,div=0.01,default=0},
+  }
+  for _,pram in ipairs(params_menu) do
+    params:add{
+      type="control",
+      id=self.id..pram.id,
+      name=pram.name,
+      controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
+      formatter=pram.formatter,
+    }
+  end
+
+  local params_menu={
+    {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
+    {id="db",name="volume",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
+    {id="db_sub",name="volume sub",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
+    {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=0},
+    {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
+    {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
+    {id="attack",name="attack",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
+    {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
+    {id="release",name="release",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
+    {id="gate",name="gate",min=0,max=100,exp=false,div=1,default=100,unit="%"},
+    {id="decimate",name="decimate",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="compression",name="compression",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="pitch",name="pitch",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
+    {id="rate",name="rate",min=-2,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()*100) end},
+    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="send_reverb",name="send reverb",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+  }
+  for _,pram in ipairs(params_menu) do
+    params:add{
+      type="control",
+      id=self.id..pram.id,
+      name=pram.name,
+      controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
+      formatter=pram.formatter,
+    }
+  end
 
   params:add{type="binary",name="play",id=self.id.."play",behavior="toggle",action=function(v)
     -- reset the clocks if this is the first thing to play
@@ -65,73 +129,8 @@ function Track:init()
   end}
   params:add_number(self.id.."mute_group","mute group",1,9,1)
 
-  params:add_number(self.id.."ppq","ppq",1,8,4)
-
-  -- mx.synths stuff
-  self.mx_synths={"synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","polyperc","dreadpiano","aaaaaa","triangles"}
-  params:add_option(self.id.."mx_synths","synth",self.mx_synths)
-  local params_menu={
-    {id="mod1",name="mod 1",min=-1,max=1,exp=false,div=0.01,default=0},
-    {id="mod2",name="mod 2",min=-1,max=1,exp=false,div=0.01,default=0},
-    {id="mod3",name="mod 3",min=-1,max=1,exp=false,div=0.01,default=0},
-    {id="mod4",name="mod 4",min=-1,max=1,exp=false,div=0.01,default=0},
-  }
-  for _,pram in ipairs(params_menu) do
-    params:add{
-      type="control",
-      id=self.id..pram.id,
-      name=pram.name,
-      controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
-      formatter=pram.formatter,
-    }
-  end
-
-  -- midi stuff
-  params:add_option(self.id.."midi_dev","midi",midi_device_list,1)
-  params:add_number(self.id.."midi_ch","midi ch",1,16,1)
-
-  -- sliced sample
-  params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
-  params:set_action(self.id.."sample_file",function(x)
-    print("sample_file",x)
-    if util.file_exists(x) and string.sub(x,-1)~="/" then
-      self:load_sample(x)
-    end
-  end)
-  params:add_number(self.id.."slices","slices",1,16,16)
-  params:add_number(self.id.."bpm","bpm",10,600,math.floor(clock.get_tempo()))
-  params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
-
-  local params_menu={
-    {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
-    {id="db",name="volume",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
-    {id="db_sub",name="volume sub",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
-    {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=0},
-    {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
-    {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
-    {id="attack",name="attack",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
-    {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
-    {id="release",name="release",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
-    {id="gate",name="gate",min=0,max=100,exp=false,div=1,default=100,unit="%"},
-    {id="decimate",name="decimate",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
-    {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
-    {id="compression",name="compression",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
-    {id="pitch",name="pitch",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
-    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
-    {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
-    {id="send_reverb",name="send reverb",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
-  }
-  for _,pram in ipairs(params_menu) do
-    params:add{
-      type="control",
-      id=self.id..pram.id,
-      name=pram.name,
-      controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
-      formatter=pram.formatter,
-    }
-  end
-  self.params={shared={"ppq","track_type","play","db","probability","pitch","mute","mute_group"}}
-  self.params["sliced sample"]={"sample_file","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
+  self.params={shared={"track_type","play","db","probability","pitch","mute","mute_group"}}
+  self.params["sliced sample"]={"sample_file","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
   self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"}
   self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible","send_reverb"}
   self.params["mx.samples"]={"db","attack","pan","release","compressing","compressible","send_reverb"}
@@ -150,6 +149,7 @@ function Track:init()
     p=function(x) params:set(self.id.."pan",(x/100)*2-1) end,
     m=function(x) params:set(self.id.."decimate",x/100) end,
     n=function(x) params:set(self.id.."pitch",x) end,
+    u=function(x) params:set(self.id.."rate",x/100) end,
     z=function(x) params:set(self.id.."send_reverb",x/100) end,
   }
 
