@@ -634,8 +634,10 @@ Engine_Zxcvbn : CroneEngine {
             snd=SelectX.ar(Lag.kr(aOrB,xfade),[sndA,sndB],0)*amp;
 
             snd=LPF.ar(snd,filter);
-            snd=Pan2.ar(snd,pan);
-            snd=snd*EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate * (1-TDelay.kr(Impulse.kr(0),duration)) ,doneAction:2);
+            snd = snd * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
+		    snd=Pan2.ar(snd,0.0);
+		    snd=Pan2.ar(snd[0],1.neg+(2*pan))+Pan2.ar(snd[1],1+(2*pan));
+		    snd=Balance2.ar(snd[0],snd[1],pan);
             
             SendReply.kr(Impulse.kr(10)*watch,'/position',[pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
 
@@ -740,9 +742,9 @@ Engine_Zxcvbn : CroneEngine {
             SendReply.kr(Impulse.kr(10)*send_pos,'/position',[snd_pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
             snd = BufRd.ar(ch,buf,snd_pos,interpolation:4);
             snd = snd * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
-	    snd=Pan2.ar(snd,0.0);
-	    snd=Pan2.ar(snd[0],1.neg+(2*pan))+Pan2.ar(snd[1],1+(2*pan));
-	    snd=Balance2.ar(snd[0],snd[1],pan);
+		    snd=Pan2.ar(snd,0.0);
+		    snd=Pan2.ar(snd[0],1.neg+(2*pan))+Pan2.ar(snd[1],1+(2*pan));
+		    snd=Balance2.ar(snd[0],snd[1],pan);
 
             // fx
             snd = SelectX.ar(\decimate.kr(0).lag(0.01), [snd, Latch.ar(snd, Impulse.ar(LFNoise2.kr(0.3).exprange(1000,16e3)))]);
@@ -948,7 +950,7 @@ Engine_Zxcvbn : CroneEngine {
             });            
         });
 
-        this.addCommand("melodic_on","ssffffffffffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -967,10 +969,13 @@ Engine_Zxcvbn : CroneEngine {
             var compressing=msg[16];
             var send_reverb=msg[17];
             var watch=msg[18];
+            var attack=msg[19];
+            var release=msg[20];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
             });
+            ["duration",duration,"release",release,"gate",gate,"retrig",retrig].postln;
             if (bufs.at(filename).notNil,{
                 var buf=bufs.at(filename);
                 if (syns.at(id).notNil,{
@@ -997,6 +1002,8 @@ Engine_Zxcvbn : CroneEngine {
                     sampleEnd: sampleEnd,
                     duration: (duration * gate / (retrig + 1)),
                     watch: watch,
+                    attack: attack,
+                    release: release,
                 ], syns.at("reverb"), \addBefore));
                 if (retrig>0,{
                     Routine {
@@ -1021,6 +1028,8 @@ Engine_Zxcvbn : CroneEngine {
                                 sampleEnd: sampleEnd,
                                 duration: (duration * gate / (retrig + 1)),
                                 watch: watch,
+			                    attack: attack,
+			                    release: release,
                             ], syns.at("reverb"), \addBefore));
                         };
                         NodeWatcher.register(syns.at(id));

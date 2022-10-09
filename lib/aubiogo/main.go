@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"runtime"
@@ -65,8 +66,9 @@ func main() {
 
 func run() (top16 []float64, err error) {
 	defer func() {
-		if recover() != nil {
-			err = errors.New("panic occurred")
+		newErr := recover()
+		if newErr != nil {
+			err = errors.New(fmt.Sprint(newErr))
 		}
 	}()
 
@@ -95,21 +97,28 @@ func MinMax(array []float64) (float64, float64) {
 func findWindows(data []float64) (top16 []float64, err error) {
 	min, max := MinMax(data)
 	min = 0
-	win := 0.025
+	win := 0.0125
 	type Window struct {
 		min, max float64
 		data     []float64
 		avg      float64
 	}
-	windows := make([]Window, int((max-min)/win))
-	j := 0
-	for i := min; i < max-win; i += win {
-		windows[j] = Window{i, i + win, getRange(data, i, i+win), max}
-		if len(windows[j].data) > 0 {
-			windows[j].avg = average(windows[j].data)
+	windowMap := make(map[float64]Window)
+	for i := min; i < max-win; i += win / 2 {
+		w := Window{i, i + win, getRange(data, i, i+win), max}
+		if len(w.data) > 0 {
+			w.avg = average(w.data)
 		}
+		windowMap[toFixed(w.avg, 2)] = w
+	}
+
+	windows := make([]Window, len(windowMap))
+	j := 0
+	for _, v := range windowMap {
+		windows[j] = v
 		j++
 	}
+
 	sort.Slice(windows, func(i, j int) bool {
 		return len(windows[i].data) > len(windows[j].data)
 	})
@@ -121,8 +130,10 @@ func findWindows(data []float64) (top16 []float64, err error) {
 		}
 		top16[i] = w.avg
 	}
+	sort.Float64s(top16)
+
 	// make sure to get the first one
-	if top16[0] > 0.5 {
+	if top16[0] > 0.15 {
 		for i := 2; i < flagTopNumber; i++ {
 			top16[i] = windows[i].avg
 		}
@@ -130,9 +141,8 @@ func findWindows(data []float64) (top16 []float64, err error) {
 			return windows[i].avg < windows[j].avg
 		})
 		top16[0] = windows[0].avg
+		sort.Float64s(top16)
 	}
-	sort.Float64s(top16)
-
 	return
 }
 
@@ -201,8 +211,8 @@ func getOnsets() (onsets []float64, err error) {
 
 	joblist := []job{}
 
-	for _, algo := range []string{"energy", "hfc", "mkl", "specdiff", "specflux"} {
-		for _, threshold := range []float64{1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05} {
+	for _, algo := range []string{"energy", "hfc", "specflux"} {
+		for _, threshold := range []float64{5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2, 0.1, 0.05} {
 			joblist = append(joblist, job{algo, threshold})
 		}
 	}
@@ -219,7 +229,7 @@ func getOnsets() (onsets []float64, err error) {
 			for j := range jobs {
 				var r result
 				var out []byte
-				out, r.err = exec.Command("aubioonset", "-i", flagFilename, "-B", "128", "-H", "128", "-t", fmt.Sprint(j.threshold), "-O", j.algo, "-M", fmt.Sprint(duration/32.0)).Output()
+				out, r.err = exec.Command("aubioonset", "-i", flagFilename, "-B", "128", "-H", "128", "-t", fmt.Sprint(j.threshold), "-O", j.algo, "-M", fmt.Sprint(duration/128.0)).Output()
 				for _, line := range strings.Split(string(out), "\n") {
 					num, errNum := strconv.ParseFloat(line, 64)
 					if errNum == nil {
@@ -241,13 +251,16 @@ func getOnsets() (onsets []float64, err error) {
 	for i := 0; i < numJobs; i++ {
 		sendProgress(int(float64(i) / float64(numJobs) * 100.0))
 		r := <-results
+		log.Debugf("r: %+v", r)
 		if r.err != nil {
 			err = r.err
 		} else {
-			for _, v := range r.result {
-				if j < len(data) {
-					data[j] = v
-					j++
+			if (j == 0 && len(r.result) > 4) || (len(r.result) < 2*flagTopNumber && len(r.result) > flagTopNumber/2) {
+				for _, v := range r.result {
+					if j < len(data) {
+						data[j] = v
+						j++
+					}
 				}
 			}
 		}
@@ -290,4 +303,13 @@ func ex(args ...string) (string, string, error) {
 		log.Error(errb.String())
 	}
 	return outb.String(), errb.String(), err
+}
+
+func round(num float64) int {
+	return int(num + math.Copysign(0.5, num))
+}
+
+func toFixed(num float64, precision int) float64 {
+	output := math.Pow(10, float64(precision))
+	return float64(round(num*output)) / output
 }

@@ -112,17 +112,19 @@ function init()
     end
   end)
 
-  params:set("1track_type",5)
+  params:set("1track_type",2)
+  params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
+
   tracks[1]:load_text([[
 chain a
  
 w96
  
 pattern a
-Cmaj;3 z100
-Am/C;4
-Em/B;3
-G/B;3
+Cmaj;3 rud s12
+Am/C;4 rud s12
+Em/B;3 rud s12 
+G/B;3 rud s12
           ]])
 
   params:set("2track_type",4)
