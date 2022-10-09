@@ -88,7 +88,7 @@ function init()
       path=string.sub(path,2)
     end
     if osc_fun[path]~=nil then osc_fun[path](args) else
-      print("osc.event: '"..path.."' ?")
+      -- print("osc.event: '"..path.."' ?")
     end
   end
 
