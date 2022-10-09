@@ -197,7 +197,7 @@ function Sample:play(d)
   d.pan=d.pan or params:get(self.id.."pan")
   d.pitch=d.pitch or 0
   d.watch=d.watch or 0
-  d.rate=d.rate or 1
+  d.rate=d.rate or params:get(self.id.."rate")
   d.ci=d.ci or self.ci
   d.retrig=d.retrig or 0
   d.gate=d.gate or 1.0

@@ -61,7 +61,7 @@ some parameters are not available for all instruments.
 - [x] r8 (arp type)
 - [x] s100 (arp skip)
 - [x] t1 (arp time (in steps))
-- [ ] u??
+- [ ] u100 (rate)
 - [x] v99 (volume add, db	)
 - [ ] w10 (wedges)
 - [x] x8 (retrig 8 times) (v-1 makes a delay type thing)
