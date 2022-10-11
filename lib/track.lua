@@ -76,19 +76,19 @@ function Track:init()
 
   local params_menu={
     {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
-    {id="db",name="volume",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
+    {id="db",name="volume (v)",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="db_sub",name="volume sub",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
-    {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=0},
+    {id="pan",name="way/pan (w)",min=-1,max=1,exp=false,div=0.01,default=0},
     {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
-    {id="attack",name="attack",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
+    {id="attack",name="attack (k)",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
-    {id="release",name="release",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
-    {id="gate",name="gate",min=0,max=100,exp=false,div=1,default=100,unit="%"},
-    {id="decimate",name="decimate",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="release",name="let-go (l)",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
+    {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
+    {id="decimate",name="decimate (m)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="compression",name="compression",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
-    {id="pitch",name="pitch",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
+    {id="pitch",name="note (n)",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
     {id="rate",name="rate",min=-2,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()*100) end},
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
@@ -146,7 +146,7 @@ function Track:init()
     h=function(x) params:set(self.id.."gate",x) end,
     k=function(x) params:set(self.id.."attack",x) end,
     l=function(x) params:set(self.id.."release",x) end,
-    p=function(x) params:set(self.id.."pan",(x/100)*2-1) end,
+    w=function(x) params:set(self.id.."pan",(x/100)*2-1) end,
     m=function(x) params:set(self.id.."decimate",x/100) end,
     n=function(x) params:set(self.id.."pitch",x) end,
     u=function(x) params:set(self.id.."rate",x/100) end,
@@ -416,12 +416,12 @@ function Track:emit(beat)
     do return end
   end
   if self.tli~=nil and self.track~=nil then
-    local i=(beat-1)%self.tli.wedges+1
+    local i=(beat-1)%self.tli.pulses+1
     local t=self.track[i]
     if t==nil then
       do return end
     end
-    print("beati",beat,i,self.tli.wedges,json.encode(t))
+    print("beati",beat,i,self.tli.pulses,json.encode(t))
     for k,d in ipairs(t) do
       print(k,json.encode(d))
       if d.mods~=nil then
