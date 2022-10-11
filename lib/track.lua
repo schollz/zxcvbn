@@ -415,7 +415,7 @@ function Track:emit(beat)
   if params:get(self.id.."play")==0 or params:get(self.id.."mute")==1 then
     do return end
   end
-  if self.tli~=nil and self.track~=nil then
+  if self.tli~=nil and self.track~=nil and self.tli.pulses>0 then
     local i=(beat-1)%self.tli.pulses+1
     local t=self.track[i]
     if t==nil then
