@@ -119,7 +119,6 @@ function init()
   params:set("1mod3",-0.3)
   params:set("1mod4",0.2)
   params:set("1release",1000)
-
   tracks[1]:load_text([[
 chain a
  
@@ -132,6 +131,23 @@ C/E;3 rud s12 t12
 G/D;3 rud s12 t12
           ]])
 
+  params:set("2track_type",1)
+  params:set("2play_through",2)
+  params:set("2sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  tracks[2]:load_text([[
+chain a
+ 
+p12
+ 
+pattern b 
+0
+-
+2 x5 n-1
+-
+ 
+pattern a
+0123 rud s12 t17 p192 m1-50 h80-100
+          ]])
   clock.run(function()
     clock.sleep(1)
   end)
