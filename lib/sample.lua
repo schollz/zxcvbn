@@ -235,8 +235,6 @@ function Sample:play(d)
         d.compressing,
         d.reverb,
       d.watch,d.attack,d.release)
-    else
-      engine.melodic_off(self.id)
     end
   else
     if d.on and self.cursors~=nil then

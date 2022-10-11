@@ -112,128 +112,25 @@ function init()
     end
   end)
 
-  params:set("1track_type",2)
-  params:set("1sample_file",_path.code.."zxcvbn/lib/60.3.3.1.0.wav")
+  params:set("1track_type",4)
+  params:set("1mx_synths",9)
+  params:set("1mod1",0.5)
+  params:set("1mod2",0.2)
+  params:set("1mod3",-0.3)
+  params:set("1mod4",0.2)
+  params:set("1release",1000)
 
   tracks[1]:load_text([[
 chain a
  
-w96
+p96
  
 pattern a
-Cmaj;3 rud s12
-Am/C;4 rud s12
-Em/B;3 rud s12 
-G/B;3 rud s12
+Em;3 rud s12 t12
+Am/E;3 rud s12 t12
+C/E;3 rud s12 t12
+G/D;3 rud s12 t12
           ]])
-
-  params:set("2track_type",4)
-  tracks[2]:load_text([[
-chain a
- 
-pattern a
-Cmaj;3 w192
-Am/C;4
-Em/B;3
-G/B;3
-          ]])
-
-  -- params:set("3sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
-  params:set("3track_type",1)
-  tracks[3]:load_text([[
-chain a d*2 c d*2 b 
- 
-w12 
- 
-pattern d 
-0123 ru s12 t8 w96 n0
- 
-pattern a
-0 n0 
-0
-2
-2 x2
-2 x3
-0
-0 0 
- 
-pattern b
-2 x13 n2
--
--
--
- 
-pattern c
-2 x5 n-2
--
-    ]])
-  params:set("3play_through",2)
-  params:set("1compressible",1)
-  params:set("2compressible",1)
-  params:set("3compressing",1)
-  params:set("sidechain_mult",0.5)
-  params:set("1db",-10)
-  params:set("2db",-1)
-  params:set("3db",-7.7)
-  -- params:set("3play",1)
-
-  tracks[4]:load_text([[
-chain d
- 
-w48 
- 
-pattern d 
-0 a 4 b 
-0 d n-8 4 1 
-b 4 0 c x4
- 
-pattern c
-0 w24 n0
-9 a b c
-1 4 x8 v-4 w48
-5 6 7 8 w36
-9 a b c w24
- 
-pattern b
-0 x5 v-1 w24 n0
-0 x3 n2
- 
-pattern a
-0 v12 w24
-1 2
-0 v6
-4 a 1 2
-0 v8
-7 8 a b v8
-e e e x4 n-1
-f x8 n1
- 
-]])
-
-  params:set("4sample_file",_path.code.."zxcvbn/lib/yelidek_kit.wav")
-  params:set("4track_type",1)
-  params:set("4play_through",2)
-  -- params:set("4play",1)
-
-  params:set("5track_type",5)
-  tracks[5]:load_text([[
-chain a
- 
-pattern a
-Am;2 ru s12 w96
-Em/B;2 ru s12 
-]])
-  params:set("6track_type",6)
-  tracks[6]:load_text([[
-chain a 
- 
-pattern a
-Am;4 rdico s12 t6 w96
- 
-]])
-  -- params:set("track",2)
-  -- params:set("3play",1)
-  params:set("track",1)
 
   clock.run(function()
     clock.sleep(1)
@@ -241,11 +138,7 @@ Am;4 rdico s12 t6 w96
 end
 
 function reset_clocks()
-  -- TODO: redo
-  -- for i,_ in ipairs(sequencer_beats) do
-  --   sequencer_beats[i]=0
-  -- end
-  -- sequencer:hard_restart()
+  clock_pulse=0
 end
 
 function debounce_params()
