@@ -701,8 +701,8 @@ function TLI:chord_to_midi(c,midi_near)
   return p
 end
 
-function TLI:parse_pattern(text,use_hex,default_wedges)
-  local key=text..(use_hex and "hex" or "")..default_wedges
+function TLI:parse_pattern(text,use_hex,default_pulses)
+  local key=text..(use_hex and "hex" or "")..default_pulses
   if self.cache[key]~=nil then
     print("using cache")
     return self.cache[key]
@@ -716,7 +716,7 @@ function TLI:parse_pattern(text,use_hex,default_wedges)
     end
   end
 
-  local positions,total_wedges=self:parse_positions(lines,default_wedges)
+  local positions,total_pulses=self:parse_positions(lines,default_pulses)
 
   -- parse the positions
   for i,pos in ipairs(positions) do
@@ -757,7 +757,7 @@ function TLI:parse_pattern(text,use_hex,default_wedges)
     end
   end
 
-  local result={track=track,positions=positions,wedges=total_wedges}
+  local result={track=track,positions=positions,pulses=total_pulses}
   if err==nil then
     self.cache[key]=result
   end
@@ -765,11 +765,11 @@ function TLI:parse_pattern(text,use_hex,default_wedges)
   return result
 end
 
-function TLI:parse_positions(lines,default_wedges)
+function TLI:parse_positions(lines,default_pulses)
   local elast=nil
   local entities={}
-  local wedge_index=0
-  local wedges=default_wedges or 24*4 -- 24 ppqn, 4 qn per measure
+  local pulse_index=0
+  local pulses=default_pulses or 24*4 -- 24 ppqn, 4 qn per measure
   for i,line in ipairs(lines) do
     local ele={}
     local er_rotation=0
@@ -780,8 +780,8 @@ function TLI:parse_positions(lines,default_wedges)
           ele[#ele].mods[c]=tonumber(w:sub(2))
           if c=="o" and ele[#ele].mods[c]~=nil then
             er_rotation=ele[#ele].mods[c]
-          elseif c=="w" and ele[#ele].mods[c]~=nil then
-            wedges=ele[#ele].mods[c]
+          elseif c=="p" and ele[#ele].mods[c]~=nil then
+            pulses=ele[#ele].mods[c]
           end
           ele[#ele].mods[c]=ele[#ele].mods[c] or w:sub(2)
         end
@@ -790,29 +790,29 @@ function TLI:parse_positions(lines,default_wedges)
       end
     end
 
-    local pos=self.er(#ele,wedges,er_rotation)
+    local pos=self.er(#ele,pulses,er_rotation)
     local ei=0
     for pi,p in ipairs(pos) do
-      wedge_index=wedge_index+1
+      pulse_index=pulse_index+1
       if p then
         if elast~=nil and ele[ei+1].e~="-" then
-          table.insert(entities,{el=elast.el,start=elast.start,stop=wedge_index,mods=elast.mods})
+          table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index,mods=elast.mods})
           mods=nil
           elast=nil
         end
         if ele[ei+1].e~="-" and ele[ei+1].e~="." then
-          elast={el=ele[ei+1].e,start=wedge_index,mods=ele[ei+1].mods}
+          elast={el=ele[ei+1].e,start=pulse_index,mods=ele[ei+1].mods}
         end
         ei=ei+1
       end
     end
   end
   if elast~=nil then
-    table.insert(entities,{el=elast.el,start=elast.start,stop=wedge_index+1,mods=elast.mods})
+    table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index+1,mods=elast.mods})
     elast=nil
   end
 
-  return entities,wedge_index
+  return entities,pulse_index
 end
 
 function TLI:get_arp(input,steps,shape,length)
@@ -1038,7 +1038,7 @@ function TLI:parse_tli_(text,use_hex)
   local data={chain={},patterns={},meta={}}
   local current_pattern={}
   local pattern_chain={}
-  local default_wedges=24*4
+  local default_pulses=24*4
   for _,line in ipairs(lines) do
     local fi=self.fields(line)
     if line=="" then
@@ -1067,8 +1067,8 @@ function TLI:parse_tli_(text,use_hex)
     elseif #fi==2 then
       data.meta[fi[1]]=tonumber(fi[2])
       data.meta[fi[1]]=data.meta[fi[1]] or fi[2]
-    elseif string.sub(line,1,1)=="w" then
-      default_wedges=tonumber(string.sub(line,2))
+    elseif string.sub(line,1,1)=="p" then
+      default_pulses=tonumber(string.sub(line,2))
     end
   end
   if next(current_pattern)~=nil then
@@ -1076,7 +1076,7 @@ function TLI:parse_tli_(text,use_hex)
   end
 
   for k,pattern in pairs(data.patterns) do
-    data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,use_hex,default_wedges)
+    data.patterns[k]["parsed"]=self:parse_pattern(pattern.text,use_hex,default_pulses)
   end
 
   -- default to a chain of how the patterns are defined
@@ -1094,9 +1094,9 @@ function TLI:parse_tli_(text,use_hex)
     for j,v in ipairs(data.patterns[p].parsed.track) do
       table.insert(data.track,{start=pos+v.start,duration=v.duration,mods=v.mods,m=v.m})
     end
-    pos=pos+data.patterns[p].parsed.wedges
+    pos=pos+data.patterns[p].parsed.pulses
   end
-  data.wedges=pos
+  data.pulses=pos
   return data
 end
 
