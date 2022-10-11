@@ -6,7 +6,7 @@ tracker of limited input.
 
 ## todo
 
-
+- [ ] mute working
 - [ ] rate changes (reversing??)
 - [ ] get reverb send working
 - [ ] add mx.synths and special shortcode to change the parameters j???

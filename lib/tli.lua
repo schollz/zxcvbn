@@ -43,26 +43,30 @@ function TLI:init()
     end
 
     local t={}
-    for _,v in ipairs(self.string_split(s,",")) do
-      print(v)
-      local num=nil
-      for i,v2 in ipairs(self.string_split(v,"-")) do
-        local n=tonumber(v2)
-        if n~=nil then
-          if i==1 then
-            num={n,n}
-          elseif i==2 then
-            num[2]=n
+    local num1=tonumber(s)
+    if num1~=nil then
+      t={num1}
+    else
+      for _,v in ipairs(self.string_split(s,",")) do
+        print(v)
+        local num=nil
+        for i,v2 in ipairs(self.string_split(v,"-")) do
+          local n=tonumber(v2)
+          if n~=nil then
+            if i==1 then
+              num={n,n}
+            elseif i==2 then
+              num[2]=n
+            end
+          end
+        end
+        if num~=nil then
+          for i=num[1],num[2] do
+            table.insert(t,i)
           end
         end
       end
-      if num~=nil then
-        for i=num[1],num[2] do
-          table.insert(t,i)
-        end
-      end
     end
-
     self.cache[key]=t
     return t
   end
