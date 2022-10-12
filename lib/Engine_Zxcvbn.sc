@@ -751,8 +751,6 @@ Engine_Zxcvbn : CroneEngine {
 
             // drive
             snd2 = (snd * 30.dbamp).tanh * -10.dbamp;
-            snd2 = SelectX.ar(\pitch1.kr(0).lag(0.01), [snd2, PitchShift.ar(snd, 0.2, 2)]);
-            snd2 = SelectX.ar(\pitch2.kr(0).lag(0.01), [snd2, PitchShift.ar(snd, 0.03, 1.4)]);
             snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, -10), 3000, 1, -10);
             snd2 = (snd2 * 10.dbamp).tanh * -10.dbamp;
             snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, 10), 3000, 1, 10);
@@ -894,7 +892,7 @@ Engine_Zxcvbn : CroneEngine {
                     attack: attack,
                     release: release,
                     amp: db_first.dbamp,
-		    pan: pan,
+		    		pan: pan,
                     filter: filter,
                     rate: rate*pitch.midiratio,
                     pos: pos,
@@ -917,7 +915,7 @@ Engine_Zxcvbn : CroneEngine {
                                 compressible: compressible,
                                 compressing: compressing,
                                 buf: bufs.at(filename),
-				pan: pan,
+								pan: pan,
                                 attack: attack,
                                 release: release,
                                 amp: (db+(db_add*(i+1))).dbamp,

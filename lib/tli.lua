@@ -50,7 +50,7 @@ function TLI:init()
       for _,v in ipairs(self.string_split(s,",")) do
         print(v)
         local num=nil
-        for i,v2 in ipairs(self.string_split(v,"-")) do
+        for i,v2 in ipairs(self.string_split(v,":")) do
           local n=tonumber(v2)
           if n~=nil then
             if i==1 then
