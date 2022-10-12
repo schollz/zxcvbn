@@ -6,6 +6,7 @@ tracker of limited input.
 
 ## todo
 
+- [ ] should work without pattern or chain declaration
 - [ ] mute working
 - [ ] rate changes (reversing??)
 - [ ] get reverb send working
