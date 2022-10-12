@@ -90,7 +90,7 @@ function init()
           if not f then return nil end
           local content=f:read("*a") -- *a or *all reads the whole file
           f:close()
-          tracks[id].states[1]:load_text(content)
+          tracks[id]:load_text(content)
         end
       end
     end,
