@@ -30,12 +30,12 @@ func main() {
 	log.Info("oscnotify started")
 
 	c := make(chan notify.EventInfo, 1)
-
+	pathChanged := ""
 	f := func() {
-		log.Debugf("sending osc to %s:%d", flagHost, flagPort)
+		log.Debugf("sending %s to %s:%d", pathChanged, flagHost, flagPort)
 		client := osc.NewClient(flagHost, flagPort)
 		msg := osc.NewMessage(flagAddress)
-		msg.Append(int32(1))
+		msg.Append(pathChanged)
 		err := client.Send(msg)
 		if err != nil {
 			log.Error(err)
@@ -60,7 +60,8 @@ func main() {
 	// Block until an event is received.
 	for {
 		ei := <-c
-		log.Debugf("Got event: %s", ei)
+		log.Debugf("Got event: %s", ei.Path())
+		pathChanged = ei.Path()
 		debounced(f)
 	}
 

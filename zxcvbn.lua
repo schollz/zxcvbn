@@ -27,6 +27,13 @@ debounce_fn={}
 engine.name="Zxcvbn"
 
 function init()
+  -- make the default pages
+  os.execute("mkdir -p ".._path.data.."zxcvbn/pages")
+  for i=1,9 do
+    if not util.file_exists(_path.data.."zxcvbn/pages/"..i) then
+      os.execute("touch ".._path.data.."zxcvbn/pages/"..i)
+    end
+  end
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
 
   -- setup screens
@@ -73,6 +80,19 @@ function init()
     oscnotify=function(args)
       print("file edited ok!")
       rerun()
+    end,
+    oscpage=function(args)
+      local path=args[1]
+      if debounce_fn["ignore_page"]==nil and path~=nil then
+        local id=tonumber(string.sub(path,#path))
+        if id~=nil then
+          local f=io.open(path,"rb") -- r read mode and b binary mode
+          if not f then return nil end
+          local content=f:read("*a") -- *a or *all reads the whole file
+          f:close()
+          tracks[id].states[1]:load_text(content)
+        end
+      end
     end,
     audition=function(args)
       tracks[params:get("track")].states[3]:set_pos(tonumber(args[1]))

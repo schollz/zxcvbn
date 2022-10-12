@@ -129,6 +129,15 @@ function VTerm:save()
     table.insert(self.history,self.text)
     self.history_pos=#self.history
   end
+  -- write it to a page
+  debounce_fn["ignore_page"]={
+    30,function()
+    end
+  }
+  local f=io.open(_path.data.."zxcvbn/pages/"..self.id,"w")
+  io.output(f)
+  io.write(self.text)
+  io.close(f)
 end
 
 function VTerm:undo()
