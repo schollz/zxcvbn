@@ -15,6 +15,7 @@ function ViewSelect:new(o)
 end
 
 function ViewSelect:init()
+  self.cache={}
   self.attempting_render={}
   self.attempting_render2={}
   self.is_playing=false
@@ -33,10 +34,28 @@ function ViewSelect:init()
 end
 
 function ViewSelect:regen(path)
-  self.current_folder=path
-  self.ls=self:list_all(self.current_folder)
-  self.view={1,6}
-  self.current=1
+  print(path,self.current_folder)
+  -- TODO: need to normalize path
+  if self.current_folder~=nil then
+    self.cache[self.current_folder]={}
+    self.cache[self.current_folder].current_folder=self.current_folder
+    self.cache[self.current_folder].ls=json.decode(json.encode(self.ls))
+    self.cache[self.current_folder].view=json.decode(json.encode(self.view))
+    self.cache[self.current_folder].current=json.decode(json.encode(self.current))
+    tab.print(self.cache[self.current_folder])
+  end
+  if self.cache[path]~=nil then
+    tab.print(self.cache[path])
+    self.current_folder=self.cache[path].current_folder
+    self.ls=self.cache[path].ls
+    self.view=self.cache[path].view
+    self.current=self.cache[path].current
+  else
+    self.current_folder=path
+    self.ls=self:list_all(self.current_folder)
+    self.view={1,6}
+    self.current=1
+  end
 end
 
 function ViewSelect:split_path(path)
@@ -58,11 +77,7 @@ end
 function ViewSelect:list_folders(path)
   local folder_string=util.os_capture("find "..path.." -maxdepth 1 -type d | tail -n +2 | sort")
   local cur_path=self:split(path,"/")
-  local path_back=""
-  for i=1,#cur_path-1 do
-    path_back=path_back.."/"..cur_path[i]
-  end
-  local folders={{path_back.."/","../"}}
+  local folders={}
   for s in folder_string:gmatch("%S+") do
     -- trim string
     local s2=(s:gsub("^%s*(.-)%s*$","%1"))
@@ -103,6 +118,14 @@ function ViewSelect:keyboard(code,value)
     self:enc(2,1)
   elseif code=="UP" and value>0 then
     self:enc(2,-1)
+  elseif code=="LEFT" and value==1 then
+    self:regen(self.current_folder.."../")
+  elseif code=="RIGHT" and value==1 then
+    if string.sub(self.ls[self.current][1],-1)=="/" then
+      self:regen(self.ls[self.current][1])
+    else
+      self:audition(not self.is_playing)
+    end
   elseif code=="ENTER" then
     if self.doing_load~=nil then
       if value==0 then
@@ -159,7 +182,7 @@ function ViewSelect:key(k,z)
       self.k3_held=0
     end
   elseif k==2 and z==1 then
-    self:regen(self.ls[1][1])
+    self:regen(self.current_folder.."../")
   end
 end
 
