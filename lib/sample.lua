@@ -238,7 +238,12 @@ function Sample:play(d)
     end
   else
     if d.on and self.cursors~=nil then
-      local rate=1
+      if d.rate<0 then
+        d.ci=d.ci+1
+        if d.ci>#self.cursors then
+          d.ci=1
+        end
+      end
       local pos=self.cursors[d.ci]
       d.duration_slice=d.duration or self.cursor_durations[d.ci]
       d.duration_total=d.duration_slice

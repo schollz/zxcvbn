@@ -154,6 +154,9 @@ G/D;3 rud s12 t12
   params:set("2track_type",1)
   params:set("2play_through",2)
   params:set("2sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  params:set("2drive",0.7)
+  params:set("2compression",0.2)
+  params:set("2db",-16)
   tracks[2]:load_text([[
 chain a
  
@@ -166,7 +169,7 @@ pattern b
 -
  
 pattern a
-0123 rud s12 t17 p192 m1-50 h80-100
+0123 rud s12 t17 p192 u-98,98,98,98,98,98,98
           ]])
   clock.run(function()
     clock.sleep(1)
