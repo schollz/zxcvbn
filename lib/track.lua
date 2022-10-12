@@ -79,11 +79,11 @@ function Track:init()
     {id="db",name="volume (v)",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="db_sub",name="volume sub",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="pan",name="pan (w)",min=-1,max=1,exp=false,div=0.01,default=0},
-    {id="filter",name="filter note",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
-    {id="probability",name="probability",min=0,max=100,exp=false,div=1,default=100,unit="%"},
+    {id="filter",name="filter (i)",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
+    {id="probability",name="probability (q)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack (k)",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
-    {id="release",name="let-go (l)",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
+    {id="release",name="release (l)",min=1,max=10000,exp=false,div=1,default=5,unit="ms"},
     {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="decimate",name="decimate (m)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
@@ -92,7 +92,7 @@ function Track:init()
     {id="rate",name="rate (u)",min=-2,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()*100) end},
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
-    {id="send_reverb",name="send reverb",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="send_reverb",name="send reverb (z)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
   }
   for _,pram in ipairs(params_menu) do
     params:add{
