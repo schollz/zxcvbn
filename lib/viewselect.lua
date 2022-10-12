@@ -15,6 +15,38 @@ function ViewSelect:new(o)
 end
 
 function ViewSelect:init()
+
+  self.string_split=function(input_string,split_character)
+    local s=split_character~=nil and split_character or "%s"
+    local t={}
+    if split_character=="" then
+      for str in string.gmatch(input_string,".") do
+        table.insert(t,str)
+      end
+    else
+      for str in string.gmatch(input_string,"([^"..s.."]+)") do
+        table.insert(t,str)
+      end
+    end
+    return t
+end
+
+self.normalize_path=function(s)
+  local path_split=self.string_split(s,"/")
+  local t={}
+  for _,v in ipairs(path_split) do 
+    if v==".." then 
+      if next(t)~=nil then
+        table.remove(t,#t)
+      end
+    elseif v=="." then 
+    else
+      table.insert(t,v)
+    end
+  end
+  return (string.sub(s,1,1)=="/" and "/" or "")..table.concat(t,"/")
+end
+
   self.cache={}
   self.attempting_render={}
   self.attempting_render2={}
@@ -34,6 +66,7 @@ function ViewSelect:init()
 end
 
 function ViewSelect:regen(path)
+  path=self.normalize_path(path)
   print(path,self.current_folder)
   -- TODO: need to normalize path
   if self.current_folder~=nil then
