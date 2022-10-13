@@ -103,7 +103,6 @@ function Sample:got_onsets(data_s)
   show_message(string.format("[%d] loaded",self.id),2)
 end
 
-
 function SoftSample:write_wav()
   softcut.buffer_write_mono(self.path_to_save, softcut_offsets[self.id], 60, softcut_buffers[self.id])
 end
@@ -159,10 +158,10 @@ function SoftSample:play(d)
   if d.retrig>0 then
     d.duration_slice=d.duration_slice/(d.retrig+1)
     softcut.loop(self.id,1)
-    clock.run(function()
-      clock.sleep(d.duration_total)
-      softcut.loop(self.id,0)
-    end)
+    local sleep_pulses=util.round(24*(d.duration_slice/clock.get_beat_sec()))
+    debounce_fn["sc"..self.id]={sleep_pulses,function() softcut.loop(self.id,0) end}
+  else
+    softcut.loop(self.id,0)
   end
 
   softcut.level(self.id,util.dbamp(d.db+params:get(self.id.."db")))
