@@ -49,42 +49,8 @@ end
     table.insert(self.cursor_durations,self.duration/16)
   end
 
-
   self.render={}
   self.phase=0
-
-  -- enable playback head
-  local i=self.id
-  softcut.buffer(i,softcut_buffers[i])
-  softcut.enable(i,1)
-  softcut.play(i,1)
-  softcut.loop(i,0)
-  softcut.fade_time(i,0.05)
-  softcut.loop_start(i,softcut_offsets[i])
-  softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
-  softcut.position(i,softcut_offsets[i]+30) -- set to the loop end for each voice, so we aren't playing anything
-  softcut.rate(i,1)
-  softcut.pan_slew_time(i,0.01)
-  softcut.level_slew_time(i,0.01)
-  softcut.post_filter_dry(i,0)
-  softcut.post_filter_lp(i,1)
-  softcut.post_filter_fc(i,12000)
-  softcut.level(i,1)
-
-    -- enable recording head (decoupled from playback head)
-  i=self.id+3
-  softcut.buffer(i,softcut_buffers[i])
-  softcut.enable(i,1)
-  softcut.play(i,1)
-  softcut.loop(i,1)
-  softcut.rec(i,1)
-  softcut.level(i,0)
-  softcut.rec_level(i,0)
-  softcut.fade_time(i,0.05)
-  softcut.loop_start(i,softcut_offsets[i])
-  softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
-
-
 end
 
 function Sample:get_onsets()
@@ -169,21 +135,23 @@ function SoftSample:play(d)
     do return end
   end
 
+  local i=params:get(self.id.."sc")
+
   -- modulate duration slice if retrigged
   if d.retrig>0 then
     d.duration_slice=d.duration_slice/(d.retrig+1)
-    softcut.loop(self.id,1)
+    softcut.loop(i,1)
     local sleep_pulses=util.round(24*(d.duration_slice/clock.get_beat_sec()))
-    debounce_fn["sc"..self.id]={sleep_pulses,function() softcut.loop(self.id,0) end}
+    debounce_fn["sc"..self.id]={sleep_pulses,function() softcut.loop(i,0) end}
   else
-    softcut.loop(self.id,0)
+    softcut.loop(i,0)
   end
 
   softcut.level(self.id,util.dbamp(d.db+params:get(self.id.."db")))
-  softcut.post_filter_fc(self.id,d.filter)
-  softcut.loop_start(self.id,pos)
-  softcut.loop_end(self.id,pos+d.duration_slice)
-  softcut.position(self.id,pos)
+  softcut.post_filter_fc(i,d.filter)
+  softcut.loop_start(i,pos)
+  softcut.loop_end(i,pos+d.duration_slice)
+  softcut.position(i,pos)
 end
 
 function SoftSample:audition(on)
@@ -346,6 +314,8 @@ function SoftSample:redraw()
     show_cursor=true
   end
   self:debounce()
+
+  -- TODO if recording and no debounce is set, then setup a debounce to render
 
   -- display waveform
   for i,v in ipairs(self.render) do 

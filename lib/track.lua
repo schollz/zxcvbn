@@ -3,13 +3,16 @@ local Track={}
 STATE_VTERM=1
 STATE_SAMPLE=2
 STATE_LOADSCREEN=3
-STATE_SOFTSAMPLE={4,5,6}
+STATE_SOFTSAMPLE=4
 
 TYPE_SPLICE=1
 TYPE_MELODIC=2
 TYPE_MXSAMPLES=3
-TYPE_MXSYNTHS=5
+TYPE_MXSYNTHS=4
+TYPE_INFINITEPAD=5
 TYPE_SOFTSAMPLE=6
+TYPE_CROW=7
+TYPE_MIDI=8
 
 function string.split(pString,pPattern)
   local Table={} -- NOTE: use {n = 0} in Lua-5.0
@@ -40,12 +43,14 @@ end
 
 function Track:init()
   -- initialize parameters
-  self.track_type_options={"sliced sample","melodic sample","mx.samples","mx.synths","infinite pad","softcut", "crow 1+2","crow 3+4","midi"}
+  self.track_type_options={"sliced sample","melodic sample","mx.samples","mx.synths","infinite pad","softcut", "crow","midi"}
   params:add_option(self.id.."track_type","type",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
     self:select(self.selected)
   end)
+  -- crow 
+  params:add_option(self.id.."crow_type",{"1+2","3+4"},1)
   -- sliced sample
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
   params:set_action(self.id.."sample_file",function(x)
@@ -169,8 +174,7 @@ function Track:init()
   self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"}
   self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible","send_reverb"}
   self.params["mx.samples"]={"db","attack","pan","release","compressing","compressible","send_reverb"}
-  self.params["crow 1+2"]={"attack","release","crow_sustain"}
-  self.params["crow 3+4"]={"attack","release","crow_sustain"}
+  self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
   self.params["mx.synths"]={"db","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
   self.params["softcut"]={"scdb","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate"}
@@ -198,9 +202,7 @@ function Track:init()
   end})
   table.insert(self.states,sample_:new{id=self.id})
   table.insert(self.states,viewselect_:new{id=self.id})
-  table.insert(self.states,ss[1])
-  table.insert(self.states,ss[2])
-  table.insert(self.states,ss[3])
+  table.insert(self.states,softsample_:new{id=self.id})
 
   -- keep track of notes
   self.midi_notes={}
@@ -298,38 +300,36 @@ function Track:init()
       d.duration_scaled)
     end,
   })
-  -- crow 1+2 & 3+4
-  for ii=1,2 do
-    local i=ii==1 and 1 or 3
-    table.insert(self.play_fn,{
-      note_on=function(d)
-        local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0))
-        local note=d.m+params:get(self.id.."pitch")
-        if level>0 then
-          -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
-          local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,level,d.duration_scaled,params:get(self.id.."release")/1000)
-          print(i+1,crow_asl)
-          crow.output[i+1].action=crow_asl
-          crow.output[i].volts=(note-24)/12
-          crow.output[i+1]()
-        end
-        if d.mods.x~=nil and d.mods.x>1 then
-          clock.run(function()
-            for i=1,d.mods.x do
-              clock.sleep(d.duration_scaled/d.mods.x)
-              crow.output[i+1](false)
-              level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
-              note=d.m+params:get(self.id.."pitch")*(i+1)
-              if level>0 then
-                crow.output[i].volts=(note-24)/12
-                crow.output[i+1]()
-              end
+  -- crow 
+  table.insert(self.play_fn,{
+    note_on=function(d)
+      local i=(params:get(self.id.."crow_type")-1)*2+1
+      local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0))
+      local note=d.m+params:get(self.id.."pitch")
+      if level>0 then
+        -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
+        local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,level,d.duration_scaled,params:get(self.id.."release")/1000)
+        print(i+1,crow_asl)
+        crow.output[i+1].action=crow_asl
+        crow.output[i].volts=(note-24)/12
+        crow.output[i+1]()
+      end
+      if d.mods.x~=nil and d.mods.x>1 then
+        clock.run(function()
+          for i=1,d.mods.x do
+            clock.sleep(d.duration_scaled/d.mods.x)
+            crow.output[i+1](false)
+            level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
+            note=d.m+params:get(self.id.."pitch")*(i+1)
+            if level>0 then
+              crow.output[i].volts=(note-24)/12
+              crow.output[i+1]()
             end
-          end)
-        end
-      end,
-    })
-  end
+          end
+        end)
+      end
+    end,
+  })
 
   -- midi device
   table.insert(self.play_fn,{
