@@ -85,7 +85,7 @@ function Sample:got_onsets(data_s)
 end
 
 function SoftSample:write_wav()
-  softcut.buffer_write_mono(self.path_to_save, softcut_offsets[self.id], 60, softcut_buffers[self.id])
+  softcut.buffer_write_mono(self.path_to_save, softcut_offsets[params:get(self.id.."sc")], 60, softcut_buffers[params:get(self.id.."sc")])
 end
 
 function SoftSample:dumps()
@@ -107,7 +107,7 @@ function SoftSample:loads(s)
     self[k]=v
   end
   if util.file_exists(self.path_to_save) then 
-    softcut.buffer_read_mono (self.path_to_save, 0, softcut_offsets[self.id],, 60, 1, softcut_buffers[self.id], 0, 1)
+    softcut.buffer_read_mono (self.path_to_save, 0, softcut_offsets[params:get(self.id.."sc")], 60, 1, softcut_buffers[params:get(self.id.."sc")], 0, 1)
   end
   self:do_move(0)
 end
@@ -183,7 +183,7 @@ function SoftSample:debounce()
 end
 
 function SoftSample:do_render()
-  softcut.render_buffer(softcut_buffers[self.id],self.view[1]+softcut_offsets[self.id],self.view[2]-self.view[1],self.width)
+  softcut.render_buffer(softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
 end
 
 function SoftSample:do_zoom(d)
@@ -259,10 +259,6 @@ function SoftSample:set_render(render)
   self.render=render  
 end
 
-function SoftSample:set_phase(phase)
-  self:set_position(phase-softcut_offsets[self.id])
-end
-
 function SoftSample:set_position(pos)
   self.show=1
   self.show_pos=pos
@@ -316,6 +312,9 @@ function SoftSample:redraw()
   self:debounce()
 
   -- TODO if recording and no debounce is set, then setup a debounce to render
+  if self.debounce_fn[params:get(self.id.."sc").."render"]==nil and params:get(self.id.."record_level")>0 then 
+    self.debounce_fn[params:get(self.id.."sc").."render"]={5,function() self:do_render() end}
+  end
 
   -- display waveform
   for i,v in ipairs(self.render) do 
@@ -334,6 +333,23 @@ function SoftSample:redraw()
     end
   end
 
+  -- display playback cursor
+  local cursor=softcut_positions[params:get(self.id.."sc")]-softcut_offsets[params:get(self.id.."sc")]
+  local pos=util.linlin(self.view[1],self.view[2],1,self.width,cursor)
+  screen.level(15)
+  screen.move(pos+x,64-self.height)
+  screen.line(pos+x,64)
+  screen.stroke()
+
+  -- display recording cursor
+  local cursor=softcut_positions[params:get(self.id.."sc")+3]-softcut_offsets[params:get(self.id.."sc")]
+  local pos=util.linlin(self.view[1],self.view[2],1,self.width,cursor)
+  screen.level(10)
+  screen.move(pos+x,64-self.height)
+  screen.line(pos+x,64)
+  screen.stroke()
+  
+  -- display title
   local title="/".."soft"..self.id
   screen.level(15)
   screen.move(8+x,6)
