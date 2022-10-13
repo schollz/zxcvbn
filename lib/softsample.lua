@@ -72,7 +72,39 @@ end
 
 end
 
-functino SoftSample:write_wav()
+function Sample:get_onsets()
+  show_message("determing onsets",4)
+  show_progress(0)
+
+  self:write_wav()
+
+  debounce_fn[self.id.."onsets"]={1,function() 
+    os.execute(_path.code.."zxcvbn/lib/aubiogo/aubiogo --id "..self.id.." --filename "..self.path_to_save.." --num 16 --rm &")
+  end}
+end
+
+
+function Sample:got_onsets(data_s)
+  local data=json.decode(data_s)
+  if data==nil then
+    print("error getting onset data!")
+    do return end
+  end
+  if data.error~=nil then
+    print("error getting onset data: "..data.error)
+    do return end
+  end
+  if data.result==nil then
+    print("no onset results!")
+    do return end
+  end
+  self.cursors=data.result
+  self:do_move(0)
+  show_message(string.format("[%d] loaded",self.id),2)
+end
+
+
+function SoftSample:write_wav()
   softcut.buffer_write_mono(self.path_to_save, softcut_offsets[self.id], 60, softcut_buffers[self.id])
 end
 

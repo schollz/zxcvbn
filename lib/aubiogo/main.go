@@ -23,6 +23,7 @@ var flagFilename string
 var flagTopNumber int
 var flagHost, flagAddress string
 var flagPort, flagID int
+var flagRM bool
 
 type Output struct {
 	Error  string        `json:"error,omitempty"`
@@ -37,6 +38,7 @@ func init() {
 	flag.StringVar(&flagHost, "host", "localhost", "osc host")
 	flag.IntVar(&flagPort, "port", 10111, "port to use")
 	flag.StringVar(&flagAddress, "addr", "/progressbar", "osc address")
+	flag.BoolVar(&flagRM,"rm",false,"remove file after using")
 }
 
 func main() {
@@ -62,6 +64,10 @@ func main() {
 	client.Send(msg)
 
 	fmt.Println(string(b))
+
+	if flagRM {
+		os.Remove(flagFilename)
+	}
 }
 
 func run() (top16 []float64, err error) {
