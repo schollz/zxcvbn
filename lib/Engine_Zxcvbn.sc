@@ -546,9 +546,9 @@ Engine_Zxcvbn : CroneEngine {
             sampleStart=sampleStart-(xfade/2);
             sampleInit=Select.kr(sampleStart<0,[sampleStart,sampleStart+sampleEnd]);
             sampleStart=Select.kr(sampleStart<0,[sampleStart,0]);
-            sampleEnd=sampleEnd+(xfade/2);
+            sampleEnd=sampleEnd.poll+(xfade/2);
             sampleEnd=Select.kr(sampleEnd>duration,[sampleEnd,duration]);
-            sampleDuration=(sampleEnd-sampleStart)/rate.abs;
+            sampleDuration=(sampleEnd.poll-sampleStart.poll).poll/rate.abs;
 
             pos=Phasor.ar(
                 trig:Impulse.kr(0),
@@ -565,9 +565,9 @@ Engine_Zxcvbn : CroneEngine {
             snd=Pan2.ar(snd,0);
 
             snd=snd*amp*EnvGen.ar(Env.new([0,1,1,0],[xfade/2,sampleDuration-xfade,xfade/2]),doneAction:2);
-            snd=snd*EnvGen.ar(Env.new([1,0],[xfade/2]),gate:t_free,doneAction:2);
+            snd=snd*EnvGen.ar(Env.new([1,0],[xfade/2+0.001]),gate:t_free,doneAction:2);
             // envelopes
-            snd=snd*EnvGen.ar(Env.perc(attack,release),doneAction:2);
+            // snd=snd*EnvGen.ar(Env.perc(attack,release),doneAction:2);
 
             SendReply.kr(Impulse.kr(10),'/audition',[A2K.kr(pos)]);                      
 
@@ -1128,7 +1128,7 @@ Engine_Zxcvbn : CroneEngine {
         });
 
 
-        this.addCommand("audition_on","sff", { arg msg;
+        this.addCommand("audition_on","s", { arg msg;
             var server=context.server;
             var dontLoad=false;
             if (bufs.at("audition").notNil,{
@@ -1139,14 +1139,15 @@ Engine_Zxcvbn : CroneEngine {
                     });
                 });
             });
+            msg.postln;
             if (dontLoad==true,{
-                syns.put("audition",Synth.head(server,"playerOneShot"++bufs.at("audition").numChannels,[\bufnum,bufs.at("audition"),\sampleStart,msg[2],\sampleEnd,msg[3],\watch,15]));
+                syns.put("audition",Synth.head(server,"playerOneShot"++bufs.at("audition").numChannels,[\bufnum,bufs.at("audition"),\sampleStart,0,\sampleEnd,bufs.at("audition").duration,\xfade,0,\watch,15]));
                 NodeWatcher.register(syns.at("audition"));
             },{
                 Buffer.read(server,msg[1],action:{ arg buf;
                     postln("loaded "++msg[1]++"into buf "++buf.bufnum);
                     bufs.put("audition",buf);
-                    syns.put("audition",Synth.head(server,"playerOneShot"++bufs.at("audition").numChannels,[\bufnum,bufs.at("audition"),\sampleStart,msg[2],\sampleEnd,msg[3],\watch,15]));
+                    syns.put("audition",Synth.head(server,"playerOneShot"++bufs.at("audition").numChannels,[\bufnum,bufs.at("audition"),\sampleStart,0,\sampleEnd,bufs.at("audition").duration,\xfade,0,\watch,15]));
                     NodeWatcher.register(syns.at("audition"));
                 });
             });
