@@ -29,23 +29,23 @@ function ViewSelect:init()
       end
     end
     return t
-end
-
-self.normalize_path=function(s)
-  local path_split=self.string_split(s,"/")
-  local t={}
-  for _,v in ipairs(path_split) do 
-    if v==".." then 
-      if next(t)~=nil then
-        table.remove(t,#t)
-      end
-    elseif v=="." then 
-    else
-      table.insert(t,v)
-    end
   end
-  return (string.sub(s,1,1)=="/" and "/" or "")..table.concat(t,"/")
-end
+
+  self.normalize_path=function(s)
+    local path_split=self.string_split(s,"/")
+    local t={}
+    for _,v in ipairs(path_split) do
+      if v==".." then
+        if next(t)~=nil then
+          table.remove(t,#t)
+        end
+      elseif v=="." then
+      else
+        table.insert(t,v)
+      end
+    end
+    return (string.sub(s,1,1)=="/" and "/" or "")..table.concat(t,"/")
+  end
 
   self.cache={}
   self.attempting_render={}
@@ -67,8 +67,6 @@ end
 
 function ViewSelect:regen(path)
   path=self.normalize_path(path)
-  print(path,self.current_folder)
-  -- TODO: need to normalize path
   if self.current_folder~=nil then
     self.cache[self.current_folder]={}
     self.cache[self.current_folder].current_folder=self.current_folder
@@ -89,6 +87,7 @@ function ViewSelect:regen(path)
     self.view={1,6}
     self.current=1
   end
+  self.debounce_regen=2
 end
 
 function ViewSelect:split_path(path)
@@ -152,7 +151,7 @@ function ViewSelect:keyboard(code,value)
   elseif code=="UP" and value>0 then
     self:enc(2,-1)
   elseif code=="LEFT" and value==1 then
-    self:regen(self.current_folder.."../")
+    self:regen(self.current_folder.."/../")
   elseif code=="RIGHT" and value==1 then
     if string.sub(self.ls[self.current][1],-1)=="/" then
       self:regen(self.ls[self.current][1])
@@ -215,14 +214,16 @@ function ViewSelect:key(k,z)
       self.k3_held=0
     end
   elseif k==2 and z==1 then
-    self:regen(self.current_folder.."../")
+    self:regen(self.current_folder.."/../")
   end
 end
 
 function ViewSelect:audition(on)
+  print("audition",on)
   if on then
+    print(self.path,0,self.duration)
     if self.path~=nil then
-      engine.audition_on(self.path,0,self.duration)
+      engine.audition_on(self.path)
     end
   else
     engine.audition_off()
@@ -238,6 +239,7 @@ function ViewSelect:get_render()
   self.path=path
   if (self.path_to_dat==nil or not util.file_exists(self.path_to_dat)) and
     self.attempting_render[self.path]==nil then
+    print("attemping render")
     self.attempting_render[self.path]=true
     self.attempting_render2[self.path]=nil
     self.pathname,self.filename,self.ext=string.match(self.path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
