@@ -28,6 +28,8 @@ debounce_fn={}
 -- globals
 softcut_buffers={1,1,2}
 softcut_offsets={2,70,2}
+softcut_positions={0,0,0}
+softcut_renders={{},{},{}}
 
 engine.name="Zxcvbn"
 
@@ -42,9 +44,36 @@ function init()
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
 
   -- setup softcut
-  ss={}
   for i=1,3 do 
-    ss[i]=softsample:init({id=i})
+    -- enable playback head
+    softcut.buffer(i,softcut_buffers[i])
+    softcut.enable(i,1)
+    softcut.play(i,1)
+    softcut.loop(i,0)
+    softcut.fade_time(i,0.05)
+    softcut.loop_start(i,softcut_offsets[i])
+    softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
+    softcut.position(i,softcut_offsets[i]+30) -- set to the loop end for each voice, so we aren't playing anything
+    softcut.rate(i,1)
+    softcut.pan_slew_time(i,0.01)
+    softcut.level_slew_time(i,0.01)
+    softcut.post_filter_dry(i,0)
+    softcut.post_filter_lp(i,1)
+    softcut.post_filter_fc(i,12000)
+    softcut.level(i,1)
+  end
+  for i=4,6 do
+      -- enable recording head (decoupled from playback head)
+    softcut.buffer(i,softcut_buffers[i])
+    softcut.enable(i,1)
+    softcut.play(i,1)
+    softcut.loop(i,1)
+    softcut.rec(i,1)
+    softcut.level(i,0)
+    softcut.rec_level(i,0)
+    softcut.fade_time(i,0.05)
+    softcut.loop_start(i,softcut_offsets[i])
+    softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
   end
   -- setup screens
   screens={}
@@ -144,13 +173,13 @@ function init()
 
   -- start softcut polling
   softcut.event_phase(function(i,x)
-    ss[i]:set_phase(x)
+    softcut_positions[i]=x
   end)
   softcut.event_render(function(ch, start, sec_per_sample, samples)
     for i=1,6 do 
       if ch=softcut_buffers[i] and start>=softcut_offsets[i] and start <= softcut_offsets[i+1] then 
         -- TODO load buffer into i
-        ss[i]:set_render(samples)
+        softcut_renders[i]=samples
       end
     end
   end)
