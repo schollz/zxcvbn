@@ -17,6 +17,7 @@ vterm_=include("lib/vterm")
 sample_=include("lib/sample")
 viewselect_=include("lib/viewselect")
 tracker_=include("lib/tracker")
+softsample_=include("lib/softsample")
 tli_=include("lib/tli")
 tli=tli_:new()
 lattice=require("lattice")
@@ -25,8 +26,8 @@ musicutil=require("musicutil")
 debounce_fn={}
 
 -- globals
-softcut_buffers={1,1,1,2,2,2}
-softcut_offsets={2,62,122,2,62,122,182}
+softcut_buffers={1,1,2}
+softcut_offsets={2,70,2}
 
 engine.name="Zxcvbn"
 
@@ -40,6 +41,11 @@ function init()
   end
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
 
+  -- setup softcut
+  ss={}
+  for i=1,3 do 
+    ss[i]=softsample:init({id=i})
+  end
   -- setup screens
   screens={}
   screen_ind=1

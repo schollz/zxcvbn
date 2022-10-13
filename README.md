@@ -6,6 +6,7 @@ tracker of limited input.
 
 ## todo
 
+- [ ] combine crow 1+2 and crow 3+4 in the track
 - [ ] should work without pattern or chain declaration
 - [ ] mute working
 - [ ] rate changes (reversing??)

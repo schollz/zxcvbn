@@ -53,7 +53,7 @@ end
   self.render={}
   self.phase=0
 
-  -- setup softcut
+  -- enable playback head
   local i=self.id
   softcut.buffer(i,softcut_buffers[i])
   softcut.enable(i,1)
@@ -69,6 +69,21 @@ end
   softcut.post_filter_dry(i,0)
   softcut.post_filter_lp(i,1)
   softcut.post_filter_fc(i,12000)
+  softcut.level(i,1)
+
+    -- enable recording head (decoupled from playback head)
+  i=self.id+3
+  softcut.buffer(i,softcut_buffers[i])
+  softcut.enable(i,1)
+  softcut.play(i,1)
+  softcut.loop(i,1)
+  softcut.rec(i,1)
+  softcut.level(i,0)
+  softcut.rec_level(i,0)
+  softcut.fade_time(i,0.05)
+  softcut.loop_start(i,softcut_offsets[i])
+  softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
+
 
 end
 
