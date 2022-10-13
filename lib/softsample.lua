@@ -34,9 +34,8 @@ end
   self.tosave={"ci","cursors","cursor_durations","view","path_to_save"}
 
   -- initialize
-  self.duration=self.duration or 30
   self.ci=1
-  self.view={0,self.duration}
+  self.view={0,params:get(self.id.."sc_loop_end")}
   self.height=56
   self.width=120
   self.debounce_zoom=0
@@ -45,8 +44,8 @@ end
   self.cursors={}
   self.cursor_durations={}
   for i=1,self.slice_num do
-    table.insert(self.cursors,(i-1)/16*self.duration)
-    table.insert(self.cursor_durations,self.duration/16)
+    table.insert(self.cursors,(i-1)/16*params:get(self.id.."sc_loop_end"))
+    table.insert(self.cursor_durations,params:get(self.id.."sc_loop_end")/16)
   end
 
   self.render={}
@@ -196,21 +195,21 @@ function SoftSample:do_zoom(d)
 end
 
 function SoftSample:do_move(d)
-  self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
+  self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,params:get(self.id.."sc_loop_end"))
 
   -- update cursor durations
   local cursors={}
   for i,c in ipairs(self.cursors) do
     table.insert(cursors,{i=i,c=c})
   end
-  table.insert(cursors,{i=17,c=self.duration})
+  table.insert(cursors,{i=17,c=params:get(self.id.."sc_loop_end")})
   table.sort(cursors,function(a,b) return a.c<b.c end)
   for i,cursor in ipairs(cursors) do
     if i<#cursors then
       self.cursor_durations[cursor.i]=cursors[i+1].c-cursor.c
     end
   end
-  self.cursor_durations[#cursors]=self.duration-cursors[#cursors].c
+  self.cursor_durations[#cursors]=params:get(self.id.."sc_loop_end")-cursors[#cursors].c
 end
 
 function SoftSample:keyboard(k,v)
@@ -273,7 +272,7 @@ function SoftSample:sel_cursor(ci)
   self.ci=ci
   local view_duration=(self.view[2]-self.view[1])
   local cursor=self.cursors[self.ci]
-  if view_duration~=self.duration and cursor-self.cursor_durations[ci]<self.view[1] or cursor+self.cursor_durations[ci]>self.view[2] then
+  if view_duration~=params:get(self.id.."sc_loop_end") and cursor-self.cursor_durations[ci]<self.view[1] or cursor+self.cursor_durations[ci]>self.view[2] then
     local cursor_frac=0.5
     local next_view=cursor+self.cursor_durations[ci]
     if ci<self.slice_num then
@@ -283,7 +282,7 @@ function SoftSample:sel_cursor(ci)
     if ci>1 then
       prev_view=self.cursors[ci-1]+self.cursor_durations[ci-1]/3
     end
-    self.view={util.clamp(prev_view,0,self.duration),util.clamp(next_view,0,self.duration)}
+    self.view={util.clamp(prev_view,0,params:get(self.id.."sc_loop_end")),util.clamp(next_view,0,params:get(self.id.."sc_loop_end"))}
   end
 end
 
@@ -294,8 +293,8 @@ function SoftSample:zoom(zoom_in,zoom_amount)
   local cursor=self.cursors[self.ci]
   local cursor_frac=(cursor-self.view[1])/view_duration
   local view_new={0,0}
-  view_new[1]=util.clamp(cursor-view_duration_new*cursor_frac,0,self.duration)
-  view_new[2]=util.clamp(view_new[1]+view_duration_new,0,self.duration)
+  view_new[1]=util.clamp(cursor-view_duration_new*cursor_frac,0,params:get(self.id.."sc_loop_end"))
+  view_new[2]=util.clamp(view_new[1]+view_duration_new,0,params:get(self.id.."sc_loop_end"))
   if (view_new[2]-view_new[1])<0.005 then
     do return end
   end
