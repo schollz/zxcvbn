@@ -9,13 +9,29 @@ function SoftSample:new(o)
 end
 
 function SoftSample:init()
+  local charset = {}  do -- [0-9a-zA-Z]
+    for c = 48, 57  do table.insert(charset, string.char(c)) end
+    for c = 65, 90  do table.insert(charset, string.char(c)) end
+    for c = 97, 122 do table.insert(charset, string.char(c)) end
+end
+
+local random_string=function(length)
+    if not length or length <= 0 then return '' end
+    math.randomseed(os.clock()^5)
+    return randomString(length - 1) .. charset[math.random(1, #charset)]
+end
+
+  self.path_to_save=_path.data.."zxcvbn/softcut/"
+  os.execute("mkdir -p "..self.path_to_save)
+  self.path_to_save=self.path_to_save....random_string(6)..self.id..".wav"
+
   self.dec_to_hex={"0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"}
 
   -- initialize debouncer
   self.debounce_fn={}
 
   -- choose audiowaveform binary
-  self.tosave={"ci","cursors","cursor_durations","view"}
+  self.tosave={"ci","cursors","cursor_durations","view","path_to_save"}
 
   -- initialize
   self.duration=self.duration or 30
@@ -33,8 +49,9 @@ function SoftSample:init()
     table.insert(self.cursor_durations,self.duration/16)
   end
 
-  local softcut_buffers={1,1,1,2,2,2}
-  local softcut_offsets={2,60,120,2,60,120}
+
+  self.render={}
+  self.phase=0
 
   -- setup softcut
   local i=self.id
@@ -55,11 +72,16 @@ function SoftSample:init()
 
 end
 
+functino SoftSample:write_wav()
+  softcut.buffer_write_mono(self.path_to_save, softcut_offsets[self.id], 60, softcut_buffers[self.id])
+end
+
 function SoftSample:dumps()
   local data={}
   for _,k in ipairs(self.tosave) do
     data[k]=self[k]
   end
+  self:write_wav()
   return json.encode(data)
 end
 
@@ -71,6 +93,9 @@ function SoftSample:loads(s)
   end
   for k,v in pairs(data) do
     self[k]=v
+  end
+  if util.file_exists(self.path_to_save) then 
+    softcut.buffer_read_mono (self.path_to_save, 0, softcut_offsets[self.id],, 60, 1, softcut_buffers[self.id], 0, 1)
   end
   self:do_move(0)
 end
@@ -143,6 +168,10 @@ function SoftSample:debounce()
   end
 end
 
+function SoftSample:do_render()
+  softcut.render_buffer(softcut_buffers[self.id],self.view[1]+softcut_offsets[self.id],self.view[2]-self.view[1],self.width)
+end
+
 function SoftSample:do_zoom(d)
   -- zoom
   if d>0 then
@@ -197,7 +226,6 @@ end
 
 function SoftSample:enc(k,d)
   if k==1 then
-    self:adjust_kick(self.ci,d)
   elseif k==2 then
     self:do_move(d)
   elseif k==3 and d~=0 then
@@ -211,6 +239,14 @@ function SoftSample:key(k,z)
   elseif k==3 then
     self:audition(z==1)
   end
+end
+
+function SoftSample:set_render(render)
+  self.render=render  
+end
+
+function SoftSample:set_phase(phase)
+  self:set_position(phase-softcut_offsets[self.id])
 end
 
 function SoftSample:set_position(pos)
@@ -254,6 +290,7 @@ function SoftSample:zoom(zoom_in,zoom_amount)
     do return end
   end
   self.view={view_new[1],view_new[2]}
+  self:do_render()
 end
 
 function SoftSample:redraw()
@@ -264,7 +301,12 @@ function SoftSample:redraw()
   end
   self:debounce()
 
-  -- TODO: display waveform
+  -- display waveform
+  for i,v in ipairs(self.render) do 
+    screen.move(i+x,y+(self.height-v))
+    screen.line(i+x,y+v)
+    screen.stroke()
+  end
 
   for i,cursor in ipairs(self.cursors) do
     if cursor>=self.view[1] and cursor<=self.view[2] then
