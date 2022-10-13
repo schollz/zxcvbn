@@ -186,7 +186,7 @@ function Track:init()
         duration=d.duration_scaled,
         rate=clock.get_tempo()/params:get(self.id.."bpm")*params:get(self.id.."rate"),
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
-        retrig=d.mods.x or 0,
+        retrig=util.clamp(d.mods.x-1,0,30) or 0,
         pitch=params:get(self.id.."pitch"),
         gate=params:get(self.id.."gate")/100,
       }
@@ -205,7 +205,7 @@ function Track:init()
         db=d.mods.v or 0,
         pitch=d.m-params:get(self.id.."source_note")+params:get(self.id.."pitch"),
         duration=d.duration_scaled,
-        retrig=d.mods.x or 0,
+        retrig=util.clamp(d.mods.x-1,0,30) or 0,
         watch=(params:get("track")==self.id and self.state==SAMPLE) and 1 or 0,
         gate=params:get(self.id.."gate")/100,
       }
@@ -274,10 +274,10 @@ function Track:init()
           crow.output[i].volts=(note-24)/12
           crow.output[i+1]()
         end
-        if d.mods.x~=nil and d.mods.x>0 then
+        if d.mods.x~=nil and d.mods.x>1 then
           clock.run(function()
             for i=1,d.mods.x do
-              clock.sleep(d.duration_scaled/(d.mods.x+1))
+              clock.sleep(d.duration_scaled/d.mods.x)
               crow.output[i+1](false)
               level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
               note=d.m+params:get(self.id.."pitch")*(i+1)
@@ -301,10 +301,10 @@ function Track:init()
         midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
         self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=v.duration}
       end
-      if d.mods.x~=nil and d.mods.x>0 then
+      if d.mods.x~=nil and d.mods.x>1 then
         clock.run(function()
           for i=1,d.mods.x do
-            clock.sleep(d.duration_scaled/(d.mods.x+1))
+            clock.sleep(d.duration_scaled/(d.mods.x))
             midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
             vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
             note=d.m+params:get(self.id.."pitch")*(i+1)
