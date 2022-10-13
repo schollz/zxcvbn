@@ -24,6 +24,10 @@ musicutil=require("musicutil")
 -- debouncer
 debounce_fn={}
 
+-- globals
+softcut_buffers={1,1,1,2,2,2}
+softcut_offsets={2,62,122,2,62,122,182}
+
 engine.name="Zxcvbn"
 
 function init()
@@ -131,6 +135,20 @@ function init()
       clock.sync(1/24)
     end
   end)
+
+  -- start softcut polling
+  softcut.event_phase(function(i,x)
+    ss[i]:set_phase(x)
+  end)
+  softcut.event_render(function(ch, start, sec_per_sample, samples)
+    for i=1,6 do 
+      if ch=softcut_buffers[i] and start>=softcut_offsets[i] and start <= softcut_offsets[i+1] then 
+        -- TODO load buffer into i
+        ss[i]:set_render(samples)
+      end
+    end
+  end)
+  softcut.poll_start_phase()
 
   params:set("1track_type",4)
   params:set("1mx_synths",9)
