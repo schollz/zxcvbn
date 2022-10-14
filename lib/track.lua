@@ -96,7 +96,7 @@ function Track:init()
     {id="rec_level",name="record",min=0,max=1,exp=false,div=0.01,default=0,fn=function(x) return x end},
     {id="post_filter_fc",name="filter (i)",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end,fn=function(x) return musicutil.note_num_to_freq(x) end},
     {id="rate",name="rate (u)",min=-2,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()*100) end,fn=function(x) return x end},
-    {id="loop_end",name="loop duration",min=0,max=60,exp=false,div=0.01,default=30,fn=function(x) return x+softcut_offsets[params:get(self.id.."sc")] end},
+    {id="loop_end",name="loop duration",min=0,max=60,exp=false,div=0.01,default=30,unit="s",fn=function(x) return x+softcut_offsets[params:get(self.id.."sc")] end},
   }
   for _,pram in ipairs(params_menu) do
     params:add{
@@ -111,6 +111,10 @@ function Track:init()
       softcut[pram.id](params:get(self.id.."sc"),pram.fn(x))
       if pram.id=="rec_level" then
         softcut.pre_level(params:get(self.id.."sc"),1-pram.fn(x))
+      elseif pram.id=="loop_end" then
+        print("softcut","loop_end",pram.id,params:get(self.id.."sc"),x,pram.fn(x))
+        softcut[pram.id](params:get(self.id.."sc")+3,pram.fn(x))
+        softcut.position(params:get(self.id.."sc")+3,pram.fn(x))
       end
     end)
   end
@@ -178,7 +182,7 @@ function Track:init()
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
   self.params["mx.synths"]={"db","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
-  self.params["softcut"]={"sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate"}
+  self.params["softcut"]={"sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
   self.mods={
@@ -390,6 +394,14 @@ end
 function Track:load_text(text)
   self.states[STATE_VTERM]:load_text(text)
   self:parse_tli()
+end
+
+function Track:got_onsets(data)
+  if TYPE_SOFTSAMPLE then
+    self.states[STATE_SOFTSAMPLE]:got_onsets(data)
+  elseif TYPE_SPLICE then
+    self.states[STATE_SAMPLE]:got_onsets(data)
+  end
 end
 
 function Track:parse_tli()
