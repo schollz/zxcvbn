@@ -71,6 +71,7 @@ function init()
     softcut.rec(i,1)
     softcut.level(i,0)
     softcut.rec_level(i,0)
+    softcut.pre_level(i,1)
     softcut.fade_time(i,0.05)
     softcut.loop_start(i,softcut_offsets[i])
     softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
