@@ -44,7 +44,7 @@ end
 function Track:init()
   -- initialize parameters
   self.track_type_options={"sliced sample","melodic sample","mx.samples","mx.synths","infinite pad","softcut","crow","midi"}
-  params:add_option(self.id.."track_type","type",self.track_type_options,1)
+  params:add_option(self.id.."track_type","clade",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
     self:select(self.selected)
