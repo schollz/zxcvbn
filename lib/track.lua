@@ -108,13 +108,16 @@ function Track:init()
     }
     params:set_action(self.id.."sc_"..pram.id,function(x)
       -- print(pram.id,params:get(self.id.."sc"),x,pram.fn(x))
-      softcut[pram.id](params:get(self.id.."sc"),pram.fn(x))
       if pram.id=="rec_level" then
-        softcut.pre_level(params:get(self.id.."sc"),1-pram.fn(x))
+        print("setting pre level",1-pram.fn(x))
+        softcut.pre_level(params:get(self.id.."sc")+3,1-pram.fn(x))
+        softcut.rec_level(params:get(self.id.."sc")+3,pram.fn(x))
       elseif pram.id=="loop_end" then
-        print("softcut","loop_end",pram.id,params:get(self.id.."sc"),x,pram.fn(x))
+        softcut[pram.id](params:get(self.id.."sc"),pram.fn(x))
         softcut[pram.id](params:get(self.id.."sc")+3,pram.fn(x))
         softcut.position(params:get(self.id.."sc")+3,pram.fn(x))
+      else
+        softcut[pram.id](params:get(self.id.."sc"),pram.fn(x))
       end
     end)
   end
@@ -182,7 +185,7 @@ function Track:init()
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
   self.params["mx.synths"]={"db","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
-  self.params["softcut"]={"sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate","sc_loop_end"}
+  self.params["softcut"]={"sc","sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
   self.mods={
@@ -555,8 +558,12 @@ function Track:keyboard(k,v)
     elseif v==1 and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
       if self.state>1 then
         self.state=1
+        softcut.phase_quant(params:get(self.id.."sc"),2)
+        softcut.phase_quant(params:get(self.id.."sc")+3,2)
       else
         self.state=STATE_SOFTSAMPLE
+        softcut.phase_quant(params:get(self.id.."sc"),0.1)
+        softcut.phase_quant(params:get(self.id.."sc")+3,0.1)
       end
     end
     do return end
