@@ -93,9 +93,9 @@ function SoftSample:load_sample(path,get_onsets)
   end
   self.duration=self.samples/self.sample_rate
   self.duration=self.duration<=60 and self.duration or 60
+  softcut.buffer_read_mono(path,0,softcut_offsets[params:get(self.id.."sc")],self.duration,1,softcut_buffers[params:get(self.id.."sc")],0,1)
   params:set(self.id.."sc_loop_end",self.duration)
   self.view={0,params:get(self.id.."sc_loop_end")}
-  softcut.buffer_read_mono(path,0,softcut_offsets[params:get(self.id.."sc")],self.duration,1,softcut_buffers[params:get(self.id.."sc")],0,1)
   debounce_fn[path]={15,function()
     softcut.render_buffer(softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
     -- if get_onsets then
