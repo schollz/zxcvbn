@@ -160,15 +160,15 @@ function init()
 
   -- start lattice
   clock_pulse=0
-  -- clock.run(function()
-  --   while true do
-  --     clock_pulse=clock_pulse+1
-  --     for _,track in ipairs(tracks) do
-  --       track:emit(clock_pulse)
-  --     end
-  --     clock.sync(1/24)
-  --   end
-  -- end)
+  clock.run(function()
+    while true do
+      clock_pulse=clock_pulse+1
+      for _,track in ipairs(tracks) do
+        track:emit(clock_pulse)
+      end
+      clock.sync(1/24)
+    end
+  end)
 
   -- start softcut polling
   softcut.event_phase(function(i,x)

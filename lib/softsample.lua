@@ -96,11 +96,11 @@ function SoftSample:load_sample(path,get_onsets)
   params:set(self.id.."sc_loop_end",self.duration)
   self.view={0,params:get(self.id.."sc_loop_end")}
   softcut.buffer_read_mono(path,0,softcut_offsets[params:get(self.id.."sc")],self.duration,1,softcut_buffers[params:get(self.id.."sc")],0,1)
-  debounce_fn[path]={10,function()
+  debounce_fn[path]={15,function()
     softcut.render_buffer(softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
-    if get_onsets then
-      self:get_onsets()
-    end
+    -- if get_onsets then
+    --   self:get_onsets()
+    -- end
   end}
 end
 
@@ -363,7 +363,6 @@ function SoftSample:redraw()
   -- display recording cursor
   local cursor=softcut_positions[params:get(self.id.."sc")+3]-softcut_offsets[params:get(self.id.."sc")]
   local pos=util.linlin(self.view[1],self.view[2],1,self.width,cursor)
-  print(cursor,pos,self.view[1],self.view[2])
   screen.level(10)
   screen.move(pos+x,64-self.height)
   screen.line(pos+x,64)
