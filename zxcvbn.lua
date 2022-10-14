@@ -112,7 +112,6 @@ function init()
       tracks[params:get("track")]:set_position(tonumber(args[1]))
     end,
     progressbar=function(args)
-      print(args[1],args[2])
       show_message(args[1])
       show_progress(tonumber(args[2]))
     end,
@@ -139,7 +138,7 @@ function init()
     aubiodone=function(args)
       local id=tonumber(args[1])
       local data_s=args[2]
-      tracks[id].states[2]:got_onsets(data_s)
+      tracks[id]:got_onsets(data_s)
     end,
   }
   osc.event=function(path,args,from)
@@ -178,9 +177,7 @@ function init()
   softcut.event_render(function(ch,start,sec_per_sample,samples)
     for i=1,3 do
       if ch==softcut_buffers[i] and start>=softcut_offsets[i] and start<=softcut_offsets[i+1] then
-        -- TODO load buffer into i
         softcut_renders[i]=samples
-        tab.print(samples)
       end
     end
   end)

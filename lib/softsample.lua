@@ -297,6 +297,8 @@ function SoftSample:sel_cursor(ci)
       prev_view=self.cursors[ci-1]+self.cursor_durations[ci-1]/3
     end
     self.view={util.clamp(prev_view,0,params:get(self.id.."sc_loop_end")),util.clamp(next_view,0,params:get(self.id.."sc_loop_end"))}
+    self:do_render()
+
   end
 end
 
@@ -318,7 +320,7 @@ end
 
 function SoftSample:redraw()
   local x=7
-  local y=8
+  local y=15
   if show_cursor==nil then
     show_cursor=true
   end
@@ -361,6 +363,7 @@ function SoftSample:redraw()
   -- display recording cursor
   local cursor=softcut_positions[params:get(self.id.."sc")+3]-softcut_offsets[params:get(self.id.."sc")]
   local pos=util.linlin(self.view[1],self.view[2],1,self.width,cursor)
+  print(cursor,pos,self.view[1],self.view[2])
   screen.level(10)
   screen.move(pos+x,64-self.height)
   screen.line(pos+x,64)
