@@ -43,14 +43,14 @@ end
 
 function Track:init()
   -- initialize parameters
-  self.track_type_options={"sliced sample","melodic sample","mx.samples","mx.synths","infinite pad","softcut", "crow","midi"}
+  self.track_type_options={"sliced sample","melodic sample","mx.samples","mx.synths","infinite pad","softcut","crow","midi"}
   params:add_option(self.id.."track_type","type",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
     self:select(self.selected)
   end)
-  -- crow 
-  params:add_option(self.id.."crow_type",{"1+2","3+4"},1)
+  -- crow
+  params:add_option(self.id.."crow_type","crow type",{"1+2","3+4"},1)
   -- sliced sample
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
   params:set_action(self.id.."sample_file",function(x)
@@ -62,9 +62,8 @@ function Track:init()
   params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
   params:add_number(self.id.."slices","slices",1,16,16)
   params:add_number(self.id.."bpm","bpm",10,600,math.floor(clock.get_tempo()))
-  
-  params:add_number(self.id.."sc","softcut voice",1,3,1)
 
+  params:add_number(self.id.."sc","softcut voice",1,3,1)
 
   -- midi stuff
   params:add_option(self.id.."midi_dev","midi",midi_device_list,1)
@@ -90,9 +89,9 @@ function Track:init()
   end
 
   local params_menu={}
-  
+
   params_menu={
-    {id="level",name="volume (v)",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db",fn=function(x) util.dbamp(x) end},
+    {id="level",name="volume (v)",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db",fn=function(x) return util.dbamp(x) end},
     {id="pan",name="pan (w)",min=-1,max=1,exp=false,div=0.01,default=0,fn=function(x) return x end},
     {id="rec_level",name="record",min=0,max=1,exp=false,div=0.01,default=0,fn=function(x) return x end},
     {id="post_filter_fc",name="filter (i)",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end,fn=function(x) return musicutil.note_num_to_freq(x) end},
@@ -108,13 +107,14 @@ function Track:init()
       formatter=pram.formatter,
     }
     params:set_action(self.id.."sc_"..pram.id,function(x)
+      -- print(pram.id,params:get(self.id.."sc"),x,pram.fn(x))
       softcut[pram.id](params:get(self.id.."sc"),pram.fn(x))
-      if pram.id=="rec_level" then 
+      if pram.id=="rec_level" then
         softcut.pre_level(params:get(self.id.."sc"),1-pram.fn(x))
       end
     end)
   end
-  
+
   params_menu={
     {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="db",name="volume (v)",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
@@ -178,19 +178,19 @@ function Track:init()
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
   self.params["mx.synths"]={"db","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
-  self.params["softcut"]={"scdb","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate"}
+  self.params["softcut"]={"sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate"}
 
   -- define the shortcodes here
   self.mods={
-    i=function(x) params:set(self.id.."filter",x+30); params:set(self.id.."sc_filter",x/100) end,
+    i=function(x) params:set(self.id.."filter",x+30);params:set(self.id.."sc_filter",x/100) end,
     q=function(x) params:set(self.id.."probability",x) end,
     h=function(x) params:set(self.id.."gate",x) end,
     k=function(x) params:set(self.id.."attack",x) end,
     l=function(x) params:set(self.id.."release",x) end,
-    w=function(x) params:set(self.id.."pan",(x/100)); params:set(self.id.."sc_pan",x/100) end,
+    w=function(x) params:set(self.id.."pan",(x/100));params:set(self.id.."sc_pan",x/100) end,
     m=function(x) params:set(self.id.."decimate",x/100) end,
     n=function(x) params:set(self.id.."pitch",x) end,
-    u=function(x) params:set(self.id.."rate",x/100); params:set(self.id.."sc_rate",x/100)  end,
+    u=function(x) params:set(self.id.."rate",x/100);params:set(self.id.."sc_rate",x/100) end,
     z=function(x) params:set(self.id.."send_reverb",x/100) end,
   }
 
@@ -301,7 +301,7 @@ function Track:init()
       d.duration_scaled)
     end,
   })
-  -- crow 
+  -- crow
   table.insert(self.play_fn,{
     note_on=function(d)
       local i=(params:get(self.id.."crow_type")-1)*2+1
@@ -395,7 +395,9 @@ end
 function Track:parse_tli()
   local text=self.states[STATE_VTERM]:get_text()
   local tli_parsed=nil
-  tli_parsed,err=tli:parse_tli(text,params:get(self.id.."track_type")==1)
+  local is_hex=false
+  is_hex=params:get(self.id.."track_type")==TYPE_SOFTSAMPLE or params:get(self.id.."track_type")==TYPE_SPLICE
+  tli_parsed,err=tli:parse_tli(text,is_hex)
   if err~=nil then
     print("error: "..err)
     local foo=string.split(err,":")
@@ -525,7 +527,11 @@ end
 
 function Track:load_sample(path)
   print(string.format("track %d: load sample %s",self.id,path))
-  self.states[STATE_SAMPLE]:load_sample(path,params:get(self.id.."track_type")==2,params:get(self.id.."slices"))
+  if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
+    self.states[STATE_SOFTSAMPLE]:load_sample(path,true)
+  else
+    self.states[STATE_SAMPLE]:load_sample(path,params:get(self.id.."track_type")==2,params:get(self.id.."slices"))
+  end
 end
 
 -- base functions
@@ -534,15 +540,15 @@ function Track:keyboard(k,v)
   if k=="TAB" then
     if v==1 and params:get(self.id.."track_type")<3 then
       self.state=3-self.state
-    elseif v==1 and params:get(self.id.."track_type")>=TYPE_SOFTSAMPLE[1] then 
-      if self.state>1 then 
-        self.state=1 
+    elseif v==1 and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
+      if self.state>1 then
+        self.state=1
       else
-        self.state=STATE_SOFTSAMPLE[params:get(self.id.."sc")]
+        self.state=STATE_SOFTSAMPLE
       end
     end
     do return end
-  elseif k=="CTRL+O" and params:get(self.id.."track_type")<3  then
+  elseif k=="CTRL+O" and params:get(self.id.."track_type")<3 then
     if v==1 then
       if self.state==STATE_LOADSCREEN then
         self.state=STATE_SAMPLE

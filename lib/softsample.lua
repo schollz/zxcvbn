@@ -9,21 +9,21 @@ function SoftSample:new(o)
 end
 
 function SoftSample:init()
-  local charset = {}  do -- [0-9a-zA-Z]
-    for c = 48, 57  do table.insert(charset, string.char(c)) end
-    for c = 65, 90  do table.insert(charset, string.char(c)) end
-    for c = 97, 122 do table.insert(charset, string.char(c)) end
-end
+  local charset={} do -- [0-9a-zA-Z]
+    for c=48,57 do table.insert(charset,string.char(c)) end
+    for c=65,90 do table.insert(charset,string.char(c)) end
+    for c=97,122 do table.insert(charset,string.char(c)) end
+  end
 
-local random_string=function(length)
-    if not length or length <= 0 then return '' end
+  random_string=function(length)
+    if not length or length<=0 then return '' end
     math.randomseed(os.clock()^5)
-    return randomString(length - 1) .. charset[math.random(1, #charset)]
-end
+    return random_string(length-1)..charset[math.random(1,#charset)]
+  end
 
   self.path_to_save=_path.data.."zxcvbn/softcut/"
   os.execute("mkdir -p "..self.path_to_save)
-  self.path_to_save=self.path_to_save....random_string(6)..self.id..".wav"
+  self.path_to_save=self.path_to_save..random_string(6)..self.id..".wav"
 
   self.dec_to_hex={"0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"}
 
@@ -48,23 +48,21 @@ end
     table.insert(self.cursor_durations,params:get(self.id.."sc_loop_end")/16)
   end
 
-  self.render={}
   self.phase=0
 end
 
-function Sample:get_onsets()
+function SoftSample:get_onsets()
   show_message("determing onsets",4)
   show_progress(0)
 
   self:write_wav()
 
-  debounce_fn[self.id.."onsets"]={1,function() 
+  debounce_fn[self.id.."onsets"]={1,function()
     os.execute(_path.code.."zxcvbn/lib/aubiogo/aubiogo --id "..self.id.." --filename "..self.path_to_save.." --num 16 --rm &")
   end}
 end
 
-
-function Sample:got_onsets(data_s)
+function SoftSample:got_onsets(data_s)
   local data=json.decode(data_s)
   if data==nil then
     print("error getting onset data!")
@@ -84,7 +82,26 @@ function Sample:got_onsets(data_s)
 end
 
 function SoftSample:write_wav()
-  softcut.buffer_write_mono(self.path_to_save, softcut_offsets[params:get(self.id.."sc")], 60, softcut_buffers[params:get(self.id.."sc")])
+  softcut.buffer_write_mono(self.path_to_save,softcut_offsets[params:get(self.id.."sc")],60,softcut_buffers[params:get(self.id.."sc")])
+end
+
+function SoftSample:load_sample(path,get_onsets)
+  self.ch,self.samples,self.sample_rate=audio.file_info(path)
+  if self.samples<10 or self.samples==nil then
+    print("ERROR PROCESSING FILE: "..path)
+    do return end
+  end
+  self.duration=self.samples/self.sample_rate
+  self.duration=self.duration<=60 and self.duration or 60
+  params:set(self.id.."sc_loop_end",self.duration)
+  self.view={0,params:get(self.id.."sc_loop_end")}
+  softcut.buffer_read_mono(path,0,softcut_offsets[params:get(self.id.."sc")],self.duration,1,softcut_buffers[params:get(self.id.."sc")],0,1)
+  debounce_fn[path]={10,function()
+    softcut.render_buffer(softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
+    if get_onsets then
+      self:get_onsets()
+    end
+  end}
 end
 
 function SoftSample:dumps()
@@ -105,8 +122,8 @@ function SoftSample:loads(s)
   for k,v in pairs(data) do
     self[k]=v
   end
-  if util.file_exists(self.path_to_save) then 
-    softcut.buffer_read_mono (self.path_to_save, 0, softcut_offsets[params:get(self.id.."sc")], 60, 1, softcut_buffers[params:get(self.id.."sc")], 0, 1)
+  if util.file_exists(self.path_to_save) then
+    self:load_sample(self.path_to_save)
   end
   self:do_move(0)
 end
@@ -182,6 +199,7 @@ function SoftSample:debounce()
 end
 
 function SoftSample:do_render()
+  print("rendering",softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
   softcut.render_buffer(softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
 end
 
@@ -254,10 +272,6 @@ function SoftSample:key(k,z)
   end
 end
 
-function SoftSample:set_render(render)
-  self.render=render  
-end
-
 function SoftSample:set_position(pos)
   self.show=1
   self.show_pos=pos
@@ -311,14 +325,18 @@ function SoftSample:redraw()
   self:debounce()
 
   -- TODO if recording and no debounce is set, then setup a debounce to render
-  if self.debounce_fn[params:get(self.id.."sc").."render"]==nil and params:get(self.id.."record_level")>0 then 
+  if self.debounce_fn[params:get(self.id.."sc").."render"]==nil and params:get(self.id.."sc_rec_level")>0 then
     self.debounce_fn[params:get(self.id.."sc").."render"]={5,function() self:do_render() end}
   end
 
   -- display waveform
-  for i,v in ipairs(self.render) do 
-    screen.move(i+x,y+(self.height-v))
-    screen.line(i+x,y+v)
+  for i,v in ipairs(softcut_renders[params:get(self.id.."sc")]) do
+    v=v*self.height/2
+    screen.level(10)
+    screen.move(i+x,y/2+self.height/2)
+    screen.line(i+x,y/2+self.height/2+v)
+    screen.move(i+x,y/2+self.height/2)
+    screen.line(i+x,y/2+self.height/2-v)
     screen.stroke()
   end
 
@@ -347,7 +365,7 @@ function SoftSample:redraw()
   screen.move(pos+x,64-self.height)
   screen.line(pos+x,64)
   screen.stroke()
-  
+
   -- display title
   local title="/".."soft"..self.id
   screen.level(15)
@@ -362,7 +380,6 @@ function SoftSample:redraw()
   screen.blend_mode(0)
   screen.move(126,58)
   screen.level(15)
-  screen.text_right(self.kick[self.ci].." dB")
 end
 
 return SoftSample

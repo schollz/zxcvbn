@@ -26,9 +26,9 @@ musicutil=require("musicutil")
 debounce_fn={}
 
 -- globals
-softcut_buffers={1,1,2}
-softcut_offsets={2,70,2}
-softcut_positions={0,0,0}
+softcut_buffers={1,1,2,1,1,2}
+softcut_offsets={2,70,2,2,70,2}
+softcut_positions={0,0,0,0,0,0}
 softcut_renders={{},{},{}}
 
 engine.name="Zxcvbn"
@@ -44,7 +44,7 @@ function init()
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
 
   -- setup softcut
-  for i=1,3 do 
+  for i=1,3 do
     -- enable playback head
     softcut.buffer(i,softcut_buffers[i])
     softcut.enable(i,1)
@@ -63,7 +63,7 @@ function init()
     softcut.level(i,1)
   end
   for i=4,6 do
-      -- enable recording head (decoupled from playback head)
+    -- enable recording head (decoupled from playback head)
     softcut.buffer(i,softcut_buffers[i])
     softcut.enable(i,1)
     softcut.play(i,1)
@@ -161,25 +161,26 @@ function init()
 
   -- start lattice
   clock_pulse=0
-  clock.run(function()
-    while true do
-      clock_pulse=clock_pulse+1
-      for _,track in ipairs(tracks) do
-        track:emit(clock_pulse)
-      end
-      clock.sync(1/24)
-    end
-  end)
+  -- clock.run(function()
+  --   while true do
+  --     clock_pulse=clock_pulse+1
+  --     for _,track in ipairs(tracks) do
+  --       track:emit(clock_pulse)
+  --     end
+  --     clock.sync(1/24)
+  --   end
+  -- end)
 
   -- start softcut polling
   softcut.event_phase(function(i,x)
     softcut_positions[i]=x
   end)
-  softcut.event_render(function(ch, start, sec_per_sample, samples)
-    for i=1,6 do 
-      if ch=softcut_buffers[i] and start>=softcut_offsets[i] and start <= softcut_offsets[i+1] then 
+  softcut.event_render(function(ch,start,sec_per_sample,samples)
+    for i=1,3 do
+      if ch==softcut_buffers[i] and start>=softcut_offsets[i] and start<=softcut_offsets[i+1] then
         -- TODO load buffer into i
         softcut_renders[i]=samples
+        tab.print(samples)
       end
     end
   end)
@@ -204,12 +205,13 @@ C/E;3 rud s12 t12
 G/D;3 rud s12 t12
           ]])
 
-  params:set("2track_type",1)
+  params:set("2track_type",6)
   params:set("2play_through",2)
   params:set("2sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   params:set("2drive",0.7)
   params:set("2compression",0.2)
   params:set("2db",-16)
+  params:set("track",2)
   tracks[2]:load_text([[
 chain a
  
@@ -224,9 +226,6 @@ pattern b
 pattern a
 0123 rud s12 t17 p192 u-98,98,98,98,98,98,98
           ]])
-  clock.run(function()
-    clock.sleep(1)
-  end)
 end
 
 function reset_clocks()
