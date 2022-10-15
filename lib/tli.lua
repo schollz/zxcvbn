@@ -73,7 +73,9 @@ function TLI:init()
 
   self.numdashcomr=function(s)
     local t=self.numdashcom(s)
-    return t[math.random(1,#t)]
+    if t~=nil and next(t)~=nil then
+      return t[math.random(1,#t)]
+    end
   end
 
   self.cache={}
