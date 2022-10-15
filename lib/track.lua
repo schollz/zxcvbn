@@ -91,12 +91,12 @@ function Track:init()
   local params_menu={}
 
   params_menu={
+    {id="loop_end",name="loop duration",min=0,max=60,exp=false,div=0.01,default=30,unit="s",fn=function(x) return x+softcut_offsets[params:get(self.id.."sc")] end},
+    {id="rec_level",name="record",min=0,max=1,exp=false,div=0.01,default=0,fn=function(x) return x end},
     {id="level",name="volume (v)",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db",fn=function(x) return util.dbamp(x) end},
     {id="pan",name="pan (w)",min=-1,max=1,exp=false,div=0.01,default=0,fn=function(x) return x end},
-    {id="rec_level",name="record",min=0,max=1,exp=false,div=0.01,default=0,fn=function(x) return x end},
     {id="post_filter_fc",name="filter (i)",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end,fn=function(x) return musicutil.note_num_to_freq(x) end},
     {id="rate",name="rate (u)",min=-2,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()*100) end,fn=function(x) return x end},
-    {id="loop_end",name="loop duration",min=0,max=60,exp=false,div=0.01,default=30,unit="s",fn=function(x) return x+softcut_offsets[params:get(self.id.."sc")] end},
   }
   for _,pram in ipairs(params_menu) do
     params:add{
@@ -116,6 +116,7 @@ function Track:init()
         softcut[pram.id](params:get(self.id.."sc"),pram.fn(x))
         softcut[pram.id](params:get(self.id.."sc")+3,pram.fn(x))
         softcut.position(params:get(self.id.."sc")+3,pram.fn(x))
+        self.states[STATE_SOFTSAMPLE]:update_loop()
       else
         softcut[pram.id](params:get(self.id.."sc"),pram.fn(x))
       end
@@ -152,6 +153,12 @@ function Track:init()
     }
   end
 
+  params:add{type="binary",name="find onsets",id=self.id.."get_onsets",behavior="momentary",action=function(v)
+    if v==1 and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
+      self.states[STATE_SOFTSAMPLE]:get_onsets()
+    end
+  end}
+
   params:add{type="binary",name="play",id=self.id.."play",behavior="toggle",action=function(v)
     -- reset the clocks if this is the first thing to play
     if v==1 then
@@ -185,7 +192,7 @@ function Track:init()
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
   self.params["mx.synths"]={"db","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
-  self.params["softcut"]={"sc","sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate","sc_loop_end"}
+  self.params["softcut"]={"sc","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
   self.mods={
@@ -306,6 +313,29 @@ function Track:init()
         params:get(self.id.."attack")/1000,
         params:get(self.id.."release")/1000,
       d.duration_scaled)
+    end,
+  })
+  -- softsample
+  table.insert(self.play_fn,{
+    note_on=function(d)
+      if d.m==nil then
+        do return end
+      end
+      local id=self.id.."_"..d.m
+      d.mods.x=d.mods.x or 1
+      self.states[STATE_SOFTSAMPLE]:play{
+        on=true,
+        id=id,
+        ci=(d.m-1)%16+1,
+        db=d.mods.v or 0,
+        pan=params:get(self.id.."pan"),
+        duration=d.duration_scaled,
+        rate=params:get(self.id.."rate"),
+        watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
+        retrig=util.clamp(d.mods.x-1,0,30) or 0,
+        pitch=params:get(self.id.."pitch"),
+        gate=params:get(self.id.."gate")/100,
+      }
     end,
   })
   -- crow

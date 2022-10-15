@@ -82,7 +82,8 @@ function SoftSample:got_onsets(data_s)
 end
 
 function SoftSample:write_wav()
-  softcut.buffer_write_mono(self.path_to_save,softcut_offsets[params:get(self.id.."sc")],60,softcut_buffers[params:get(self.id.."sc")])
+  softcut.buffer_write_mono(self.path_to_save,softcut_offsets[params:get(self.id.."sc")],
+  params:get(self.id.."sc_loop_end"),softcut_buffers[params:get(self.id.."sc")])
 end
 
 function SoftSample:load_sample(path,get_onsets)
@@ -96,13 +97,26 @@ function SoftSample:load_sample(path,get_onsets)
   softcut.buffer_read_mono(path,0,softcut_offsets[params:get(self.id.."sc")],self.duration,0,softcut_buffers[params:get(self.id.."sc")],0,1)
   params:set(self.id.."sc_loop_end",self.duration)
   self.view={0,params:get(self.id.."sc_loop_end")}
+  self.cursors={}
+  self.cursor_durations={}
+  for i=1,self.slice_num do
+    table.insert(self.cursors,(i-1)/16*params:get(self.id.."sc_loop_end"))
+    table.insert(self.cursor_durations,params:get(self.id.."sc_loop_end")/16)
+  end
+
   debounce_fn[path]={10,function()
     print("softsample: rendering")
     softcut.render_buffer(softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
-    if get_onsets then
-      self:get_onsets()
-    end
   end}
+end
+
+function SoftSample:update_loop()
+  self.view={0,params:get(self.id.."sc_loop_end")}
+  debounce_fn["render"]={10,function()
+    print("softsample: rendering")
+    softcut.render_buffer(softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
+  end}
+
 end
 
 function SoftSample:dumps()
@@ -148,6 +162,7 @@ function SoftSample:play(d)
   if params:get(self.id.."play_through")==2 and d.duration_slice>self.cursor_durations[d.ci] then
     d.duration_slice=self.cursor_durations[d.ci]
   end
+  d.duration_slice=d.duration_slice*d.gate
   if d.duration_slice==0 then
     do return end
   end
@@ -160,15 +175,43 @@ function SoftSample:play(d)
     softcut.loop(i,1)
     local sleep_pulses=util.round(24*(d.duration_slice/clock.get_beat_sec()))
     debounce_fn["sc"..self.id]={sleep_pulses,function() softcut.loop(i,0) end}
+    self.has_retrigged=true
   else
-    softcut.loop(i,0)
+    if self.has_retrigged==nil or self.has_retrigged==true then
+      self.has_retrigged=false
+      softcut.loop(i,0)
+      softcut.loop_start(i,softcut_offsets[i]-0.005)
+    end
   end
 
-  softcut.level(self.id,util.dbamp(d.db+params:get(self.id.."db")))
-  softcut.post_filter_fc(i,d.filter)
-  softcut.loop_start(i,pos)
-  softcut.loop_end(i,pos+d.duration_slice)
-  softcut.position(i,pos)
+  local foo=util.dbamp(d.db+params:get(self.id.."db"))
+  if foo~=self.cache_level then
+    self.cache_level=foo
+    softcut.level(i,self.cache_level)
+  end
+
+  local foo=d.rate*musicutil.interval_to_ratio (d.pitch)
+  if foo~=self.cache_rate then
+    self.cache_rate=foo
+    softcut.rate(i,self.cache_rate)
+  end
+
+  local foo=d.filter
+  if foo~=self.cache_filter then
+    self.cache_filter=foo
+    softcut.post_filter_fc(i,self.cache_filter)
+  end
+
+  local loop_end=pos+d.duration_slice+softcut_offsets[i]
+  if params:get(self.id.."play_through")==1 then
+    loop_end=softcut_offsets[i]+params:get(self.id.."sc_loop_end")
+  end
+  if loop_end~=self.cache_loop_end then
+    softcut.loop_end(i,loop_end)
+  end
+
+  print(i,pos+softcut_offsets[i])
+  softcut.position(i,pos+softcut_offsets[i])
 end
 
 function SoftSample:audition(on)
