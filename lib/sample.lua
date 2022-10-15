@@ -536,9 +536,10 @@ function Sample:redraw()
   screen.rect(x,0,128,7)
   screen.fill()
   screen.blend_mode(0)
-  screen.move(126,58)
-  screen.level(15)
-  screen.text_right(self.kick[self.ci].." dB")
+  -- TODO make this appear and dissappear
+  -- screen.move(126,58)
+  -- screen.level(15)
+  -- screen.text_right(self.kick[self.ci].." dB")
 end
 
 return Sample

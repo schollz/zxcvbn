@@ -49,6 +49,8 @@ function Track:init()
     -- rerun show/hiding
     self:select(self.selected)
   end)
+  -- mx.samples
+  params:add_option(self.id.."mx_sample","instrument",mx_sample_options,1)
   -- crow
   params:add_option(self.id.."crow_type","crow type",{"1+2","3+4"},1)
   -- sliced sample
@@ -188,7 +190,7 @@ function Track:init()
   self.params["sliced sample"]={"sample_file","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
   self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"}
   self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible","send_reverb"}
-  self.params["mx.samples"]={"db","attack","pan","release","compressing","compressible","send_reverb"}
+  self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","send_reverb"}
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
   self.params["mx.synths"]={"db","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}

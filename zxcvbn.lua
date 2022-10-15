@@ -43,6 +43,10 @@ function init()
   end
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
 
+  -- get the mx.samples availability
+  local foo=util.os_capture("find ".._path.audio.."mx.samples/ -mindepth 1 -maxdepth 1 -type d -printf '%f\n'")
+  mx_sample_options=tli.string_split(foo)
+
   -- setup softcut
   for i=1,3 do
     -- enable playback head
