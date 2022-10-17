@@ -746,8 +746,8 @@ function TLI:parse_pattern(text,use_hex,default_pulses)
       for _,note in ipairs(p.parsed) do
         table.insert(notes,note.m)
       end
-      local arp_notes=self:get_arp(notes,p.stop-p.start,p.mods.r,p.mods.t)
-      local skip=p.mods.s or 0
+      local arp_notes=self:get_arp(notes,p.stop-p.start,p.mods.r,p.mods.s)
+      local skip=p.mods.t or 0
       local j=0
       for i=p.start,p.stop-1,skip do
         j=j+1

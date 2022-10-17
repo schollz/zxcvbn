@@ -43,6 +43,13 @@ function init()
   end
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
 
+  -- choose audiowaveform binary
+  audiowaveform="/home/we/dust/code/zxcvbn/lib/audiowaveform"
+  local foo=util.os_capture(audiowaveform.." --help")
+  if not string.find(foo,"Options") then
+    audiowaveform="audiowaveform"
+  end
+
   -- get the mx.samples availability
   local foo=util.os_capture("find ".._path.audio.."mx.samples/ -mindepth 1 -maxdepth 1 -type d -printf '%f\n'")
   mx_sample_options=tli.string_split(foo)
@@ -480,7 +487,6 @@ function params_audioin()
         formatter=pram.formatter,
       }
       params:set_action("audioin"..pram.id..lr,function(v)
-        print(lr,pram.id,v)
         engine.audionin_set(lr,pram.id,v)
         if params:get("audioin_linked")==2 then
           if pram.id~="pan" then
@@ -544,8 +550,8 @@ end
 
 function params_midi()
   -- midi
-  midi_device={}
-  midi_device_list={}
+  midi_device={{name="none",note_on=function()end,note_off=function()end}}
+  midi_device_list={"none"}
   for i,dev in pairs(midi.devices) do
     if dev.port~=nil then
       local connection=midi.connect(dev.port)
