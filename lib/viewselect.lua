@@ -55,13 +55,7 @@ function ViewSelect:init()
   self.k3_hold_time=20
   self.k3_hold_min=5
   self.debounce_regen=0
-  self.audiowaveform="/home/we/dust/code/zxcvbn/lib/audiowaveform"
   self.path_to_pngs=_path.data.."zxcvbn/pngs/"
-
-  local foo=util.os_capture(self.audiowaveform.." --help")
-  if not string.find(foo,"Options") then
-    self.audiowaveform="audiowaveform"
-  end
   self:regen("/home/we/dust/audio/")
 end
 
@@ -245,7 +239,7 @@ function ViewSelect:get_render()
     self.pathname,self.filename,self.ext=string.match(self.path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
     self.path_to_dat=_path.data.."zxcvbn/dats/"..self.filename..".dat"
     if not util.file_exists(self.path_to_dat) then
-      local cmd=string.format("%s -q -i %s -o %s -z %d -b 8 &",self.audiowaveform,self.path,self.path_to_dat,2)
+      local cmd=string.format("%s -q -i %s -o %s -z %d -b 8 &",audiowaveform,self.path,self.path_to_dat,2)
       print(cmd)
       os.execute(cmd)
     end
@@ -265,7 +259,7 @@ function ViewSelect:get_render()
       end
       self.duration=self.samples/self.sample_rate
       local view={0,self.duration}
-      local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0 &",self.audiowaveform,self.path_to_dat,path_to_rendered,view[1],view[2],self.width,self.height)
+      local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0 &",audiowaveform,self.path_to_dat,path_to_rendered,view[1],view[2],self.width,self.height)
       print(cmd)
       os.execute(cmd)
     end

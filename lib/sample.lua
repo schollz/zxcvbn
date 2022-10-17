@@ -20,12 +20,6 @@ function Sample:init()
   -- initialize debouncer
   self.debounce_fn={}
 
-  -- choose audiowaveform binary
-  self.audiowaveform="/home/we/dust/code/zxcvbn/lib/audiowaveform"
-  local foo=util.os_capture(self.audiowaveform.." --help")
-  if not string.find(foo,"Options") then
-    self.audiowaveform="audiowaveform"
-  end
   self.tosave={"ci","cursors","cursor_durations","view","kick"}
 end
 
@@ -60,7 +54,7 @@ function Sample:load_sample(path,is_melodic,slices)
   -- create dat file
   self.path_to_dat=_path.data.."zxcvbn/dats/"..self.filename..".dat"
   if not util.file_exists(self.path_to_dat) then
-    local cmd=string.format("%s -q -i %s -o %s -z %d -b 8",self.audiowaveform,self.path,self.path_to_dat,2)
+    local cmd=string.format("%s -q -i %s -o %s -z %d -b 8",audiowaveform,self.path,self.path_to_dat,2)
     os.execute(cmd)
   end
 
@@ -472,7 +466,7 @@ function Sample:get_render()
     if self.view[1]>self.view[2] then
       self.view[1],self.view[2]=self.view[2],self.view[1]
     end
-    local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color 757575 --no-axis-labels --compression 0 &",self.audiowaveform,self.path_to_dat,rendered,self.view[1],self.view[2],self.width,self.height)
+    local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color 757575 --no-axis-labels --compression 0 &",audiowaveform,self.path_to_dat,rendered,self.view[1],self.view[2],self.width,self.height)
     print(cmd)
     os.execute(cmd)
   end

@@ -49,14 +49,15 @@ function Track:init()
     -- rerun show/hiding
     self:select(self.selected)
   end)
+
+  params:add_number(self.id.."sc","softcut voice",1,3,1)
   -- mx.samples
   params:add_option(self.id.."mx_sample","instrument",mx_sample_options,1)
   -- crow
-  params:add_option(self.id.."crow_type","crow type",{"1+2","3+4"},1)
+  params:add_option(self.id.."crow_type","outputs",{"1+2","3+4"},1)
   -- sliced sample
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
   params:set_action(self.id.."sample_file",function(x)
-    print("sample_file",x)
     if util.file_exists(x) and string.sub(x,-1)~="/" then
       self:load_sample(x)
     end
@@ -65,11 +66,9 @@ function Track:init()
   params:add_number(self.id.."slices","slices",1,16,16)
   params:add_number(self.id.."bpm","bpm",10,600,math.floor(clock.get_tempo()))
 
-  params:add_number(self.id.."sc","softcut voice",1,3,1)
-
   -- midi stuff
-  params:add_option(self.id.."midi_dev","midi",midi_device_list,1)
-  params:add_number(self.id.."midi_ch","midi ch",1,16,1)
+  params:add_option(self.id.."midi_dev","device",midi_device_list,1)
+  params:add_number(self.id.."midi_ch","channel",1,16,1)
 
   -- mx.synths stuff
   self.mx_synths={"synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","polyperc","dreadpiano","aaaaaa","triangles"}
@@ -111,7 +110,6 @@ function Track:init()
     params:set_action(self.id.."sc_"..pram.id,function(x)
       -- print(pram.id,params:get(self.id.."sc"),x,pram.fn(x))
       if pram.id=="rec_level" then
-        print("setting pre level",1-pram.fn(x))
         softcut.pre_level(params:get(self.id.."sc")+3,1-pram.fn(x))
         softcut.rec_level(params:get(self.id.."sc")+3,pram.fn(x))
       elseif pram.id=="loop_end" then
@@ -198,6 +196,11 @@ function Track:init()
 
   -- define the shortcodes here
   self.mods={
+    j=function(x)
+      if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
+        params:set(self.id.."rec_level",util.clamp(x,0,100)/100)
+      end
+    end,
     i=function(x) params:set(self.id.."filter",x+30);params:set(self.id.."sc_filter",x/100) end,
     q=function(x) params:set(self.id.."probability",x) end,
     h=function(x) params:set(self.id.."gate",x) end,
