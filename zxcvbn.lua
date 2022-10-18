@@ -109,7 +109,7 @@ function init()
   end)
 
   tracks={}
-  for i=1,9 do
+  for i=1,10 do
     table.insert(tracks,track_:new{id=i})
   end
 
@@ -275,31 +275,44 @@ function keyboard.code(k,v)
     alt_on=v>0
     do return end
   end
+  if alt_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then
+    if v==1 then
+      -- mute group
+      local mute_group=tonumber(k)
+      if mute_group==0 then
+        mute_group=10
+      end
+      local do_mute=-1
+      for i,_ in ipairs(tracks) do
+        if params:get(i.."mute_group")==mute_group then
+          if do_mute<0 then
+            do_mute=1-params:get(i.."mute")
+            break
+          end
+        end
+      end
+      for i,_ in ipairs(tracks) do
+        if params:get(i.."mute_group")==mute_group then
+          params:set(i.."mute",do_mute)
+        end
+      end
+      print("MUTE",alt_on,tonumber(k),mute_group,do_mute)
+      if do_mute>-1 then
+        show_message((do_mute==1 and "muted" or "unmuted").." group "..mute_group)
+      end
+    end
+    do return end
+  end
   k=shift_on and "SHIFT+"..k or k
   k=ctrl_on and "CTRL+"..k or k
   k=alt_on and "ALT+"..k or k
   for i,_ in ipairs(tracks) do
-    if k=="CTRL+"..i then
+    if k=="CTRL+"..(i>0 and i or 10) then
       params:set("track",i)
       do return end
     end
   end
-  if alt_on and tonumber(k)~=nil and tonumber(k)>=1 and tonumber(k)<=9 then
-    -- mute group
-    local mute_group=tonumber(k)
-    local do_mute=-1
-    for i,_ in ipairs(tracks) do
-      if params:get(i.."mute_group")==mute_group then
-        if do_mute<0 then
-          do_mute=1-params:get(i.."mute")
-        end
-        params:set(i.."mute",do_mute)
-      end
-    end
-    if do_mute>-1 then
-      show_message((do_mute==1 and "muted" or "unmuted").." group "..mute_group)
-    end
-  elseif k=="CTRL+P" then
+  if k=="CTRL+P" then
     if v==1 then
       params:set(params:get("track").."play",1-params:get(params:get("track").."play"))
       show_message(params:get(params:get("track").."play")==0 and "stopped" or "playing")
@@ -376,7 +389,7 @@ function redraw()
   screen.level(5)
   screen.rect(0,0,6,66)
   screen.fill()
-  screen.level(0)
+  screen.level(params:get(params:get("track").."mute")==1 and 4 or 0)
   screen.move(3,6)
   screen.text_center(params:get("track"))
   for i,v in ipairs(tracks[params:get("track")].scroll) do
