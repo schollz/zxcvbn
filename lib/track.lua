@@ -178,11 +178,8 @@ function Track:init()
     end
   end}
   params:add{type="binary",name="mute",id=self.id.."mute",behavior="toggle",action=function(v)
-    if v==0 then
-      -- TODO if play off, turn off all notes
-    end
   end}
-  params:add_number(self.id.."mute_group","mute group",1,9,1)
+  params:add_number(self.id.."mute_group","mute group",1,10,self.id)
 
   self.params={shared={"track_type","play","db","probability","pitch","mute","mute_group"}}
   self.params["sliced sample"]={"sample_file","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
@@ -481,7 +478,7 @@ function Track:parse_tli()
         end
       end
     end
-    show_message("parsed",1)
+    show_message("parsed track "..self.id,1)
   end
   -- add flag to turn off on notes
   self.flag_parsed=true
@@ -603,6 +600,12 @@ function Track:keyboard(k,v)
         softcut.phase_quant(params:get(self.id.."sc"),0.1)
         softcut.phase_quant(params:get(self.id.."sc")+3,0.1)
       end
+    end
+    do return end
+  elseif k=="CTRL+M" then
+    if v==1 then
+      params:set(self.id.."mute",1-params:get(self.id.."mute"))
+      show_message((params:get(self.id.."mute")==1 and "muted" or "unmuted").." track "..self.id)
     end
     do return end
   elseif k=="CTRL+O" and params:get(self.id.."track_type")<3 then
