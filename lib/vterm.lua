@@ -198,6 +198,8 @@ end
 
 function VTerm:blank()
   self:load_text("")
+  -- self.cursor={row=0,col=0}
+  -- self:move_cursor(0,0)
   self.history_dirty=true
 end
 
@@ -300,7 +302,7 @@ function VTerm:keyboard(k,v)
     if v==1 then
       params:set(self.id.."play",1-params:get(self.id.."play"))
     end
-  elseif k=="CTRL+N" then
+  elseif k=="CTRL+R" then
     if v==1 then
       self:blank()
     end
