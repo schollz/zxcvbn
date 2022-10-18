@@ -190,6 +190,7 @@ function init()
   end)
 
   -- start lattice
+  current_tempo=clock.get_tempo()
   clock_pulse_sync=math.random(24*16,24*32)
   clock.run(function()
     while true do
@@ -197,13 +198,17 @@ function init()
       for _,track in ipairs(tracks) do
         track:emit(clock_pulse)
       end
-      if clock_pulse%clock_pulse_sync==0 then
-        for _,addr in ipairs(other_norns) do
-          osc.send({addr,10111},"/pulsesync",{clock_pulse,clock.get_tempo()})
+      -- norns syncing
+      if next(other_norns)~=nil then
+        if (clock_pulse-1)%24==0 then
+          print("beat",(clock_pulse-1)/24)
         end
-      end
-      if (clock_pulse-1)%24==0 then
-        print((clock_pulse-1)/24)
+        if clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo() then
+          current_tempo=clock.get_tempo()
+          for _,addr in ipairs(other_norns) do
+            osc.send({addr,10111},"/pulsesync",{clock_pulse,current_tempo})
+          end
+        end
       end
       clock.sync(1/24)
     end
