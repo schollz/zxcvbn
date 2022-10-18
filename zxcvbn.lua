@@ -192,7 +192,7 @@ function init()
       end
       if clock_pulse%clock_pulse_sync==0 then
         for _,addr in ipairs(other_norns) do
-          osc.send({addr,10111},"/pulsesync",clock_pulse)
+          osc.send({addr,10111},"/pulsesync",{clock_pulse})
         end
       end
       clock.sync(1/24)
