@@ -45,6 +45,7 @@ function Sample:load_sample(path,is_melodic,slices)
   self.cursors={}
   self.cursor_durations={}
   self.kick={}
+  self.kick_change=0
   for i=1,self.slice_num do
     table.insert(self.cursors,0)
     table.insert(self.kick,-48)
@@ -372,6 +373,7 @@ function Sample:adjust_kick(i,d)
   elseif self.kick[i]>12 then
     self.kick[i]=12
   end
+  self.kick_change=10
 end
 
 function Sample:keyboard(k,v)
@@ -520,20 +522,23 @@ function Sample:redraw()
   end
 
   local title="/"..self.filename
-  screen.level(15)
+  screen.level(5)
+  screen.rect(7,0,128,7)
+  screen.fill()
+  screen.level(params:get(params:get("track").."mute")==1 and 4 or 0)
+  screen.move(8,6)
   screen.move(8+x,6)
   screen.text(title)
   screen.move(6+x,6)
   screen.text_right(self.dec_to_hex[self.ci])
-  screen.blend_mode(1)
-  screen.level(5)
-  screen.rect(x,0,128,7)
-  screen.fill()
-  screen.blend_mode(0)
+
   -- TODO make this appear and dissappear
-  -- screen.move(126,58)
-  -- screen.level(15)
-  -- screen.text_right(self.kick[self.ci].." dB")
+  if self.kick_change>0 then
+    self.kick_change=self.kick_change-1
+    screen.move(126,60)
+    screen.level(15)
+    screen.text_right(self.kick[self.ci].." dB")
+  end
 end
 
 return Sample
