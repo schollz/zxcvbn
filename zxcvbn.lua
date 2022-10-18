@@ -195,6 +195,9 @@ function init()
           osc.send({addr,10111},"/pulsesync",{clock_pulse})
         end
       end
+      if (clock_pulse-1)%24==0 then 
+	      print((clock_pulse-1)/24)
+      end
       clock.sync(1/24)
     end
   end)
