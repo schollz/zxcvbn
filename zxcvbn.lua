@@ -204,26 +204,32 @@ function init()
   params:set("1mod4",0.2)
   params:set("1release",1000)
   tracks[1]:load_text([[
-chain a
+chain a*4 b*4
  
 p96
  
 pattern a
 Em;3 rud s12 t12
-Am/E;3 rud s12 t12
-C/E;3 rud s12 t12
-G/D;3 rud s12 t12
+Bm;3 rud s12 t12
+C;3 rud s12 t12
+G;3 rud s12 t12
+ 
+pattern b
+G;3 rud s12 t12
+D;3 rud s12 t12
+Em;3 rud s12 t12
+C;3 rud s12 t12
           ]])
 
-  params:set("2track_type",6)
-  params:set("2play_through",2)
+  params:set("2track_type",1)
+  params:set("2play_through",1)
   params:set("2sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
   params:set("2drive",0.7)
   params:set("2compression",0.2)
   params:set("2db",-16)
   params:set("track",2)
   tracks[2]:load_text([[
-chain a
+chain a*4 b*4
  
 p12
  
@@ -234,7 +240,11 @@ pattern b
 -
  
 pattern a
-0123 rud s12 t17 p192 u-98,98,98,98,98,98,98
+0123 rud s17 t24 p384 u50 w0 h100 i70
+ 
+pattern b
+2acb012345a rud s17 t12 p384 m0 i80 h70 w-50,50
+ 
           ]])
 end
 
