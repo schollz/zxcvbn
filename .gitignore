@@ -5,6 +5,7 @@ lib/aubiogo/aubiogo
 *.src.rock
 *.zip
 *.tar.gz
+lib/oscconnect/oscconnect
 
 # Object files
 *.o

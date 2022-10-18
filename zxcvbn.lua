@@ -120,6 +120,8 @@ function init()
   params:bang()
 
   -- setup osc
+  other_norns={}
+  clock_pulse=0
   osc_fun={
     progress=function(args)
       tracks[params:get("track")]:set_position(tonumber(args[1]))
@@ -131,6 +133,14 @@ function init()
     oscnotify=function(args)
       print("file edited ok!")
       rerun()
+    end,
+    oscdiscover=function(args)
+      print("discovered other norns; "..args[1])
+      table.insert(other_norns,args[1])
+    end,
+    pulsesync=function(args)
+      print("incoming pulse: "..args[1])
+      clock_pulse=tonumber(args[1])
     end,
     oscpage=function(args)
       local path=args[1]
@@ -172,12 +182,17 @@ function init()
   end)
 
   -- start lattice
-  clock_pulse=0
+  clock_pulse_sync=math.random(24*16,24*32)
   clock.run(function()
     while true do
       clock_pulse=clock_pulse+1
       for _,track in ipairs(tracks) do
         track:emit(clock_pulse)
+      end
+      if clock_pulse%clock_pulse_sync==0 then
+        for _,addr in ipairs(other_norns) do
+          osc.send({addr,10111},"/pulsesync",clock_pulse)
+        end
       end
       clock.sync(1/24)
     end
