@@ -414,18 +414,15 @@ function SoftSample:redraw()
 
   -- display title
   local title="/".."softcut "..params:get(self.id.."sc")
-  screen.level(15)
+  screen.level(5)
+  screen.rect(7,0,128,7)
+  screen.fill()
+  screen.level(params:get(params:get("track").."mute")==1 and 4 or 0)
+  screen.move(8,6)
   screen.move(8+x,6)
   screen.text(title)
   screen.move(6+x,6)
   screen.text_right(self.dec_to_hex[self.ci])
-  screen.blend_mode(1)
-  screen.level(5)
-  screen.rect(x,0,128,7)
-  screen.fill()
-  screen.blend_mode(0)
-  screen.move(126,58)
-  screen.level(15)
 end
 
 return SoftSample
