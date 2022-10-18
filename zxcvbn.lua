@@ -315,7 +315,7 @@ function keyboard.code(k,v)
   if k=="CTRL+P" then
     if v==1 then
       params:set(params:get("track").."play",1-params:get(params:get("track").."play"))
-      show_message(params:get(params:get("track").."play")==0 and "stopped" or "playing")
+      show_message((params:get(params:get("track").."play")==0 and "stopped" or "playing").." track "..params:get("track"))
     end
     do return end
   end
@@ -348,10 +348,10 @@ function draw_message()
     local x=64
     local y=28
     local w=screen.text_extents(show_message_text)+8
-    screen.rect(x-w/2,y,w,10)
+    screen.rect(x-w/2,y,w+2,10)
     screen.level(0)
     screen.fill()
-    screen.rect(x-w/2,y,w,10)
+    screen.rect(x-w/2,y,w+2,10)
     screen.level(15)
     screen.stroke()
     screen.move(x,y+7)
@@ -360,19 +360,19 @@ function draw_message()
     if show_message_progress~=nil and show_message_progress>0 then
       screen.update()
       screen.blend_mode(13)
-      screen.rect(x-w/2,y,w*(show_message_progress/100),9)
+      screen.rect(x-w/2,y,w*(show_message_progress/100)+2,9)
       screen.level(10)
       screen.fill()
       screen.blend_mode(0)
     else
       screen.update()
       screen.blend_mode(13)
-      screen.rect(x-w/2,y,w,9)
+      screen.rect(x-w/2,y,w+2,9)
       screen.level(10)
       screen.fill()
       screen.blend_mode(0)
       screen.level(0)
-      screen.rect(x-w/2,y,w,10)
+      screen.rect(x-w/2,y,w+2,10)
       screen.stroke()
     end
     if show_message_clock==0 then

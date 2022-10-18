@@ -478,7 +478,7 @@ function Track:parse_tli()
         end
       end
     end
-    show_message("parsed",1)
+    show_message("parsed track "..self.id,1)
   end
   -- add flag to turn off on notes
   self.flag_parsed=true
