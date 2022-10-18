@@ -42,6 +42,7 @@ function init()
     end
   end
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
+  os.execute(_path.code.."zxcvbn/lib/oscconnect/run.sh &")
 
   -- choose audiowaveform binary
   audiowaveform="/home/we/dust/code/zxcvbn/lib/audiowaveform"
