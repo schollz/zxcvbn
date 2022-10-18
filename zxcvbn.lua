@@ -138,6 +138,9 @@ function init()
     oscdiscover=function(args)
       print("discovered other norns; "..args[1])
       table.insert(other_norns,args[1])
+        for _,addr in ipairs(other_norns) do
+          osc.send({addr,10111},"/pulsesync",{clock_pulse,clock.get_tempo()})
+        end
     end,
     pulsesync=function(args)
       print("incoming pulse: "..args[1])
