@@ -61,7 +61,7 @@ function VTerm:cursor_insert(s)
       end
     end
     self.lines=lines
-    self:move_cursor(1,-100)
+    self:move_cursor(0,1000)
   else
     if col==0 then
       self.lines[row]=s..self.lines[row]
@@ -220,15 +220,24 @@ function VTerm:move_cursor(row,col)
   self.cursor={row=self.cursor.row+row,col=self.cursor.col+col,blink=0}
   if self.cursor.row>#self.lines then
     self.cursor.row=#self.lines
-  end
-  if self.cursor.row<1 then
+  elseif self.cursor.row<1 then
     self.cursor.row=1
   end
+
   if self.cursor.col>#self.lines[self.cursor.row] then
-    self.cursor.col=#self.lines[self.cursor.row]
-  end
-  if self.cursor.col<0 then
-    self.cursor.col=0
+    if self.cursor.row<#self.lines and col~=0 then
+      self.cursor.row=self.cursor.row+1
+      self.cursor.col=0
+    else
+      self.cursor.col=#self.lines[self.cursor.row]
+    end
+  elseif self.cursor.col<0 then
+    if self.cursor.row>1 then
+      self.cursor.row=self.cursor.row-1
+      self.cursor.col=#self.lines[self.cursor.row]
+    else
+      self.cursor.col=0
+    end
   end
   local line=self.lines[self.cursor.row]
   line=line:gsub(" ","-")
