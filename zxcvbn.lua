@@ -142,6 +142,10 @@ function init()
     pulsesync=function(args)
       print("incoming pulse: "..args[1])
       clock_pulse=tonumber(args[1])
+      local tempo=tonumber(args[2])
+      if tempo~=clock.get_tempo() then
+        params:set("clock_tempo",tempo)
+      end
     end,
     oscpage=function(args)
       local path=args[1]
@@ -192,11 +196,11 @@ function init()
       end
       if clock_pulse%clock_pulse_sync==0 then
         for _,addr in ipairs(other_norns) do
-          osc.send({addr,10111},"/pulsesync",{clock_pulse})
+          osc.send({addr,10111},"/pulsesync",{clock_pulse,clock.get_tempo()})
         end
       end
-      if (clock_pulse-1)%24==0 then 
-	      print((clock_pulse-1)/24)
+      if (clock_pulse-1)%24==0 then
+        print((clock_pulse-1)/24)
       end
       clock.sync(1/24)
     end
