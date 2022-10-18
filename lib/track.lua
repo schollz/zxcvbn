@@ -198,7 +198,7 @@ function Track:init()
         params:set(self.id.."rec_level",util.clamp(x,0,100)/100)
       end
     end,
-    i=function(x) params:set(self.id.."filter",x+30);params:set(self.id.."sc_filter",x/100) end,
+    i=function(x) params:set(self.id.."filter",x+30);params:set(self.id.."sc_post_filter_fc",x/100) end,
     q=function(x) params:set(self.id.."probability",x) end,
     h=function(x) params:set(self.id.."gate",x) end,
     k=function(x) params:set(self.id.."attack",x) end,
@@ -244,7 +244,7 @@ function Track:init()
         duration=d.duration_scaled,
         rate=clock.get_tempo()/params:get(self.id.."bpm")*params:get(self.id.."rate"),
         watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
-        retrig=util.clamp(d.mods.x-1,0,30) or 0,
+        retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
         pitch=params:get(self.id.."pitch"),
         gate=params:get(self.id.."gate")/100,
       }
@@ -263,7 +263,7 @@ function Track:init()
         db=d.mods.v or 0,
         pitch=d.m-params:get(self.id.."source_note")+params:get(self.id.."pitch"),
         duration=d.duration_scaled,
-        retrig=util.clamp(d.mods.x-1,0,30) or 0,
+        retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
         watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
         gate=params:get(self.id.."gate")/100,
       }
@@ -334,7 +334,7 @@ function Track:init()
         duration=d.duration_scaled,
         rate=params:get(self.id.."rate"),
         watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
-        retrig=util.clamp(d.mods.x-1,0,30) or 0,
+        retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
         pitch=params:get(self.id.."pitch"),
         gate=params:get(self.id.."gate")/100,
       }
@@ -432,9 +432,9 @@ function Track:load_text(text)
 end
 
 function Track:got_onsets(data)
-  if TYPE_SOFTSAMPLE then
+  if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
     self.states[STATE_SOFTSAMPLE]:got_onsets(data)
-  elseif TYPE_SPLICE then
+  elseif params:get(self.id.."track_type")==TYPE_SPLICE then
     self.states[STATE_SAMPLE]:got_onsets(data)
   end
 end
