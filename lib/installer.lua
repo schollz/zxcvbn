@@ -11,16 +11,17 @@ end
 function Installer:init()
   self.blinky=0
   self.fade_in=0
-
+  self.k3debounce=true
 end
 
 function Installer:do_install()
+  self.doing_install=true
   clock.run(function()
     show_message_text="installing..."
     clock.sleep(1)
     os.execute("cd ".._path.code.."zxcvbn/lib/ && chmod +x install.sh && ./install.sh")
     clock.sleep(1)
-    check_install()
+    self:check_install()
   end)
 end
 
@@ -65,6 +66,7 @@ function Installer:check_install()
   else
     show_message("press K3 to install",3000)
   end
+  self.k3debounce=false
 end
 
 function Installer:keyboard(k,v)
@@ -74,6 +76,9 @@ function Installer:enc(k,d)
 end
 
 function Installer:key(k,z)
+  if self.doing_install or self.k3debounce then
+    do return end
+  end
   if k==3 and z==1 then
     if not self.ready_to_go then
       self:do_install()
