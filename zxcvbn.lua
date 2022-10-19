@@ -69,7 +69,7 @@ function do_install()
   clock.run(function()
     show_message_text="installing..."
     clock.sleep(1)
-    os.execute("cd ".._path.code.."zxcvbn/lib/ && ./install.sh &")
+    os.execute("cd ".._path.code.."zxcvbn/lib/ && chmod +x install.sh && ./install.sh &")
     clock.sleep(1)
 
   end)
@@ -91,14 +91,23 @@ function key(k,z)
   end
 end
 
+blinky=0
 function redraw()
   screen.clear()
 
-  screen.level(15)
+  screen.level(7)
   screen.move(64,20)
   screen.font_face(18)
   screen.font_size(14)
   screen.text_center("zxcvbn")
+  screen.move(64,54)
+  screen.font_face(17)
+  screen.font_size(12)
+  screen.text_center("a tracker for norns.")
+  blinky=blinky-1
+  blinky=blinky>-1 and blinky or 20
+  screen.move(120,54)
+  screen.text(blinky>7 and "|" or "")
   screen.font_size(8)
   screen.font_face(1)
   draw_message()
