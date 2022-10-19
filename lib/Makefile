@@ -4,6 +4,7 @@ release: aubio audiowaveform
 	sed -i 's/if cmd=="\/remote\/key" then/if cmd=="\/remote\/brd" then keyboard.process(1,n,val) elseif cmd=="\/remote\/key" then/g' norns/lua/core/osc.lua
 	sed -i 's/if _menu.keyboardcode/if c=="MINUS" then _menu.penc(3,value*-1) elseif c=="EQUAL" then _menu.penc(3,value) end; if _menu.keyboardcode/g' norns/lua/core/menu.lua
 	sed -i 's/if value==1 then/if value>=1 then/g' norns/lua/core/menu.lua
+	sed -i 's/elseif _menu.mode then _menu.keycode(c,value)/elseif (c=="F1" or c=="F2" or c=="F3" or c=="F4") then _menu.set_mode(true); _menu.keycode(c,value) elseif c=="F5" then _menu.set_mode(note _menu.mode) elseif _menu.mode then _menu.keycode(c,value)/g' norns/lua/core/keyboard.lua
 	cd norns && git diff > ../keyboard.patch
 	# build things
 	cd aubiogo && go build -v
