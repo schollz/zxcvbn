@@ -272,7 +272,10 @@ function Track:init()
   -- mx.samples
   table.insert(self.play_fn,{
     note_on=function(d)
-      local folder=_path.audio.."mx.samples/string_spurs" -- TODO: choose from option
+      if params:get(self.id.."mx_sample")==1 then
+        do return end
+      end
+      local folder=_path.audio.."mx.samples/"..params:string(self.id.."mx_sample") -- TODO: choose from option
       local note=d.m+params:get(self.id.."pitch")
       local velocity=util.clamp(util.linlin(-48,12,0,127,params:get(self.id.."db"))+(d.mods.v or 0),1,127)
       local amp=util.dbamp(params:get(self.id.."db"))
@@ -374,6 +377,9 @@ function Track:init()
   -- midi device
   table.insert(self.play_fn,{
     note_on=function(d)
+      if params:get(self.id.."midi_dev")==1 then
+        do return end
+      end
       local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0))
       local note=d.m+params:get(self.id.."pitch")
       if vel>0 then
