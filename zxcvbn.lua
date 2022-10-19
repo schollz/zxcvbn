@@ -45,10 +45,10 @@ function init()
   os.execute(_path.code.."zxcvbn/lib/oscconnect/run.sh &")
 
   -- choose audiowaveform binary
-  audiowaveform="/home/we/dust/code/zxcvbn/lib/audiowaveform"
+  audiowaveform="audiowaveform"
   local foo=util.os_capture(audiowaveform.." --help")
   if not string.find(foo,"Options") then
-    audiowaveform="audiowaveform"
+    audiowaveform="/home/we/dust/code/zxcvbn/lib/audiowaveform"
   end
 
   -- get the mx.samples availability
