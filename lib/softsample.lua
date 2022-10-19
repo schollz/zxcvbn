@@ -173,14 +173,26 @@ function SoftSample:play(d)
   if d.retrig>0 then
     d.duration_slice=d.duration_slice/(d.retrig+1)
     softcut.loop(i,1)
-    local sleep_pulses=util.round(24*(d.duration_slice/clock.get_beat_sec()))
-    debounce_fn["sc"..self.id]={sleep_pulses,function() softcut.loop(i,0) end}
+    if params:get(self.id.."sc_sync")==2 then 
+      softcut.loop(i+3,1)
+    end
+  local sleep_pulses=util.round(24*(d.duration_slice/clock.get_beat_sec()))
+    debounce_fn["sc"..self.id]={sleep_pulses,function() 
+      softcut.loop(i,0) 
+      if params:get(self.id.."sc_sync")==2 then 
+        softcut.loop(i+3,0)
+      end
+    end}
     self.has_retrigged=true
   else
     if self.has_retrigged==nil or self.has_retrigged==true then
       self.has_retrigged=false
       softcut.loop(i,0)
       softcut.loop_start(i,softcut_offsets[i]-0.005)
+      if params:get(self.id.."sc_sync")==2 then 
+        softcut.loop(i+3,0)
+        softcut.loop_start(i+3,softcut_offsets[i]-0.005)
+      end
     end
   end
 
@@ -194,6 +206,9 @@ function SoftSample:play(d)
   if foo~=self.cache_rate then
     self.cache_rate=foo
     softcut.rate(i,self.cache_rate)
+    if params:get(self.id.."sc_sync")==2 then 
+      softcut.rate(i+3,self.cache_rate)
+    end
   end
 
   local foo=d.filter
@@ -208,10 +223,16 @@ function SoftSample:play(d)
   end
   if loop_end~=self.cache_loop_end then
     softcut.loop_end(i,loop_end)
+    if params:get(self.id.."sc_sync")==2 then 
+      softcut.loop_end(i+3,loop_end)
+    end
   end
 
   print(i,pos+softcut_offsets[i])
   softcut.position(i,pos+softcut_offsets[i])
+  if params:get(self.id.."sc_sync")==2 then 
+    softcut.position(i+3,pos+softcut_offsets[i])
+  end
 end
 
 function SoftSample:audition(on)
