@@ -20,18 +20,80 @@ function init()
     end
   end)
 
-  show_message("press K3 to install",30)
-
+  check_install()
 end
 
-function check_installation()
+function check_install()
+  if is_installed() then
+    ready_main()
+  else
+    show_message("press K3 to install",3000)
+  end
+end
 
+function is_installed()
+  -- choose audiowaveform binary
+  audiowaveform="audiowaveform"
+  local foo=util.os_capture(audiowaveform.." --help")
+  if not string.find(foo,"Options") then
+    audiowaveform="/home/we/dust/code/zxcvbn/lib/audiowaveform"
+  end
+  foo=util.os_capture(audiowaveform.." --help")
+  if not string.find(foo,"Options") then
+    do return false end
+  end
+
+  foo=util.os_capture("aubioonset --help")
+  if not string.find(foo,"-minioi") then
+    do return false end
+  end
+
+  if not util.file_exists(_path.code.."zxcvbn/lib/aubiogo/aubiogo") then
+    do return false end
+  end
+
+  if not util.file_exists(_path.code.."zxcvbn/lib/oscconnect/oscconnect") then
+    do return false end
+  end
+
+  if not util.file_exists(_path.code.."zxcvbn/lib/oscnotify/oscnotify") then
+    do return false end
+  end
+  return true
+end
+
+function do_install()
+  clock.run(function()
+    show_message_text="installing..."
+    clock.sleep(1)
+    os.execute("cd ".._path.code.."zxcvbn/lib/ && ./install.sh &")
+    clock.sleep(1)
+
+  end)
 end
 
 function ready_main()
+  show_message("zxcvbn ready.",2)
   include("lib/runner")
   do_run()
   include("lib/runner_defs")
+end
+
+function enc(k,d)
+end
+
+function key(k,z)
+  if k==3 and z==1 then
+    do_install()
+  end
+end
+
+function redraw()
+  screen.clear()
+
+  draw_message()
+
+  screen.update()
 end
 
 function show_progress(val)
@@ -102,21 +164,4 @@ function debounce_params()
       end
     end
   end
-end
-
-function enc(k,d)
-end
-
-function key(k,z)
-  if k==3 and z==1 then
-    show_message("installing...",120)
-  end
-end
-
-function redraw()
-  screen.clear()
-
-  draw_message()
-
-  screen.update()
 end
