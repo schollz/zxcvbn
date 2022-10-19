@@ -2,7 +2,7 @@
 
 - [ ] softcut sync record head to playback head
 - [ ] automatic patch of norns using `sed`
-- [ ] controlling two norns with one keyboard
+- [ ] TEST controlling two norns with one keyboard
 - [ ] combine crow 1+2 and crow 3+4 in the track
 - [ ] should work without pattern or chain declaration
 - [ ] mute working
