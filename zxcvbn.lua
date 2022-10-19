@@ -25,7 +25,10 @@ end
 
 function check_install()
   if is_installed() then
-    ready_main()
+    clock.run(function()
+      clock.sleep(1)
+      ready_main()
+    end)
   else
     show_message("press K3 to install",3000)
   end
@@ -91,6 +94,13 @@ end
 function redraw()
   screen.clear()
 
+  screen.level(15)
+  screen.move(64,20)
+  screen.font_face(18)
+  screen.font_size(14)
+  screen.text_center("zxcvbn")
+  screen.font_size(8)
+  screen.font_face(1)
   draw_message()
 
   screen.update()
