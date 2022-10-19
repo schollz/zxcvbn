@@ -26,7 +26,7 @@ end
 function check_install()
   if is_installed() then
     clock.run(function()
-      clock.sleep(1)
+      clock.sleep(1.1)
       ready_main()
     end)
   else
@@ -69,9 +69,9 @@ function do_install()
   clock.run(function()
     show_message_text="installing..."
     clock.sleep(1)
-    os.execute("cd ".._path.code.."zxcvbn/lib/ && chmod +x install.sh && ./install.sh &")
+    os.execute("cd ".._path.code.."zxcvbn/lib/ && chmod +x install.sh && ./install.sh")
     clock.sleep(1)
-
+    check_install()
   end)
 end
 
@@ -92,10 +92,12 @@ function key(k,z)
 end
 
 blinky=0
+fade_in=0
 function redraw()
   screen.clear()
-
-  screen.level(7)
+  fade_in=fade_in+1
+  fade_in=fade_in>15 and 15 or fade_in
+  screen.level(fade_in)
   screen.move(64,20)
   screen.font_face(18)
   screen.font_size(14)

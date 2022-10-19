@@ -1,7 +1,7 @@
 #!/bin/bash
 
-wget https://github.com/schollz/zxcvbn/releases/download/assets/release.tar.gz
-tar -xvzf release.tar.gz
+wget -q https://github.com/schollz/zxcvbn/releases/download/assets/release.tar.gz
+tar -xzf release.tar.gz
 rm -f release.tar.gz
 chmod +x aubiogo/aubiogo
 chmod +x oscconnect/oscconnect
