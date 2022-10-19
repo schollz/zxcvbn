@@ -7,13 +7,12 @@ release: aubio audiowaveform
 
 
 audiowaveform:
-	git clone https://github.com/bbc/audiowaveform.git && \
-		mkdir -p audiowaveform/build && \
-		cd audiowaveform/build && \
-		cmake -D ENABLE_TESTS=0 -D BUILD_STATIC=1 .. && make
-	mv audiowaveform 1
-	mv 1/build/audiowaveform .
-	rm -rf 1
+	git clone https://github.com/bbc/audiowaveform.git a1 && \
+		mkdir -p a1/build && \
+		cd a1/build && \
+		cmake -D ENABLE_TESTS=0 -D BUILD_STATIC=1 .. && make && \
+		mv audiowaveform ../../
+	rm -rf a1
 
 aubio:
 	git clone https://git.aubio.org/aubio/aubio && cd aubio && \
@@ -27,4 +26,4 @@ install:
 clean:
 	rm -rf release.tar.gz
 	rm -rf aubio
-	rm -rf audiowaveform
+	rm -rf a1
