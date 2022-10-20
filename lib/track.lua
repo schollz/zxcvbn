@@ -51,6 +51,8 @@ function Track:init()
   end)
 
   params:add_number(self.id.."sc","softcut voice",1,3,1)
+  parmas:add_option(self.id.."sc_sync","sync play/rec heads",{"no","yes"},1)
+
   -- mx.samples
   params:add_option(self.id.."mx_sample","instrument",mx_sample_options,1)
   -- crow
@@ -189,7 +191,7 @@ function Track:init()
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
   self.params["mx.synths"]={"db","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
-  self.params["softcut"]={"sc","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate","sc_loop_end"}
+  self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
   self.mods={
@@ -272,7 +274,10 @@ function Track:init()
   -- mx.samples
   table.insert(self.play_fn,{
     note_on=function(d)
-      local folder=_path.audio.."mx.samples/string_spurs" -- TODO: choose from option
+      if params:get(self.id.."mx_sample")==1 then
+        do return end
+      end
+      local folder=_path.audio.."mx.samples/"..params:string(self.id.."mx_sample") -- TODO: choose from option
       local note=d.m+params:get(self.id.."pitch")
       local velocity=util.clamp(util.linlin(-48,12,0,127,params:get(self.id.."db"))+(d.mods.v or 0),1,127)
       local amp=util.dbamp(params:get(self.id.."db"))
@@ -374,6 +379,9 @@ function Track:init()
   -- midi device
   table.insert(self.play_fn,{
     note_on=function(d)
+      if params:get(self.id.."midi_dev")==1 then
+        do return end
+      end
       local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0))
       local note=d.m+params:get(self.id.."pitch")
       if vel>0 then

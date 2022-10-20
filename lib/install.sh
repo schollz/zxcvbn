@@ -9,4 +9,5 @@ chmod +x oscnotify/oscnotify
 cd aubio && sudo ./waf install --destdir=/
 sudo ldconfig
 cd .. && rm -rf aubio
-
+# apply patch automatically
+cd /home/we/dust/norns && git reset --hard HEAD && git apply /home/we/dust/code/zxcvbn/lib/keyboard.patch
