@@ -307,6 +307,7 @@ function reset_clocks()
 end
 
 function keyboard.code(k,v)
+  print("keyboard",k,v)
   screens[screen_ind]:keyboard(k,v)
 end
 

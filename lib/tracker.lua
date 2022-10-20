@@ -19,12 +19,21 @@ end
 function Tracker:keyboard(k,v)
   if string.find(k,"CTRL") then
     self.ctrl_on=v>0
+    if self.norns_keyboard>0 then 
+      osc.send({other_norns[self.norns_keyboard],10111},"/remote/brd",{k,v})
+    end
     do return end
   elseif string.find(k,"SHIFT") then
     self.shift_on=v>0
+    if self.norns_keyboard>0 then 
+      osc.send({other_norns[self.norns_keyboard],10111},"/remote/brd",{k,v})
+    end
     do return end
   elseif string.find(k,"ALT") then
     self.alt_on=v>0
+    if self.norns_keyboard>0 then 
+      osc.send({other_norns[self.norns_keyboard],10111},"/remote/brd",{k,v})
+    end
     do return end
   elseif string.find(k,"META") then
     self.meta_on=v>0
@@ -44,7 +53,7 @@ function Tracker:keyboard(k,v)
     do return end
   end
   if self.norns_keyboard>0 then 
-    osc.send({other_norns[self.norns_keyboard],10111},"/keyboard",{k,v})
+    osc.send({other_norns[self.norns_keyboard],10111},"/remote/brd",{k,v})
     do return end
   end
   if self.alt_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then
