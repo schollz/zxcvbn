@@ -177,6 +177,7 @@ function init2()
       if tempo~=clock.get_tempo() then
         params:set("clock_tempo",tempo)
       end
+      debounce_fn["pulsesync"]={15,function()end}
     end,
     oscpage=function(args)
       local path=args[1]
@@ -223,7 +224,7 @@ function init2()
         if (clock_pulse-1)%24==0 then
           print("beat",(clock_pulse-1)/24)
         end
-        if clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo() then
+        if debounce_fn["pulsesync"]==nil and (clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo()) then
           current_tempo=clock.get_tempo()
           for _,addr in ipairs(other_norns) do
             osc.send({addr,10111},"/pulsesync",{clock_pulse,current_tempo})
