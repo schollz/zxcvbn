@@ -74,7 +74,10 @@ function init2()
 
   -- get the mx.samples availability
   local foo=util.os_capture("find ".._path.audio.."mx.samples/ -mindepth 1 -maxdepth 1 -type d -printf '%f\n'")
-  mx_sample_options=tli.string_split(foo)
+  mx_sample_options={"none"}
+  for _,v in ipairs(tli.string_split(foo)) do
+    table.insert(mx_sample_options,v)
+  end
 
   -- setup softcut
   for i=1,3 do
