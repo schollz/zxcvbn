@@ -145,7 +145,7 @@ function init2()
   clock_pulse=0
   osc_fun={
     keyboard=function(args)
-      tab.print(args)
+      keyboard.code(args[1],tonumber(args[2]))
     end,
     progress=function(args)
       tracks[params:get("track")]:set_position(tonumber(args[1]))
@@ -388,16 +388,11 @@ function key(k,z)
   screens[screen_ind]:key(k,z)
 end
 
-function redraw_installed()
-  screen.clear()
-  screens[screen_ind]:redraw()
-  draw_message()
-  screen.update()
-end
 
 function redraw()
   screen.clear()
   screens[screen_ind]:redraw()
+  draw_message()
   screen.update()
 end
 

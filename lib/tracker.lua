@@ -12,6 +12,7 @@ function Tracker:init()
   self.ctrl_on=false
   self.shift_on=false
   self.alt_on=false
+  self.meta_on=false
   self.norns_keyboard=0
 end
 
@@ -25,8 +26,11 @@ function Tracker:keyboard(k,v)
   elseif string.find(k,"ALT") then
     self.alt_on=v>0
     do return end
+  elseif string.find(k,"META") then
+    self.meta_on=v>0
+    do return end
   end
-  if self.shift_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then
+  if self.meta_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then
     self.norns_keyboard=tonumber(k)-1
     if self.norns_keyboard==0 then 
       show_message("keyboard -> local",3)
@@ -37,6 +41,7 @@ function Tracker:keyboard(k,v)
         show_message("keyboard -> "..other_norns[self.norns_keyboard],3)
       end
     end
+    do return end
   end
   if self.norns_keyboard>0 then 
     osc.send({other_norns[self.norns_keyboard],10111},"/keyboard",{k,v})
