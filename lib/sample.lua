@@ -367,13 +367,13 @@ function Sample:adjust_kick(i,d)
   if self.is_melodic then
     do return end
   end
-  self.kick[i]=self.kick[i]+d
+  self.kick[i]=self.kick[i]+d/10
   if self.kick[i]<-48 then
     self.kick[i]=-48
   elseif self.kick[i]>12 then
     self.kick[i]=12
   end
-  self.kick_change=10
+  self.kick_change=16
 end
 
 function Sample:keyboard(k,v)
@@ -403,11 +403,11 @@ end
 
 function Sample:enc(k,d)
   if k==1 then
-    self:adjust_kick(self.ci,d)
+    self:do_zoom(d)
   elseif k==2 then
     self:do_move(d)
   elseif k==3 and d~=0 then
-    self:do_zoom(d)
+    self:adjust_kick(self.ci,d)
   end
 end
 
@@ -535,8 +535,8 @@ function Sample:redraw()
   -- TODO make this appear and dissappear
   if self.kick_change>0 then
     self.kick_change=self.kick_change-1
-    screen.move(126,60)
-    screen.level(15)
+    screen.move(128,63)
+    screen.level(self.kick_change)
     screen.text_right(self.kick[self.ci].." dB")
   end
 end

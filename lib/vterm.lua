@@ -399,19 +399,13 @@ function VTerm:keyboard(k,v)
 end
 
 function VTerm:enc(k,d)
-  if k==2 then
-    self:move_cursor(0,d)
-  elseif k==3 then
-    self:move_cursor(d,0)
+  if k==3 then
+    params:delta(self.id.."db",d)
+    debounce_fn["db_change"]={15,function()end}
   end
 end
 
 function VTerm:key(k,z)
-  if k==3 and z==1 then
-    self:cursor_insert("z")
-  elseif k==2 and z==1 then
-    self:cursor_delete()
-  end
 end
 
 function VTerm:redraw()
@@ -446,8 +440,13 @@ function VTerm:redraw()
   screen.fill()
   screen.level(params:get(params:get("track").."mute")==1 and 4 or 0)
   screen.move(8,6)
-  screen.text(params:string(self.id.."track_type"))
+  screen.text(tracks[params:get("track")]:description())
 
+  if debounce_fn["db_change"]~=nil then
+    screen.level(debounce_fn["db_change"][1])
+    screen.move(128,63)
+    screen.text_right(params:string(self.id.."db"))
+  end
 end
 
 return VTerm

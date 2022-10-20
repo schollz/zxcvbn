@@ -5,7 +5,7 @@ STATE_SAMPLE=2
 STATE_LOADSCREEN=3
 STATE_SOFTSAMPLE=4
 
-TYPE_SPLICE=1
+TYPE_DRUM=1
 TYPE_MELODIC=2
 TYPE_MXSAMPLES=3
 TYPE_MXSYNTHS=4
@@ -43,7 +43,7 @@ end
 
 function Track:init()
   -- initialize parameters
-  self.track_type_options={"sliced sample","melodic sample","mx.samples","mx.synths","infinite pad","softcut","crow","midi"}
+  self.track_type_options={"drum","melodic","mx.samples","mx.synths","infinite pad","softcut","crow","midi"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
@@ -407,6 +407,28 @@ function Track:init()
 
 end
 
+function Track:description()
+  local s=params:string(self.id.."track_type")
+  if params:get(self.id.."track_type")==TYPE_MXSYNTHS then
+    s=s..string.format(" (%s)",params:string(self.id.."mx_synths"))
+  elseif params:get(self.id.."track_type")==TYPE_DRUM then
+    local fname=params:string(self.id.."sample_file")
+    if string.find(fname,".wav") or string.find(fname,".flac") then
+      fname=fname:sub(1,12).."..."
+    else
+      fname="not loaded"
+    end
+    s=s..string.format(" (%s)",fname)
+  elseif params:get(self.id.."track_type")==TYPE_MXSAMPLES then
+    s=s..string.format(" (%s)",params:string(self.id.."mx_sample"))
+  elseif params:get(self.id.."track_type")==TYPE_MIDI then
+    s=s..string.format(" (%s:%d)",params:string(self.id.."midi_dev"),params:get(self.id.."midi_ch"))
+  elseif params:get(self.id.."track_type")==TYPE_CROW then
+    s=s..string.format(" (%s)",params:string(self.id.."crow_type"))
+  end
+  return s
+end
+
 function Track:dumps()
   local data={states={}}
   for i,v in ipairs(self.states) do
@@ -442,7 +464,7 @@ end
 function Track:got_onsets(data)
   if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
     self.states[STATE_SOFTSAMPLE]:got_onsets(data)
-  elseif params:get(self.id.."track_type")==TYPE_SPLICE then
+  elseif params:get(self.id.."track_type")==TYPE_DRUM then
     self.states[STATE_SAMPLE]:got_onsets(data)
   end
 end
@@ -451,7 +473,7 @@ function Track:parse_tli()
   local text=self.states[STATE_VTERM]:get_text()
   local tli_parsed=nil
   local is_hex=false
-  is_hex=params:get(self.id.."track_type")==TYPE_SOFTSAMPLE or params:get(self.id.."track_type")==TYPE_SPLICE
+  is_hex=params:get(self.id.."track_type")==TYPE_SOFTSAMPLE or params:get(self.id.."track_type")==TYPE_DRUM
   tli_parsed,err=tli:parse_tli(text,is_hex)
   if err~=nil then
     print("error: "..err)
