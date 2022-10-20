@@ -162,6 +162,11 @@ function init2()
       print("discovered other norns; "..args[1])
       table.insert(other_norns,args[1])
       for _,addr in ipairs(other_norns) do
+        osc.send({addr,10111},"/requestsync",{})
+      end
+    end,
+    requestsync=function(args)
+      for _,addr in ipairs(other_norns) do
         osc.send({addr,10111},"/pulsesync",{clock_pulse,clock.get_tempo()})
       end
     end,
@@ -206,7 +211,7 @@ function init2()
 
   -- start lattice
   current_tempo=clock.get_tempo()
-  clock_pulse_sync=math.random(24*16,24*32)
+  clock_pulse_sync=math.random(24*12,24*48)
   clock.run(function()
     while true do
       clock_pulse=clock_pulse+1
@@ -223,6 +228,7 @@ function init2()
           for _,addr in ipairs(other_norns) do
             osc.send({addr,10111},"/pulsesync",{clock_pulse,current_tempo})
           end
+          clock_pulse_sync=math.random(24*12,24*48)
         end
       end
       clock.sync(1/24)
@@ -388,7 +394,6 @@ end
 function key(k,z)
   screens[screen_ind]:key(k,z)
 end
-
 
 function redraw()
   screen.clear()
