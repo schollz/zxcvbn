@@ -57,7 +57,7 @@ function init2()
   show_message("zxcvbn ready.",2)
   -- make the default pages
   os.execute("mkdir -p ".._path.data.."zxcvbn/pages")
-  for i=1,9 do
+  for i=1,10 do
     if not util.file_exists(_path.data.."zxcvbn/pages/"..i) then
       os.execute("touch ".._path.data.."zxcvbn/pages/"..i)
     end
