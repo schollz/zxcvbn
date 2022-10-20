@@ -39,7 +39,7 @@ function Tracker:keyboard(k,v)
     end
   end
   if self.norns_keyboard>0 then 
-    osc.send({other_norns[self.norns_keyboard],10111},"/remote/brd",{k,v})
+    osc.send({other_norns[self.norns_keyboard],10111},"/keyboard",{k,v})
     do return end
   end
   if self.alt_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then

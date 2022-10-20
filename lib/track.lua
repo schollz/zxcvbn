@@ -51,7 +51,7 @@ function Track:init()
   end)
 
   params:add_number(self.id.."sc","softcut voice",1,3,1)
-  parmas:add_option(self.id.."sc_sync","sync play/rec heads",{"no","yes"},1)
+  params:add_option(self.id.."sc_sync","sync play/rec heads",{"no","yes"},1)
 
   -- mx.samples
   params:add_option(self.id.."mx_sample","instrument",mx_sample_options,1)

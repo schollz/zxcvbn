@@ -42,11 +42,6 @@ function Installer:is_installed()
     do return false end
   end
 
-  foo=util.os_capture("cd /home/we/dust/norns && git diff")
-  if not string.find(foo,"brd") then
-    do return false end
-  end
-
   if not util.file_exists(_path.code.."zxcvbn/lib/aubiogo/aubiogo") then
     do return false end
   end

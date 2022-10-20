@@ -144,6 +144,9 @@ function init2()
   other_norns={}
   clock_pulse=0
   osc_fun={
+    keyboard=function(args)
+      tab.print(args)
+    end,
     progress=function(args)
       tracks[params:get("track")]:set_position(tonumber(args[1]))
     end,
