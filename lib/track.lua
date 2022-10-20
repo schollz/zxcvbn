@@ -218,6 +218,18 @@ function Track:init()
   table.insert(self.states,vterm_:new{id=self.id,on_save=function(x)
     local success=self:parse_tli()
     return success
+  end,shift_updown=function(d)
+  	if params:get(self.id.."track_type")==TYPE_MXSAMPLES then 
+	params:delta(self.id.."mx_sample",d)
+elseif params:get(self.id.."track_type")==TYPE_MXSYNTHS then 
+	params:delta(self.id.."mx_synths",d)
+elseif params:get(self.id.."track_type")==TYPE_MIDI then 
+	params:delta(self.id.."midi_dev",d)
+elseif params:get(self.id.."track_type")==TYPE_CROW then 
+	params:delta(self.id.."crow_type",d)
+elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then 
+	params:delta(self.id.."sc",d)
+	end
   end})
   table.insert(self.states,sample_:new{id=self.id})
   table.insert(self.states,viewselect_:new{id=self.id})
