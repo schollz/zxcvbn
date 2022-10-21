@@ -198,6 +198,15 @@ function Track:init()
     j=function(x)
       if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
         params:set(self.id.."rec_level",util.clamp(x,0,100)/100)
+      elseif params:get(self.id.."track_type")==TYPE_DRUM then
+        params:set(self.id.."decimate",util.clamp(x,0,100)/100)
+      elseif params:get(self.id.."track_type")==TYPE_MXSYNTHS then
+        x=util.clamp(x,0,400)
+        local i=math.floor((x-1)/100)+1
+        i=i<1 and 1 or i
+        x=x-(i-1)*100
+        x=(x-50)/50
+        params:set(self.id.."mod"..i,x)
       end
     end,
     i=function(x) params:set(self.id.."filter",x+30);params:set(self.id.."sc_post_filter_fc",x/100) end,
@@ -206,7 +215,7 @@ function Track:init()
     k=function(x) params:set(self.id.."attack",x) end,
     l=function(x) params:set(self.id.."release",x) end,
     w=function(x) params:set(self.id.."pan",(x/100));params:set(self.id.."sc_pan",x/100) end,
-    m=function(x) params:set(self.id.."decimate",x/100) end,
+    -- m=function(x) params:set(self.id.."decimate",x/100) end,
     n=function(x) params:set(self.id.."pitch",x) end,
     u=function(x) params:set(self.id.."rate",x/100);params:set(self.id.."sc_rate",x/100) end,
     z=function(x) params:set(self.id.."send_reverb",x/100) end,
