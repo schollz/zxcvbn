@@ -184,8 +184,8 @@ function Track:init()
   params:add_number(self.id.."mute_group","mute group",1,10,self.id)
 
   self.params={shared={"track_type","play","db","probability","pitch","mute","mute_group"}}
-  self.params["sliced sample"]={"sample_file","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
-  self.params["melodic sample"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"}
+  self.params["drum"]={"sample_file","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
+  self.params["melodic"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"}
   self.params["infinite pad"]={"attack","filter","pan","release","compressing","compressible","send_reverb"}
   self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","send_reverb"}
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
@@ -219,17 +219,17 @@ function Track:init()
     local success=self:parse_tli()
     return success
   end,shift_updown=function(d)
-  	if params:get(self.id.."track_type")==TYPE_MXSAMPLES then 
-	params:delta(self.id.."mx_sample",d)
-elseif params:get(self.id.."track_type")==TYPE_MXSYNTHS then 
-	params:delta(self.id.."mx_synths",d)
-elseif params:get(self.id.."track_type")==TYPE_MIDI then 
-	params:delta(self.id.."midi_dev",d)
-elseif params:get(self.id.."track_type")==TYPE_CROW then 
-	params:delta(self.id.."crow_type",d)
-elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then 
-	params:delta(self.id.."sc",d)
-	end
+    if params:get(self.id.."track_type")==TYPE_MXSAMPLES then
+      params:delta(self.id.."mx_sample",d)
+    elseif params:get(self.id.."track_type")==TYPE_MXSYNTHS then
+      params:delta(self.id.."mx_synths",d)
+    elseif params:get(self.id.."track_type")==TYPE_MIDI then
+      params:delta(self.id.."midi_dev",d)
+    elseif params:get(self.id.."track_type")==TYPE_CROW then
+      params:delta(self.id.."crow_type",d)
+    elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
+      params:delta(self.id.."sc",d)
+    end
   end})
   table.insert(self.states,sample_:new{id=self.id})
   table.insert(self.states,viewselect_:new{id=self.id})
@@ -543,7 +543,7 @@ function Track:emit(beat)
       self.midi_notes[note]=nil
     end
   end
-  if params:get(self.id.."play")==0 or params:get(self.id.."mute")==1 then
+  if params:get(self.id.."play")==0 then
     do return end
   end
   if self.tli~=nil and self.track~=nil and self.tli.pulses>0 then
@@ -552,9 +552,9 @@ function Track:emit(beat)
     if t==nil then
       do return end
     end
-    print("beati",beat,i,self.tli.pulses,json.encode(t))
+    -- print("beati",beat,i,self.tli.pulses,json.encode(t))
     for k,d in ipairs(t) do
-      print(k,json.encode(d))
+      -- print(k,json.encode(d))
       if d.mods~=nil then
         for k,v in pairs(d.mods) do
           if self.mods[k]~=nil then
@@ -572,6 +572,9 @@ function Track:emit(beat)
       --print("d.duration_scaled",d.duration_scaled,"d.duration",d.duration)
       if d.m~=nil then
         self:scroll_add(params:get(self.id.."track_type")==1 and d.m or string.lower(musicutil.note_num_to_name(d.m)))
+      end
+      if params:get(self.id.."mute")==1 then
+        do return end
       end
       if math.random(0,100)<=params:get(self.id.."probability") then
         self.play_fn[params:get(self.id.."track_type")].note_on(d)
@@ -631,7 +634,11 @@ end
 function Track:keyboard(k,v)
   if k=="TAB" then
     if v==1 and params:get(self.id.."track_type")<3 then
-      self.state=3-self.state
+      if self.state==STATE_VTERM then
+        self.state=STATE_SAMPLE
+      else
+        self.state=STATE_VTERM
+      end
     elseif v==1 and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
       if self.state>1 then
         self.state=1
@@ -650,7 +657,7 @@ function Track:keyboard(k,v)
       show_message((params:get(self.id.."mute")==1 and "muted" or "unmuted").." track "..self.id)
     end
     do return end
-  elseif k=="CTRL+O" and params:get(self.id.."track_type")<3 then
+  elseif k=="CTRL+O" and (params:get(self.id.."track_type")<3 or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE) then
     if v==1 then
       if self.state==STATE_LOADSCREEN then
         self.state=STATE_SAMPLE

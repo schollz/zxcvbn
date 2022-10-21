@@ -286,18 +286,18 @@ function VTerm:keyboard(k,v)
     if v>0 then
       self:move_cursor(0,-1)
     end
-    elseif k=="SHIFT+RIGHT" then
-	    if v>0 then 
-		    params:delta("track",1)
-	    end
-    elseif k=="SHIFT+LEFT" then
-	    if v>0 then 
-		    params:delta("track",-1)
-	    end
-    elseif k=="SHIFT+UP" then
-	    self.shift_updown(v)
-    elseif k=="SHIFT+DOWN" then
-	    self.shift_updown(v*-1)
+  elseif k=="SHIFT+RIGHT" then
+    if v>0 then
+      params:delta("track",1)
+    end
+  elseif k=="SHIFT+LEFT" then
+    if v>0 then
+      params:delta("track",-1)
+    end
+  elseif k=="SHIFT+UP" then
+    self.shift_updown(v)
+  elseif k=="SHIFT+DOWN" then
+    self.shift_updown(v*-1)
   elseif k=="RIGHT" then
     if v>0 then
       self:move_cursor(0,1)
@@ -450,7 +450,7 @@ function VTerm:redraw()
   screen.level(5)
   screen.rect(7,0,128,7)
   screen.fill()
-  screen.level(params:get(params:get("track").."mute")==1 and 4 or 0)
+  screen.level(params:get(params:get("track").."mute")==1 and 3 or 0)
   screen.move(8,6)
   screen.text(tracks[params:get("track")]:description())
 

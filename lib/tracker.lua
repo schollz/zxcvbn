@@ -16,7 +16,7 @@ function Tracker:init()
   self.norns_keyboard=0
 
   self.codes_keyboard={}
-  for i,v in pairs(keyboard.codes) do 
+  for i,v in pairs(keyboard.codes) do
     self.codes_keyboard[v]=tonumber(i)
   end
 end
@@ -25,19 +25,19 @@ function Tracker:keyboard(k,v)
   print(self.codes_keyboard[k])
   if string.find(k,"CTRL") then
     self.ctrl_on=v>0
-    if self.norns_keyboard>0 then 
+    if self.norns_keyboard>0 then
       osc.send({other_norns[self.norns_keyboard],10111},"/remote/brd",{self.codes_keyboard[k],v})
     end
     do return end
   elseif string.find(k,"SHIFT") then
     self.shift_on=v>0
-    if self.norns_keyboard>0 then 
+    if self.norns_keyboard>0 then
       osc.send({other_norns[self.norns_keyboard],10111},"/remote/brd",{self.codes_keyboard[k],v})
     end
     do return end
   elseif string.find(k,"ALT") then
     self.alt_on=v>0
-    if self.norns_keyboard>0 then 
+    if self.norns_keyboard>0 then
       osc.send({other_norns[self.norns_keyboard],10111},"/remote/brd",{self.codes_keyboard[k],v})
     end
     do return end
@@ -47,10 +47,10 @@ function Tracker:keyboard(k,v)
   end
   if self.meta_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then
     self.norns_keyboard=tonumber(k)-1
-    if self.norns_keyboard==0 then 
+    if self.norns_keyboard==0 then
       show_message("keyboard -> local",3)
     else
-      if self.norns_keyboard>#other_norns then 
+      if self.norns_keyboard>#other_norns then
         self.norns_keyboard=0
       else
         show_message("keyboard -> "..other_norns[self.norns_keyboard],3)
@@ -58,7 +58,7 @@ function Tracker:keyboard(k,v)
     end
     do return end
   end
-  if self.norns_keyboard>0 then 
+  if self.norns_keyboard>0 then
     osc.send({other_norns[self.norns_keyboard],10111},"/remote/brd",{self.codes_keyboard[k],v})
     do return end
   end
@@ -122,7 +122,7 @@ function Tracker:redraw()
   screen.level(5)
   screen.rect(0,0,6,66)
   screen.fill()
-  screen.level(params:get(params:get("track").."mute")==1 and 4 or 0)
+  screen.level(params:get(params:get("track").."mute")==1 and 3 or 0)
   screen.move(3,6)
   screen.text_center(params:get("track"))
   for i,v in ipairs(tracks[params:get("track")].scroll) do

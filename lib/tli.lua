@@ -1045,6 +1045,12 @@ function TLI:parse_tli_(text,use_hex)
   local current_pattern={}
   local pattern_chain={}
   local default_pulses=24*4
+  if (not string.find(text,"pattern")) and (not string.find(text,"chain")) then
+    -- whole thing is a pattern
+    current_pattern={text=""}
+    current_pattern.pattern="a"
+    table.insert(pattern_chain,"a")
+  end
   for _,line in ipairs(lines) do
     local fi=self.fields(line)
     if line=="" then

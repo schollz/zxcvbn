@@ -257,22 +257,22 @@ function init2()
   params:set("1mod4",0.2)
   params:set("1release",1000)
   tracks[1]:load_text([[
-chain a*4 b*4
- 
-p96
- 
-pattern a
-Em;3 rud s12 t12
-Bm;3 rud s12 t12
-C;3 rud s12 t12
-G;3 rud s12 t12
- 
-pattern b
-G;3 rud s12 t12
-D;3 rud s12 t12
 Em;3 rud s12 t12
 C;3 rud s12 t12
           ]])
+  -- chain a*4 b*4
+
+  -- p96
+
+  -- pattern a
+  -- Em;3 rud s12 t12
+  -- Bm;3 rud s12 t12
+  -- C;3 rud s12 t12
+  -- G;3 rud s12 t12
+
+  -- pattern b
+  -- G;3 rud s12 t12
+  -- D;3 rud s12 t12
 
   params:set("2track_type",1)
   params:set("2play_through",1)
@@ -280,7 +280,7 @@ C;3 rud s12 t12
   params:set("2drive",0.7)
   params:set("2compression",0.2)
   params:set("2db",-16)
-  params:set("track",2)
+  params:set("track",1)
   tracks[2]:load_text([[
 chain a*4 b*4
  

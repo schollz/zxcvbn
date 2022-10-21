@@ -1,7 +1,6 @@
 # To Do Now (Critical)
 
 - [ ] TEST softcut save
-- [ ] TEST should work without pattern or chain declaration
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
 - [ ] TEST retrig/volume w/ midi
@@ -21,6 +20,7 @@
 
 # DONE
 
+- [x] TEST should work without pattern or chain declaration
 - [x] get reverb send working
 - [x] TEST softcut sync record head to playback head
 - [x] on mutes, do note off
