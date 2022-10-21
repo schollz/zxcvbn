@@ -8,7 +8,6 @@
 
 # To Do Now (Not Critical)
 
-- [ ] add mx.synths and special shortcode to change the parameters j???
 - [ ] allow chains to playthrough only once
 
 # To Do Later (Critical)
@@ -20,6 +19,7 @@
 
 # DONE
 
+- [x] add mx.synths and special shortcode to change the parameters j???
 - [x] TEST should work without pattern or chain declaration
 - [x] get reverb send working
 - [x] TEST softcut sync record head to playback head
