@@ -10,6 +10,20 @@ end
 
 function TLI:init()
 
+  self.calc=function(s)
+    -- returns ok, val
+    return pcall(assert(load("return "..s)))
+  end
+
+  self.calc_p=function(s)
+    s=s:gsub("m","96")
+    s=s:gsub("h","48")
+    s=s:gsub("q","24")
+    s=s:gsub("s","12")
+    s=s:gsub("e","6")
+    return self.calc(s)
+  end
+
   self.fields=function(s)
     local foo={}
     for w in s:gmatch("%S+") do
@@ -786,8 +800,12 @@ function TLI:parse_positions(lines,default_pulses)
           ele[#ele].mods[c]=tonumber(w:sub(2))
           if c=="o" and ele[#ele].mods[c]~=nil then
             er_rotation=ele[#ele].mods[c]
-          elseif c=="p" and ele[#ele].mods[c]~=nil then
-            pulses=ele[#ele].mods[c]
+          elseif c=="p" then
+            local ok,vv=self.calc_p(w:sub(2))
+            if vv==nil or (not ok) then
+              error(string.format("bad '%s'",w))
+            end
+            pulses=vv
           end
           ele[#ele].mods[c]=ele[#ele].mods[c] or w:sub(2)
         end
@@ -1080,7 +1098,11 @@ function TLI:parse_tli_(text,use_hex)
       data.meta[fi[1]]=tonumber(fi[2])
       data.meta[fi[1]]=data.meta[fi[1]] or fi[2]
     elseif string.sub(line,1,1)=="p" then
-      default_pulses=tonumber(string.sub(line,2))
+      local ok,vv=self.calc_p(string.sub(line,2))
+      if not ok then
+        error(string.format("bad '%s'",line))
+      end
+      default_pulses=vv
     end
   end
   if next(current_pattern)~=nil then
