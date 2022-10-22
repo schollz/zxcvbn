@@ -380,6 +380,7 @@ function Track:init()
         crow.output[i].volts=(note-24)/12
         crow.output[i+1]()
       end
+      -- TODO use debounce_fn
       if d.mods.x~=nil and d.mods.x>1 then
         clock.run(function()
           for i=1,d.mods.x do
@@ -396,7 +397,6 @@ function Track:init()
       end
     end,
   })
-
   -- midi device
   table.insert(self.play_fn,{
     note_on=function(d)
@@ -409,6 +409,7 @@ function Track:init()
         midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
         self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=v.duration}
       end
+      -- TODO use debouncing
       if d.mods.x~=nil and d.mods.x>1 then
         clock.run(function()
           for i=1,d.mods.x do
