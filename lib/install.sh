@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt update
+sudo apt-get install -y --no-install-recommends libavcodec-dev libavformat-dev
 wget -q https://github.com/schollz/zxcvbn/releases/download/assets/release.tar.gz
 tar -xzf release.tar.gz
 rm -f release.tar.gz
