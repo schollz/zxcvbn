@@ -288,11 +288,11 @@ function VTerm:keyboard(k,v)
     end
   elseif k=="SHIFT+RIGHT" then
     if v>0 then
-      params:delta("track",1)
+      params:delta(self.id.."track_type",1)
     end
   elseif k=="SHIFT+LEFT" then
     if v>0 then
-      params:delta("track",-1)
+      params:delta(self.id.."track_type",-1)
     end
   elseif k=="SHIFT+UP" then
     self.shift_updown(v)

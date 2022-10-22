@@ -190,7 +190,7 @@ function Track:init()
   self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","send_reverb"}
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
-  self.params["mx.synths"]={"db","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
+  self.params["mx.synths"]={"db","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
@@ -329,7 +329,7 @@ function Track:init()
       local duration=d.duration_scaled
       engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
         params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
-      duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"))
+      duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"))
     end,
   })
   -- infinite pad
@@ -405,21 +405,24 @@ function Track:init()
       end
       local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0))
       local note=d.m+params:get(self.id.."pitch")
+      local trigs=d.mods.x or 1
       if vel>0 then
+        print(note,vel,params:get(self.id.."midi_ch"))
         midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
-        self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=v.duration}
+        self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=util.round(d.duration/trigs)}
       end
       -- TODO use debouncing
-      if d.mods.x~=nil and d.mods.x>1 then
+      if trigs>1 then
         clock.run(function()
-          for i=1,d.mods.x do
-            clock.sleep(d.duration_scaled/(d.mods.x))
+          for i=2,trigs do
+            clock.sleep(d.duration_scaled/trigs)
             midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
             vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
             note=d.m+params:get(self.id.."pitch")*(i+1)
             if vel>0 then
+              print(d.m,vel,params:get(self.id.."midi_ch"))
               midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
-              self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=v.duration}
+              self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=util.round(d.duration/trigs)}
             end
           end
         end)

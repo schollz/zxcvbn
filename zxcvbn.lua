@@ -249,14 +249,20 @@ function init2()
   end)
   softcut.poll_start_phase()
 
-  params:set("1track_type",4)
+  params:set("1track_type",8)
   params:set("1mx_synths",9)
   params:set("1mod1",0.5)
   params:set("1mod2",0.2)
   params:set("1mod3",-0.3)
   params:set("1mod4",0.2)
+  
   params:set("1release",1000)
   tracks[1]:load_text([[
+chain a 
+pattern a 
+c4 x6 v-1 . . .
+
+pattern b
 Em;3 rud s12 t12
 C;3 rud s12 t12
           ]])
@@ -567,8 +573,8 @@ function params_midi()
       table.insert(midi_device_list,name)
       table.insert(midi_device,{
         name=name,
-        note_on=function(note,vel,ch) connection:note_on(note,vel,ch) end,
-        note_off=function(note,vel,ch) connection:note_off(note,vel,ch) end,
+        note_on=function(note,vel,ch) connection:note_on(math.floor(note),math.floor(vel),ch) end,
+        note_off=function(note,vel,ch) connection:note_off(math.floor(note),math.floor(vel),ch) end,
       })
       connection.event=function(data)
         local msg=midi.to_msg(data)
