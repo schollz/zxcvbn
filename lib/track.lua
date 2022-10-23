@@ -272,7 +272,7 @@ self.scroll={"","","","","","",""}
 self.play_fn={}
 -- spliced sample
 table.insert(self.play_fn,{
-  note_on=function(d)
+  note_on=function(d,mods)
     if d.m==nil then
       do return end
     end
@@ -281,12 +281,12 @@ table.insert(self.play_fn,{
       on=true,
       id=id,
       ci=(d.m-1)%16+1,
-      db=d.mods.v or 0,
+      db=mods.v or 0,
       pan=params:get(self.id.."pan"),
       duration=d.duration_scaled,
       rate=clock.get_tempo()/params:get(self.id.."bpm")*params:get(self.id.."rate"),
       watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
-      retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
+      retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
       pitch=params:get(self.id.."pitch"),
       gate=params:get(self.id.."gate")/100,
     }
@@ -294,7 +294,7 @@ table.insert(self.play_fn,{
 })
 -- melodic sample
 table.insert(self.play_fn,{
-  note_on=function(d)
+  note_on=function(d,mods)
     if d.m==nil then
       do return end
     end
@@ -302,10 +302,10 @@ table.insert(self.play_fn,{
     self.states[STATE_SAMPLE]:play{
       on=true,
       id=id,
-      db=d.mods.v or 0,
+      db=mods.v or 0,
       pitch=d.m-params:get(self.id.."source_note")+params:get(self.id.."pitch"),
       duration=d.duration_scaled,
-      retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
+      retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
       watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
       gate=params:get(self.id.."gate")/100,
     }
@@ -313,14 +313,15 @@ table.insert(self.play_fn,{
 })
 -- mx.samples
 table.insert(self.play_fn,{
-  note_on=function(d)
+  note_on=function(d,mods)
     if params:get(self.id.."mx_sample")==1 then
       do return end
     end
     local folder=_path.audio.."mx.samples/"..params:string(self.id.."mx_sample") -- TODO: choose from option
     local note=d.m+params:get(self.id.."pitch")
-    local velocity=util.clamp(util.linlin(-48,12,0,127,params:get(self.id.."db"))+(d.mods.v or 0),1,127)
-    local amp=util.dbamp(params:get(self.id.."db"))
+    print("mods.v",mods.v)
+    local velocity=util.clamp(util.linlin(-48,12,0,127,params:get(self.id.."db")+(mods.v or 0)),1,127)
+    local amp=util.dbamp(params:get(self.id.."db")+(mods.v or 0))
     local pan=params:get(self.id.."pan")
     local attack=params:get(self.id.."attack")/1000
     local release=params:get(self.id.."release")/1000
@@ -332,16 +333,16 @@ table.insert(self.play_fn,{
     local duration=d.duration_scaled
     local sendCompressible=0
     local sendCompressing=0
-    local sendReverb=0.0
+    local sendReverb=params:get(self.id.."send_reverb")
     engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
   end,
 })
 -- mx.synths
 table.insert(self.play_fn,{
-  note_on=function(d)
+  note_on=function(d,mods)
     local synth=params:string(self.id.."mx_synths")
     local note=d.m+params:get(self.id.."pitch")
-    local db=params:get(self.id.."db")+(d.mods.v or 0)
+    local db=params:get(self.id.."db")+(mods.v or 0)
     local pan=params:get(self.id.."pan")
     local attack=params:get(self.id.."attack")/1000
     local release=params:get(self.id.."release")/1000
@@ -353,10 +354,10 @@ table.insert(self.play_fn,{
 })
 -- infinite pad
 table.insert(self.play_fn,{
-  note_on=function(d)
+  note_on=function(d,mods)
     local note=d.m+params:get(self.id.."pitch")
     engine.note_on(note,
-      params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
+      params:get(self.id.."db")+util.clamp((mods.v or 0)/10,0,10),
       params:get(self.id.."attack")/1000,
       params:get(self.id.."release")/1000,
       d.duration_scaled,
@@ -366,22 +367,22 @@ table.insert(self.play_fn,{
 })
 -- softsample
 table.insert(self.play_fn,{
-  note_on=function(d)
+  note_on=function(d,mods)
     if d.m==nil then
       do return end
     end
     local id=self.id.."_"..d.m
-    d.mods.x=d.mods.x or 1
+    mods.x=mods.x or 1
     self.states[STATE_SOFTSAMPLE]:play{
       on=true,
       id=id,
       ci=(d.m-1)%16+1,
-      db=d.mods.v or 0,
+      db=mods.v or 0,
       pan=params:get(self.id.."pan"),
       duration=d.duration_scaled,
       rate=params:get(self.id.."rate"),
       watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
-      retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
+      retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
       pitch=params:get(self.id.."pitch"),
       gate=params:get(self.id.."gate")/100,
     }
@@ -389,9 +390,9 @@ table.insert(self.play_fn,{
 })
 -- crow
 table.insert(self.play_fn,{
-  note_on=function(d)
+  note_on=function(d,mods)
     local i=(params:get(self.id.."crow_type")-1)*2+1
-    local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0))
+    local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
     local note=d.m+params:get(self.id.."pitch")
     if level>0 then
       -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
@@ -402,12 +403,12 @@ table.insert(self.play_fn,{
       crow.output[i+1]()
     end
     -- TODO use debounce_fn
-    if d.mods.x~=nil and d.mods.x>1 then
+    if mods.x~=nil and mods.x>1 then
       clock.run(function()
-        for i=1,d.mods.x do
-          clock.sleep(d.duration_scaled/d.mods.x)
+        for i=1,mods.x do
+          clock.sleep(d.duration_scaled/mods.x)
           crow.output[i+1](false)
-          level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
+          level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0)*(i+1))
           note=d.m+params:get(self.id.."pitch")*(i+1)
           if level>0 then
             crow.output[i].volts=(note-24)/12
@@ -420,13 +421,13 @@ table.insert(self.play_fn,{
 })
 -- midi device
 table.insert(self.play_fn,{
-  note_on=function(d)
+  note_on=function(d,mods)
     if params:get(self.id.."midi_dev")==1 then
       do return end
     end
-    local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0))
+    local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(mods.v or 0))
     local note=d.m+params:get(self.id.."pitch")
-    local trigs=d.mods.x or 1
+    local trigs=mods.x or 1
     if vel>0 then
       -- print(note,vel,params:get(self.id.."midi_ch"))
       midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
@@ -438,7 +439,7 @@ table.insert(self.play_fn,{
         for i=2,trigs do
           clock.sleep(d.duration_scaled/trigs)
           midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
-          vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
+          vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(mods.v or 0)*(i+1))
           note=d.m+params:get(self.id.."pitch")*(i+1)
           if vel>0 then
             -- print(d.m,vel,params:get(self.id.."midi_ch"))
@@ -610,20 +611,17 @@ function Track:emit(beat)
     if t==nil then
       do return end
     end
-    -- print("beati",beat,i,self.tli.pulses,json.encode(t))
+    print("beati",beat,i,self.tli.pulses,json.encode(t))
     for k,d in ipairs(t) do
       -- print(k,json.encode(d))
+      local mods={}
       if next(d.mods)~=nil then
         for _,vvv in ipairs(d.mods) do
           k=vvv[1]
           v=vvv[2]
-          if self.mods[k]~=nil then
-            if k~="m" then
-              v=tli.numdashcomr(v)
-            end
-            if v~=nil then
-              self.mods[k](v)
-            end
+          mods[k]=tli.numdashcomr(v) or v
+          if self.mods[k]~=nil and mods[k]~=nil then
+            self.mods[k](k=="m" and vvv[2] or mods[k])
           end
         end
       end
@@ -639,7 +637,7 @@ function Track:emit(beat)
         do return end
       end
       if math.random(0,100)<=params:get(self.id.."probability") then
-        self.play_fn[params:get(self.id.."track_type")].note_on(d)
+        self.play_fn[params:get(self.id.."track_type")].note_on(d,mods)
       end
     end
   end

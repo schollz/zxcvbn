@@ -755,14 +755,21 @@ function TLI:parse_pattern(text,use_hex,default_pulses)
   -- adjustments
   for _,p in ipairs(positions) do
     p.mods=p.mods or {}
-    if p.mods.r~=nil then
+    local mods={}
+    for _,v in ipairs(p.mods) do
+      mods[v[1]]=v[2]
+    end
+    print(json.encode(mods))
+    if mods.r~=nil then
       -- introduce as an arp
       local notes={}
       for _,note in ipairs(p.parsed) do
         table.insert(notes,note.m)
       end
-      local arp_notes=self:get_arp(notes,p.stop-p.start,p.mods.r,p.mods.s)
-      local skip=p.mods.t or 0
+      mods.s=mods.s or #notes
+      mods.t=mods.t or 12
+      local arp_notes=self:get_arp(notes,p.stop-p.start,mods.r,mods.s)
+      local skip=mods.t
       local j=0
       for i=p.start,p.stop-1,skip do
         j=j+1
@@ -777,6 +784,8 @@ function TLI:parse_pattern(text,use_hex,default_pulses)
       end
     end
   end
+
+  print("track",json.encode(track))
 
   local result={track=track,positions=positions,pulses=total_pulses}
   if err==nil then

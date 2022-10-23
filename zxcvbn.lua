@@ -38,6 +38,9 @@ debounce_fn={}
 osc_fun={}
 
 function init()
+  -- turn reverb off
+  params:set("reverb",1)
+
   -- check if engine file exists
   Needs_Restart=false
   if not util.file_exists(fverb_so) then
@@ -265,7 +268,8 @@ function init2()
   end)
   softcut.poll_start_phase()
 
-  params:set("1track_type",4)
+  params:set("1track_type",5)
+  params:set("1mx_sample",3)
   params:set("1mx_synths",9)
   params:set("1mod1",0.5)
   params:set("1mod2",0.2)
@@ -274,11 +278,10 @@ function init2()
 
   params:set("1release",1000)
   tracks[1]:load_text([[
-chain c
-  
-pattern c
-c4 . i70 p12
-. p12
+Em;3 p2*m z50 k500 l100
+Bm;3
+C;3
+G;3
  
 ]])
   -- Em;3 p2*m z50 k500 l100
@@ -299,13 +302,30 @@ c4 . i70 p12
   -- G;3 rud s12 t12
   -- D;3 rud s12 t12
 
-  params:set("2track_type",1)
-  params:set("2play_through",1)
-  params:set("2sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
-  params:set("2drive",0.7)
-  params:set("2compression",0.2)
-  params:set("2db",-16)
-  params:set("track",1)
+  params:set("2track_type",4)
+  params:set("2mx_sample",3)
+  params:set("2mx_synths",9)
+  params:set("2mod1",0.5)
+  params:set("2mod2",0.2)
+  params:set("2mod3",-0.3)
+  params:set("2mod4",0.2)
+
+  params:set("2release",1000)
+  tracks[2]:load_text([[
+Em;3 p2*m rud
+Bm;3  rud  
+C;3 rud  
+G;3 rud  
+ 
+]])
+
+  -- params:set("2track_type",1)
+  -- params:set("2play_through",1)
+  -- params:set("2sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  -- params:set("2drive",0.7)
+  -- params:set("2compression",0.2)
+  -- params:set("2db",-16)
+  params:set("track",2)
   params:set("1play",0)
   --   tracks[2]:load_text([[
   -- chain a*4 b*4
@@ -556,7 +576,7 @@ function params_reverb()
   -- modulator_frequency: 1,
   -- modulator_depth: 0.1,
   local params_menu={
-    {id="decay",name="decay time",min=0.4,max=100,exp=false,div=0.1,default=1,unit="s"},
+    {id="decay",name="decay time",min=0.4,max=100,exp=false,div=0.1,default=4,unit="s"},
     {id="shimmer",name="shimmer",min=0,max=2,exp=false,div=0.01,default=0.0,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="predelay",name="predelay",min=0,max=1000,exp=false,div=1,default=20.0,unit="ms"},
     {id="input_amount",name="input amount",min=0,max=100,exp=false,div=1,default=100.0,unit="%"},
