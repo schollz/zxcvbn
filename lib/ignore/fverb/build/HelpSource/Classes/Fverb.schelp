@@ -1,0 +1,49 @@
+CLASS::Fverb
+SUMMARY::A Faust plugin
+RELATED::Classes/UGen
+CATEGORIES::Categories>Faust
+DESCRIPTION::
+A Faust plugin written by Jean Pierre Cimalando.
+This plugin has 2 inputs and 2 outputs.
+A Faust plugin
+
+CLASSMETHODS::
+METHOD::ar,kr
+
+ARGUMENT::predelay
+
+ARGUMENT::input amount
+
+ARGUMENT::input lowpass cutoff
+Minimum value: 1
+Maximum value: 20000
+
+ARGUMENT::input highpass cutoff
+Minimum value: 1
+Maximum value: 1000
+
+ARGUMENT::input diffusion 1
+
+ARGUMENT::input diffusion 2
+
+ARGUMENT::tail density
+
+ARGUMENT::decay
+
+ARGUMENT::damping
+Minimum value: 10
+Maximum value: 20000
+
+ARGUMENT::modulator frequency
+Minimum value: 0.01
+Maximum value: 4
+
+ARGUMENT::modulator depth
+
+EXAMPLES::
+
+code::
+// TODO
+::
+
+KEYWORD::faust,plugin

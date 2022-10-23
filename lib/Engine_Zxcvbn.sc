@@ -720,10 +720,23 @@ Engine_Zxcvbn : CroneEngine {
 		    snd2 = snd2 + PitchShift.ar(snd, 0.13, 2,0,1,1*shimmer);
 		    snd2 = snd2 + PitchShift.ar(snd, 0.1, 4,0,1,0.5*shimmer);
 		    snd2 = snd2 + PitchShift.ar(snd, 0.1, 8,0,1,0.25*shimmer);
-			snd2 = DelayC.ar(snd2, 0.2, SinOsc.ar(0.3, [0, pi]).linlin(-1,1,0,0.001));
-			snd2 = CombN.ar(snd2, 0.1, {Rand(0.01,0.099)}!32, 0.1+(tail*2));
-			snd2 = SplayAz.ar(2, snd2);
-			5.do{snd2 = AllpassN.ar(snd2, 0.1, {Rand(0.01,0.099)}!2, 0.1+(tail*1.5))};
+		    snd2 = Fverb.ar(snd2[0],snd2[1],
+		    	predelay: 20,
+				input_amount: 100, 
+				input_lowpass_cutoff: 10000, 
+				input_highpass_cutoff: 100, 
+				input_diffusion_1: 75, 
+				input_diffusion_2: 62.5, 
+				tail_density: 70, 
+				decay: 50, 
+				damping: 5500, 
+				modulator_frequency: 1, 
+				modulator_depth: 0.1,
+		    );
+			// snd2 = DelayC.ar(snd2, 0.2, SinOsc.ar(0.3, [0, pi]).linlin(-1,1,0,0.001));
+			// snd2 = CombN.ar(snd2, 0.1, {Rand(0.01,0.099)}!32, 0.1+(tail*2));
+			// snd2 = SplayAz.ar(2, snd2);
+			// 5.do{snd2 = AllpassN.ar(snd2, 0.1, {Rand(0.01,0.099)}!2, 0.1+(tail*1.5))};
 			snd = LeakDC.ar(snd2);
             Out.ar(\out.kr(0),\compressible.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*snd);

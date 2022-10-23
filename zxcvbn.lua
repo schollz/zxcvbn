@@ -24,6 +24,7 @@ tli=tli_:new()
 lattice=require("lattice")
 musicutil=require("musicutil")
 lfos_=require("lfo")
+UI=require("ui")
 
 -- globals
 softcut_buffers={1,1,2,1,1,2}
@@ -31,11 +32,23 @@ softcut_offsets={2,70,2,2,70,2}
 softcut_positions={0,0,0,0,0,0}
 softcut_renders={{},{},{}}
 
-engine.name="Zxcvbn"
+engine.name=util.file_exists("/home/we/.local/share/SuperCollider/Extensions/fverb/Fverb.so") and "Zxcvbn" or nil
+
 debounce_fn={}
 osc_fun={}
 
 function init()
+  -- -- check if engine file exists
+  -- Needs_Restart=false
+  -- if not util.file_exists(extensions.."/fverb/Classes/Fverb.so") then
+  --   util.os_capture("cp -r " .._path.code.."zxcvbn/lib/ignore "..extensions.."/fverb")
+  --   print("installed Fverb")
+  --   Needs_Restart=true
+  -- end
+  -- Restart_Message=UI.Message.new{"please restart norns"}
+  -- if Needs_Restart then redraw() return end
+  -- -- rest of init()
+
   -- setup screens
   screens={}
   screen_ind=1
@@ -259,7 +272,7 @@ function init2()
 
   params:set("1release",1000)
   tracks[1]:load_text([[
-chain a 
+chain b 
 pattern a 
 c4 mz10,0,50
  
@@ -288,7 +301,7 @@ C;3 rud s12 t12
   params:set("2compression",0.2)
   params:set("2db",-16)
   params:set("track",1)
-  params:set("1play",1)
+  params:set("1play",0)
   tracks[2]:load_text([[
 chain a*4 b*4
  
@@ -405,6 +418,12 @@ function key(k,z)
 end
 
 function redraw()
+  if Needs_Restart then
+    screen.clear()
+    Restart_Message:redraw()
+    screen.update()
+    return
+  end
   screen.clear()
   screens[screen_ind]:redraw()
   draw_message()

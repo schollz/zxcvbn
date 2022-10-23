@@ -1,14 +1,14 @@
-release: aubio audiowaveform FVerb
+release: aubio audiowaveform ignore
 	# build things
 	cd aubiogo && go build -v
 	cd oscconnect && go build -v
 	cd oscnotify && go build -v
-	tar -czvf release.tar.gz FVerb aubio aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect audiowaveform
+	tar -czvf release.tar.gz ignore aubio aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect audiowaveform
 	rm -rf aubio
 	rm -rf norns
 
-FVerb:
-	faust2sc.py fverb.dsp -o FVerb
+ignore:
+	faust2sc.py fverb.dsp -o ignore
 	
 audiowaveform:
 	git clone https://github.com/bbc/audiowaveform.git a1 && \
