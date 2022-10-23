@@ -360,7 +360,7 @@ table.insert(self.play_fn,{
       params:get(self.id.."attack")/1000,
       params:get(self.id.."release")/1000,
       d.duration_scaled, 
-      params:get(self.id.."swell"))
+      params:get(self.id.."swell"),params:get(self.id.."send_reverb"))
   end,
 })
 -- softsample

@@ -735,8 +735,6 @@ Engine_Zxcvbn : CroneEngine {
 				damping: damping, 
 				modulator_frequency: modulator_frequency, 
 				modulator_depth: modulator_depth,
-                dry:0,
-                wet:1,
 		    );
 			// snd2 = DelayC.ar(snd2, 0.2, SinOsc.ar(0.3, [0, pi]).linlin(-1,1,0,0.001));
 			// snd2 = CombN.ar(snd2, 0.1, {Rand(0.01,0.099)}!32, 0.1+(tail*2));
@@ -1091,13 +1089,14 @@ Engine_Zxcvbn : CroneEngine {
         });
 
 
-        this.addCommand("note_on","ffffff",{ arg msg;
+        this.addCommand("note_on","fffffff",{ arg msg;
             var note=msg[1];
             var amp=msg[2].dbamp;
             var attack=msg[3];
             var release=msg[4];
             var duration=msg[5];
             var swell=msg[6];
+            var sendreverb=msg[7];
             2.do{ arg i;
                 var id=note.asString++"_"++i;
                 if (syns.at(id).notNil,{
@@ -1112,7 +1111,9 @@ Engine_Zxcvbn : CroneEngine {
                     release: release,
                     duration: duration,
                     swell: swell,
-                    out: buses.at("busReverb"),
+                    outreverb: buses.at("busReverb"),
+                    out: buses.at("main"),
+                    sendreverb: sendreverb,
                 ],
                 syns.at("reverb"),\addBefore));
                 NodeWatcher.register(syns.at(id));
