@@ -724,9 +724,9 @@ Engine_Zxcvbn : CroneEngine {
             var snd, snd2;
             snd = In.ar(\in.kr(0), 2);
 			snd2 = DelayN.ar(snd, 0.03, 0.03);
-		    snd2 = snd2 + PitchShift.ar(snd, 0.13, 2,0,1,1*shimmer);
-		    snd2 = snd2 + PitchShift.ar(snd, 0.1, 4,0,1,0.5*shimmer);
-		    snd2 = snd2 + PitchShift.ar(snd, 0.1, 8,0,1,0.25*shimmer);
+		    snd2 = snd2 + PitchShift.ar(snd, 0.13, 2,0,1,1*shimmer/2);
+		    snd2 = snd2 + PitchShift.ar(snd, 0.1, 4,0,1,0.5*shimmer/2);
+		    snd2 = snd2 + PitchShift.ar(snd, 0.1, 8,0,1,0.125*shimmer/2);
 		    snd2 = Fverb.ar(snd2[0],snd2[1],
 		    	predelay: predelay,
 				input_amount: input_amount, 
@@ -1168,7 +1168,6 @@ Engine_Zxcvbn : CroneEngine {
                     });
                 });
             });
-            msg.postln;
             if (dontLoad==true,{
                 syns.put("audition",Synth.head(server,"playerOneShot"++bufs.at("audition").numChannels,[\bufnum,bufs.at("audition"),\sampleStart,0,\sampleEnd,bufs.at("audition").duration,\xfade,0,\watch,15]));
                 NodeWatcher.register(syns.at("audition"));
@@ -1199,7 +1198,7 @@ Engine_Zxcvbn : CroneEngine {
 
         this.addCommand("mx_synths","sfffffffffffffff", { arg msg;
             var synth=msg[1].asString;
-            var note=msg[2].postln;
+            var note=msg[2];
             var amp=msg[3].dbamp;
             var sub=msg[4].dbamp;
             var pan=msg[5];
@@ -1232,7 +1231,7 @@ Engine_Zxcvbn : CroneEngine {
                 outreverb: buses.at("busReverb"),
                 compressible: sendCompressible,
                 compressing: sendCompressing,
-                sendreverb: sendReverb.postln,
+                sendreverb: sendReverb,
                 lpf: lpf,
             ],syns.at("reverb"),\addBefore).onFree({"freed!"});
         });

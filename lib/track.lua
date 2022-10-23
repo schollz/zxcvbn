@@ -396,7 +396,7 @@ table.insert(self.play_fn,{
     if level>0 then
       -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
       local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,level,d.duration_scaled,params:get(self.id.."release")/1000)
-      print(i+1,crow_asl)
+      -- print(i+1,crow_asl)
       crow.output[i+1].action=crow_asl
       crow.output[i].volts=(note-24)/12
       crow.output[i+1]()
@@ -428,7 +428,7 @@ table.insert(self.play_fn,{
     local note=d.m+params:get(self.id.."pitch")
     local trigs=d.mods.x or 1
     if vel>0 then
-      print(note,vel,params:get(self.id.."midi_ch"))
+      -- print(note,vel,params:get(self.id.."midi_ch"))
       midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
       self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=util.round(d.duration/trigs)}
     end
@@ -441,7 +441,7 @@ table.insert(self.play_fn,{
           vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
           note=d.m+params:get(self.id.."pitch")*(i+1)
           if vel>0 then
-            print(d.m,vel,params:get(self.id.."midi_ch"))
+            -- print(d.m,vel,params:get(self.id.."midi_ch"))
             midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
             self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=util.round(d.duration/trigs)}
           end
@@ -559,17 +559,11 @@ function Track:parse_tli()
   end
   self.tli=tli_parsed
   self.track={}
-  if self.id==4 then
-    print(i,json.encode(tli_parsed.track))
-  end
   for i,v in ipairs(tli_parsed.track) do
     if self.track[v.start]==nil then
       self.track[v.start]={}
     end
     table.insert(self.track[v.start],v)
-    if self.id==4 then
-      print(i,json.encode(v))
-    end
   end
   -- update the meta
   if self.tli.meta~=nil then
@@ -619,8 +613,10 @@ function Track:emit(beat)
     -- print("beati",beat,i,self.tli.pulses,json.encode(t))
     for k,d in ipairs(t) do
       -- print(k,json.encode(d))
-      if d.mods~=nil then
-        for k,v in pairs(d.mods) do
+      if next(d.mods)~=nil then
+        for _,vvv in ipairs(d.mods) do
+          k=vvv[1]
+          v=vvv[2]
           if self.mods[k]~=nil then
             if k~="m" then
               v=tli.numdashcomr(v)
@@ -639,7 +635,7 @@ function Track:emit(beat)
       if d.m~=nil then
         self:scroll_add(params:get(self.id.."track_type")==1 and d.m or string.lower(musicutil.note_num_to_name(d.m)))
       end
-      if params:get(self.id.."mute")==1 then
+      if d.m==nil or params:get(self.id.."mute")==1 then
         do return end
       end
       if math.random(0,100)<=params:get(self.id.."probability") then

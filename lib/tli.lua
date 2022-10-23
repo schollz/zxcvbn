@@ -62,7 +62,6 @@ function TLI:init()
       t={num1}
     else
       for _,v in ipairs(self.string_split(s,",")) do
-        print(v)
         local num=nil
         for i,v2 in ipairs(self.string_split(v,":")) do
           local n=tonumber(v2)
@@ -741,7 +740,9 @@ function TLI:parse_pattern(text,use_hex,default_pulses)
   -- parse the positions
   for i,pos in ipairs(positions) do
     local v=pos.el
-    if use_hex then
+    if v=="." then
+      pos.parsed={{}}
+    elseif use_hex then
       pos.parsed=self:hex_to_midi(v)
     else
       pos.parsed=self:to_midi(v)
@@ -797,9 +798,9 @@ function TLI:parse_positions(lines,default_pulses)
       local c=w:sub(1,1)
       if string.byte(c)>string.byte("g") and string.byte(c)<=string.byte("z") then
         if #ele>0 then
-          ele[#ele].mods[c]=tonumber(w:sub(2))
-          if c=="o" and ele[#ele].mods[c]~=nil then
-            er_rotation=ele[#ele].mods[c]
+          local mod=tonumber(w:sub(2))
+          if c=="o" and mod~=nil then
+            er_rotation=mod
           elseif c=="p" then
             local ok,vv=self.calc_p(w:sub(2))
             if vv==nil or (not ok) then
@@ -807,7 +808,7 @@ function TLI:parse_positions(lines,default_pulses)
             end
             pulses=vv
           end
-          ele[#ele].mods[c]=ele[#ele].mods[c] or w:sub(2)
+          table.insert(ele[#ele].mods,{c,mod or w:sub(2)})
         end
       else
         table.insert(ele,{e=w,mods={}})
@@ -824,7 +825,7 @@ function TLI:parse_positions(lines,default_pulses)
           mods=nil
           elast=nil
         end
-        if ele[ei+1].e~="-" and ele[ei+1].e~="." then
+        if ele[ei+1].e~="-" then
           elast={el=ele[ei+1].e,start=pulse_index,mods=ele[ei+1].mods}
         end
         ei=ei+1

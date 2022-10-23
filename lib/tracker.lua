@@ -22,7 +22,7 @@ function Tracker:init()
 end
 
 function Tracker:keyboard(k,v)
-  print(self.codes_keyboard[k])
+  -- print(self.codes_keyboard[k])
   if string.find(k,"CTRL") then
     self.ctrl_on=v>0
     if self.norns_keyboard>0 then

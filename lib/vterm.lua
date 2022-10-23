@@ -263,7 +263,6 @@ function VTerm:move_cursor(row,col)
 end
 
 function VTerm:keyboard(k,v)
-  print(k,v)
   local upper=false
   if k=="BACKSPACE" then
     if v>0 then
