@@ -265,7 +265,7 @@ function init2()
   end)
   softcut.poll_start_phase()
 
-  params:set("1track_type",4)
+  params:set("1track_type",5)
   params:set("1mx_synths",9)
   params:set("1mod1",0.5)
   params:set("1mod2",0.2)
@@ -274,14 +274,21 @@ function init2()
 
   params:set("1release",1000)
   tracks[1]:load_text([[
-chain b 
+chain c
+
 pattern a 
 c4 mz10,0,50
  
 pattern b
 Em;3 rud s12 t12
 C;3 rud s12 t12
-          ]])
+ 
+pattern c
+Em;3
+C;3
+
+
+]])
   -- chain a*4 b*4
 
   -- p96
@@ -541,9 +548,31 @@ function params_audioin()
 end
 
 function params_reverb()
+
+  -- predelay: 20,
+  -- input_amount: 100, 
+  -- input_lowpass_cutoff: 10000, 
+  -- input_highpass_cutoff: 100, 
+  -- input_diffusion_1: 75, 
+  -- input_diffusion_2: 62.5, 
+  -- tail_density: 70, 
+  -- decay: 50, 
+  -- damping: 5500, 
+  -- modulator_frequency: 1, 
+  -- modulator_depth: 0.1,
   local params_menu={
     {id="shimmer",name="shimmer",min=0,max=2,exp=false,div=0.01,default=0.0,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
-    {id="tail",name="tail",min=0,max=8,exp=false,div=0.1,default=4.0,unit="s"},
+    {id="predelay",name="predelay",min=0,max=1000,exp=false,div=1,default=20.0,unit="ms"},
+    {id="input_amount",name="input amount",min=0,max=100,exp=false,div=1,default=100.0,unit="%"},
+    {id="input_lowpass_cutoff",name="lpf",min=10,max=18000,exp=true,div=10,default=10000,unit="Hz"},
+    {id="input_highpass_cutoff",name="hpf",min=10,max=5000,exp=true,div=5,default=100,unit="Hz"},
+    {id="input_diffusion_1",name="diffuser 1",min=0,max=100,exp=false,div=0.5,default=75,unit="%"},
+    {id="input_diffusion_2",name="diffuser 2",min=0,max=100,exp=false,div=0.5,default=62.5,unit="%"},
+    {id="tail_density",name="tail density",min=0,max=100,exp=false,div=0.5,default=70,unit="%"},
+    {id="decay",name="decay",min=0,max=100,exp=false,div=0.1,default=80,unit="%"},
+    {id="damping",name="damping",min=10,max=15000,exp=true,div=100,default=5500,unit="Hz"},
+    {id="modulator_frequency",name="mod freq",min=0.01,max=4.0,exp=false,div=0.01,default=1.0,unit="Hz"},
+    {id="modulator_depth",name="mod depth",min=0.0,max=10.0,exp=false,div=0.01,default=0.1},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
   }
   params:add_group("ZEVERB",#params_menu)

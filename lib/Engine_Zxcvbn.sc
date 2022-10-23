@@ -678,6 +678,7 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\pad0, {
+            // TODO: add filter pan 
             var snd;
             snd = Saw.ar(\freq.kr(440) * ((-3..3) * 0.05).midiratio * [1, 2, 1, 4, 1, 2, 1]);
             snd = RLPF.ar(snd, LFNoise2.kr(0.3 ! snd.size).linexp(-1, 1, 100, 8000), 0.3);
@@ -692,7 +693,7 @@ Engine_Zxcvbn : CroneEngine {
             var snd;
             snd = Saw.ar(\freq.kr(440) * ((-3..3) * 0.05).midiratio * [1, 2, 1, 4, 1, 2, 1]);
             snd = Splay.ar(snd);
-            snd = MoogFF.ar(snd, XLine.kr(100,rrand(6000,12000),8), 0);
+            snd = MoogFF.ar(snd, XLine.kr(100,rrand(6000,12000),\duration.kr(1)*(1/\swell.kr(1))), 0);
             snd = snd * EnvGen.ar(Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)),\gate.kr(1) * ToggleFF.kr(1-TDelay.kr(DC.kr(1),\duration.kr(1))),doneAction:2);
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
             snd = snd * -10.dbamp * \amp.kr(1);
@@ -713,7 +714,9 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\padFx, {
-        	arg shimmer=1,tail=4;
+        	arg shimmer=1,predelay=20,input_amount=100,input_lowpass_cutoff=10000,
+            input_highpass_cutoff=100,input_diffusion_1=75,input_diffusion_2=62.5,
+            tail_density=70,decay=50,damping=5500,modulator_frequency=1,modulator_depth=0.1;
             var snd, snd2;
             snd = In.ar(\in.kr(0), 2);
 			snd2 = DelayN.ar(snd, 0.03, 0.03);
@@ -721,17 +724,19 @@ Engine_Zxcvbn : CroneEngine {
 		    snd2 = snd2 + PitchShift.ar(snd, 0.1, 4,0,1,0.5*shimmer);
 		    snd2 = snd2 + PitchShift.ar(snd, 0.1, 8,0,1,0.25*shimmer);
 		    snd2 = Fverb.ar(snd2[0],snd2[1],
-		    	predelay: 20,
-				input_amount: 100, 
-				input_lowpass_cutoff: 10000, 
-				input_highpass_cutoff: 100, 
-				input_diffusion_1: 75, 
-				input_diffusion_2: 62.5, 
-				tail_density: 70, 
-				decay: 50, 
-				damping: 5500, 
-				modulator_frequency: 1, 
-				modulator_depth: 0.1,
+		    	predelay: predelay,
+				input_amount: input_amount, 
+				input_lowpass_cutoff: input_lowpass_cutoff, 
+				input_highpass_cutoff: input_highpass_cutoff, 
+				input_diffusion_1: input_diffusion_1, 
+				input_diffusion_2: input_diffusion_2, 
+				tail_density: tail_density, 
+				decay: decay, 
+				damping: damping, 
+				modulator_frequency: modulator_frequency, 
+				modulator_depth: modulator_depth,
+                dry:0,
+                wet:1,
 		    );
 			// snd2 = DelayC.ar(snd2, 0.2, SinOsc.ar(0.3, [0, pi]).linlin(-1,1,0,0.001));
 			// snd2 = CombN.ar(snd2, 0.1, {Rand(0.01,0.099)}!32, 0.1+(tail*2));
@@ -1086,12 +1091,13 @@ Engine_Zxcvbn : CroneEngine {
         });
 
 
-        this.addCommand("note_on","fffff",{ arg msg;
+        this.addCommand("note_on","ffffff",{ arg msg;
             var note=msg[1];
             var amp=msg[2].dbamp;
             var attack=msg[3];
             var release=msg[4];
             var duration=msg[5];
+            var swell=msg[6];
             2.do{ arg i;
                 var id=note.asString++"_"++i;
                 if (syns.at(id).notNil,{
@@ -1105,6 +1111,7 @@ Engine_Zxcvbn : CroneEngine {
                     attack: attack,
                     release: release,
                     duration: duration,
+                    swell: swell,
                     out: buses.at("busReverb"),
                 ],
                 syns.at("reverb"),\addBefore));
