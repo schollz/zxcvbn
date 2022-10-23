@@ -23,6 +23,7 @@ tli_=include("lib/tli")
 tli=tli_:new()
 lattice=require("lattice")
 musicutil=require("musicutil")
+lfos_=require("lfo")
 
 -- globals
 softcut_buffers={1,1,2,1,1,2}
@@ -249,19 +250,19 @@ function init2()
   end)
   softcut.poll_start_phase()
 
-  params:set("1track_type",8)
+  params:set("1track_type",4)
   params:set("1mx_synths",9)
   params:set("1mod1",0.5)
   params:set("1mod2",0.2)
   params:set("1mod3",-0.3)
   params:set("1mod4",0.2)
-  
+
   params:set("1release",1000)
   tracks[1]:load_text([[
 chain a 
 pattern a 
-c4 x6 v-1 . . .
-
+c4 mz10,0,50
+ 
 pattern b
 Em;3 rud s12 t12
 C;3 rud s12 t12
@@ -287,6 +288,7 @@ C;3 rud s12 t12
   params:set("2compression",0.2)
   params:set("2db",-16)
   params:set("track",1)
+  params:set("1play",1)
   tracks[2]:load_text([[
 chain a*4 b*4
  

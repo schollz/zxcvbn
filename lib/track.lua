@@ -42,6 +42,7 @@ function Track:new(o)
 end
 
 function Track:init()
+  self.lfos={}
   -- initialize parameters
   self.track_type_options={"drum","melodic","mx.samples","mx.synths","infinite pad","softcut","crow","midi"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
@@ -195,7 +196,8 @@ function Track:init()
 
   -- define the shortcodes here
   self.mods={
-    j=function(x)
+    j=function(x,v)
+      if v==nil then self.lfos["j"]:stop() end
       if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
         params:set(self.id.."rec_level",util.clamp(x,0,100)/100)
       elseif params:get(self.id.."track_type")==TYPE_DRUM then
@@ -209,226 +211,240 @@ function Track:init()
         params:set(self.id.."mod"..i,x)
       end
     end,
-    i=function(x) params:set(self.id.."filter",x+30);params:set(self.id.."sc_post_filter_fc",x/100) end,
-    q=function(x) params:set(self.id.."probability",x) end,
-    h=function(x) params:set(self.id.."gate",x) end,
-    k=function(x) params:set(self.id.."attack",x) end,
-    l=function(x) params:set(self.id.."release",x) end,
-    w=function(x) params:set(self.id.."pan",(x/100));params:set(self.id.."sc_pan",x/100) end,
-    -- m=function(x) params:set(self.id.."decimate",x/100) end,
-    n=function(x) params:set(self.id.."pitch",x) end,
-    u=function(x) params:set(self.id.."rate",x/100);params:set(self.id.."sc_rate",x/100) end,
-    z=function(x) params:set(self.id.."send_reverb",x/100) end,
-  }
+  i=function(x,v) if v==nil then self.lfos["i"]:stop() end;params:set(self.id.."filter",x+30);params:set(self.id.."sc_post_filter_fc",x/100) end,
+q=function(x,v) if v==nil then self.lfos["q"]:stop() end;params:set(self.id.."probability",x) end,
+h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x) end,
+k=function(x,v) if v==nil then self.lfos["k"]:stop() end;params:set(self.id.."attack",x) end,
+l=function(x,v) if v==nil then self.lfos["l"]:stop() end;params:set(self.id.."release",x) end,
+w=function(x,v) if v==nil then self.lfos["w"]:stop() end;params:set(self.id.."pan",(x/100));params:set(self.id.."sc_pan",x/100) end,
+m=function(x) self:setup_lfo(x) end,
+n=function(x,v) if v==nil then self.lfos["n"]:stop() end;params:set(self.id.."pitch",x) end,
+u=function(x,v) if v==nil then self.lfos["u"]:stop() end;params:set(self.id.."rate",x/100);params:set(self.id.."sc_rate",x/100) end,
+z=function(x,v) if v==nil then self.lfos["z"]:stop() end;params:set(self.id.."send_reverb",x/100) end,
+}
+-- setup lfos
+self.lfos={}
+for k,_ in pairs(self.mods) do
+  if k~="m" then
+    self.lfos[k]=lfos_:add{
+      min=10,
+      max=20,
+      depth=1,
+      mode="clocked",
+      period=6,
+      action=function(scaled,raw) self.mods[k](scaled,true) end,
+    }
+  end
+end
 
-  -- initialize track data
-  self.state=STATE_VTERM
-  self.states={}
-  table.insert(self.states,vterm_:new{id=self.id,on_save=function(x)
-    local success=self:parse_tli()
-    return success
-  end,shift_updown=function(d)
-    if params:get(self.id.."track_type")==TYPE_MXSAMPLES then
-      params:delta(self.id.."mx_sample",d)
-    elseif params:get(self.id.."track_type")==TYPE_MXSYNTHS then
-      params:delta(self.id.."mx_synths",d)
-    elseif params:get(self.id.."track_type")==TYPE_MIDI then
-      params:delta(self.id.."midi_dev",d)
-    elseif params:get(self.id.."track_type")==TYPE_CROW then
-      params:delta(self.id.."crow_type",d)
-    elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
-      params:delta(self.id.."sc",d)
+-- initialize track data
+self.state=STATE_VTERM
+self.states={}
+table.insert(self.states,vterm_:new{id=self.id,on_save=function(x)
+  local success=self:parse_tli()
+  return success
+end,shift_updown=function(d)
+  if params:get(self.id.."track_type")==TYPE_MXSAMPLES then
+    params:delta(self.id.."mx_sample",d)
+  elseif params:get(self.id.."track_type")==TYPE_MXSYNTHS then
+    params:delta(self.id.."mx_synths",d)
+  elseif params:get(self.id.."track_type")==TYPE_MIDI then
+    params:delta(self.id.."midi_dev",d)
+  elseif params:get(self.id.."track_type")==TYPE_CROW then
+    params:delta(self.id.."crow_type",d)
+  elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
+    params:delta(self.id.."sc",d)
+  end
+end})
+table.insert(self.states,sample_:new{id=self.id})
+table.insert(self.states,viewselect_:new{id=self.id})
+table.insert(self.states,softsample_:new{id=self.id})
+
+-- keep track of notes
+self.midi_notes={}
+
+self.scroll={"","","","","","",""}
+
+-- add playback functions for each kind of engine
+self.play_fn={}
+-- spliced sample
+table.insert(self.play_fn,{
+  note_on=function(d)
+    if d.m==nil then
+      do return end
     end
-  end})
-  table.insert(self.states,sample_:new{id=self.id})
-  table.insert(self.states,viewselect_:new{id=self.id})
-  table.insert(self.states,softsample_:new{id=self.id})
-
-  -- keep track of notes
-  self.midi_notes={}
-
-  self.scroll={"","","","","","",""}
-
-  -- add playback functions for each kind of engine
-  self.play_fn={}
-  -- spliced sample
-  table.insert(self.play_fn,{
-    note_on=function(d)
-      if d.m==nil then
-        do return end
-      end
-      local id=self.id.."_"..d.m
-      self.states[STATE_SAMPLE]:play{
-        on=true,
-        id=id,
-        ci=(d.m-1)%16+1,
-        db=d.mods.v or 0,
-        pan=params:get(self.id.."pan"),
-        duration=d.duration_scaled,
-        rate=clock.get_tempo()/params:get(self.id.."bpm")*params:get(self.id.."rate"),
-        watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
-        retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
-        pitch=params:get(self.id.."pitch"),
-        gate=params:get(self.id.."gate")/100,
-      }
-    end,
-  })
-  -- melodic sample
-  table.insert(self.play_fn,{
-    note_on=function(d)
-      if d.m==nil then
-        do return end
-      end
-      local id=self.id.."_"..d.m
-      self.states[STATE_SAMPLE]:play{
-        on=true,
-        id=id,
-        db=d.mods.v or 0,
-        pitch=d.m-params:get(self.id.."source_note")+params:get(self.id.."pitch"),
-        duration=d.duration_scaled,
-        retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
-        watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
-        gate=params:get(self.id.."gate")/100,
-      }
-    end,
-  })
-  -- mx.samples
-  table.insert(self.play_fn,{
-    note_on=function(d)
-      if params:get(self.id.."mx_sample")==1 then
-        do return end
-      end
-      local folder=_path.audio.."mx.samples/"..params:string(self.id.."mx_sample") -- TODO: choose from option
-      local note=d.m+params:get(self.id.."pitch")
-      local velocity=util.clamp(util.linlin(-48,12,0,127,params:get(self.id.."db"))+(d.mods.v or 0),1,127)
-      local amp=util.dbamp(params:get(self.id.."db"))
-      local pan=params:get(self.id.."pan")
-      local attack=params:get(self.id.."attack")/1000
-      local release=params:get(self.id.."release")/1000
-      local sub=params:get(self.id.."db_sub")
-      local mods={}
-      for i=1,4 do
-        table.insert(mods,params:get(self.id.."mod"..i))
-      end
-      local duration=d.duration_scaled
-      local sendCompressible=0
-      local sendCompressing=0
-      local sendReverb=0.0
-      engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
-    end,
-  })
-  -- mx.synths
-  table.insert(self.play_fn,{
-    note_on=function(d)
-      local synth=params:string(self.id.."mx_synths")
-      local note=d.m+params:get(self.id.."pitch")
-      local db=params:get(self.id.."db")+(d.mods.v or 0)
-      local pan=params:get(self.id.."pan")
-      local attack=params:get(self.id.."attack")/1000
-      local release=params:get(self.id.."release")/1000
-      local duration=d.duration_scaled
-      engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
-        params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
-      duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"))
-    end,
-  })
-  -- infinite pad
-  table.insert(self.play_fn,{
-    note_on=function(d)
-      local note=d.m+params:get(self.id.."pitch")
-      engine.note_on(note,
-        params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
-        params:get(self.id.."attack")/1000,
-        params:get(self.id.."release")/1000,
-      d.duration_scaled)
-    end,
-  })
-  -- softsample
-  table.insert(self.play_fn,{
-    note_on=function(d)
-      if d.m==nil then
-        do return end
-      end
-      local id=self.id.."_"..d.m
-      d.mods.x=d.mods.x or 1
-      self.states[STATE_SOFTSAMPLE]:play{
-        on=true,
-        id=id,
-        ci=(d.m-1)%16+1,
-        db=d.mods.v or 0,
-        pan=params:get(self.id.."pan"),
-        duration=d.duration_scaled,
-        rate=params:get(self.id.."rate"),
-        watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
-        retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
-        pitch=params:get(self.id.."pitch"),
-        gate=params:get(self.id.."gate")/100,
-      }
-    end,
-  })
-  -- crow
-  table.insert(self.play_fn,{
-    note_on=function(d)
-      local i=(params:get(self.id.."crow_type")-1)*2+1
-      local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0))
-      local note=d.m+params:get(self.id.."pitch")
-      if level>0 then
-        -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
-        local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,level,d.duration_scaled,params:get(self.id.."release")/1000)
-        print(i+1,crow_asl)
-        crow.output[i+1].action=crow_asl
-        crow.output[i].volts=(note-24)/12
-        crow.output[i+1]()
-      end
-      -- TODO use debounce_fn
-      if d.mods.x~=nil and d.mods.x>1 then
-        clock.run(function()
-          for i=1,d.mods.x do
-            clock.sleep(d.duration_scaled/d.mods.x)
-            crow.output[i+1](false)
-            level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
-            note=d.m+params:get(self.id.."pitch")*(i+1)
-            if level>0 then
-              crow.output[i].volts=(note-24)/12
-              crow.output[i+1]()
-            end
+    local id=self.id.."_"..d.m
+    self.states[STATE_SAMPLE]:play{
+      on=true,
+      id=id,
+      ci=(d.m-1)%16+1,
+      db=d.mods.v or 0,
+      pan=params:get(self.id.."pan"),
+      duration=d.duration_scaled,
+      rate=clock.get_tempo()/params:get(self.id.."bpm")*params:get(self.id.."rate"),
+      watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
+      retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
+      pitch=params:get(self.id.."pitch"),
+      gate=params:get(self.id.."gate")/100,
+    }
+  end,
+})
+-- melodic sample
+table.insert(self.play_fn,{
+  note_on=function(d)
+    if d.m==nil then
+      do return end
+    end
+    local id=self.id.."_"..d.m
+    self.states[STATE_SAMPLE]:play{
+      on=true,
+      id=id,
+      db=d.mods.v or 0,
+      pitch=d.m-params:get(self.id.."source_note")+params:get(self.id.."pitch"),
+      duration=d.duration_scaled,
+      retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
+      watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
+      gate=params:get(self.id.."gate")/100,
+    }
+  end,
+})
+-- mx.samples
+table.insert(self.play_fn,{
+  note_on=function(d)
+    if params:get(self.id.."mx_sample")==1 then
+      do return end
+    end
+    local folder=_path.audio.."mx.samples/"..params:string(self.id.."mx_sample") -- TODO: choose from option
+    local note=d.m+params:get(self.id.."pitch")
+    local velocity=util.clamp(util.linlin(-48,12,0,127,params:get(self.id.."db"))+(d.mods.v or 0),1,127)
+    local amp=util.dbamp(params:get(self.id.."db"))
+    local pan=params:get(self.id.."pan")
+    local attack=params:get(self.id.."attack")/1000
+    local release=params:get(self.id.."release")/1000
+    local sub=params:get(self.id.."db_sub")
+    local mods={}
+    for i=1,4 do
+      table.insert(mods,params:get(self.id.."mod"..i))
+    end
+    local duration=d.duration_scaled
+    local sendCompressible=0
+    local sendCompressing=0
+    local sendReverb=0.0
+    engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
+  end,
+})
+-- mx.synths
+table.insert(self.play_fn,{
+  note_on=function(d)
+    local synth=params:string(self.id.."mx_synths")
+    local note=d.m+params:get(self.id.."pitch")
+    local db=params:get(self.id.."db")+(d.mods.v or 0)
+    local pan=params:get(self.id.."pan")
+    local attack=params:get(self.id.."attack")/1000
+    local release=params:get(self.id.."release")/1000
+    local duration=d.duration_scaled
+    engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
+      params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"))
+  end,
+})
+-- infinite pad
+table.insert(self.play_fn,{
+  note_on=function(d)
+    local note=d.m+params:get(self.id.."pitch")
+    engine.note_on(note,
+      params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
+      params:get(self.id.."attack")/1000,
+      params:get(self.id.."release")/1000,
+    d.duration_scaled)
+  end,
+})
+-- softsample
+table.insert(self.play_fn,{
+  note_on=function(d)
+    if d.m==nil then
+      do return end
+    end
+    local id=self.id.."_"..d.m
+    d.mods.x=d.mods.x or 1
+    self.states[STATE_SOFTSAMPLE]:play{
+      on=true,
+      id=id,
+      ci=(d.m-1)%16+1,
+      db=d.mods.v or 0,
+      pan=params:get(self.id.."pan"),
+      duration=d.duration_scaled,
+      rate=params:get(self.id.."rate"),
+      watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
+      retrig=util.clamp((d.mods.x or 1)-1,0,30) or 0,
+      pitch=params:get(self.id.."pitch"),
+      gate=params:get(self.id.."gate")/100,
+    }
+  end,
+})
+-- crow
+table.insert(self.play_fn,{
+  note_on=function(d)
+    local i=(params:get(self.id.."crow_type")-1)*2+1
+    local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0))
+    local note=d.m+params:get(self.id.."pitch")
+    if level>0 then
+      -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
+      local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,level,d.duration_scaled,params:get(self.id.."release")/1000)
+      print(i+1,crow_asl)
+      crow.output[i+1].action=crow_asl
+      crow.output[i].volts=(note-24)/12
+      crow.output[i+1]()
+    end
+    -- TODO use debounce_fn
+    if d.mods.x~=nil and d.mods.x>1 then
+      clock.run(function()
+        for i=1,d.mods.x do
+          clock.sleep(d.duration_scaled/d.mods.x)
+          crow.output[i+1](false)
+          level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
+          note=d.m+params:get(self.id.."pitch")*(i+1)
+          if level>0 then
+            crow.output[i].volts=(note-24)/12
+            crow.output[i+1]()
           end
-        end)
-      end
-    end,
-  })
-  -- midi device
-  table.insert(self.play_fn,{
-    note_on=function(d)
-      if params:get(self.id.."midi_dev")==1 then
-        do return end
-      end
-      local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0))
-      local note=d.m+params:get(self.id.."pitch")
-      local trigs=d.mods.x or 1
-      if vel>0 then
-        print(note,vel,params:get(self.id.."midi_ch"))
-        midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
-        self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=util.round(d.duration/trigs)}
-      end
-      -- TODO use debouncing
-      if trigs>1 then
-        clock.run(function()
-          for i=2,trigs do
-            clock.sleep(d.duration_scaled/trigs)
-            midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
-            vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
-            note=d.m+params:get(self.id.."pitch")*(i+1)
-            if vel>0 then
-              print(d.m,vel,params:get(self.id.."midi_ch"))
-              midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
-              self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=util.round(d.duration/trigs)}
-            end
+        end
+      end)
+    end
+  end,
+})
+-- midi device
+table.insert(self.play_fn,{
+  note_on=function(d)
+    if params:get(self.id.."midi_dev")==1 then
+      do return end
+    end
+    local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0))
+    local note=d.m+params:get(self.id.."pitch")
+    local trigs=d.mods.x or 1
+    if vel>0 then
+      print(note,vel,params:get(self.id.."midi_ch"))
+      midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
+      self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=util.round(d.duration/trigs)}
+    end
+    -- TODO use debouncing
+    if trigs>1 then
+      clock.run(function()
+        for i=2,trigs do
+          clock.sleep(d.duration_scaled/trigs)
+          midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
+          vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(d.mods.v or 0)*(i+1))
+          note=d.m+params:get(self.id.."pitch")*(i+1)
+          if vel>0 then
+            print(d.m,vel,params:get(self.id.."midi_ch"))
+            midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
+            self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=util.round(d.duration/trigs)}
           end
-        end)
-      end
-    end,
-  })
+        end
+      end)
+    end
+  end,
+})
 
 end
 
@@ -452,6 +468,33 @@ function Track:description()
     s=s..string.format(" (%s)",params:string(self.id.."crow_type"))
   end
   return s
+end
+
+function Track:setup_lfo(x)
+  print("setup_lfo",x)
+  local mod=x:sub(1,1)
+  if mod=="m" or self.mods[mod]==nil then
+    do return end
+  end
+  local nums={}
+  for _,v in ipairs(string.split(x:sub(2),",")) do
+    if tonumber(v)~=nil then
+      table.insert(nums,tonumber(v))
+    end
+  end
+  if #nums<1 then
+    do return end
+  end
+  if nums[1]~=nil then
+    self.lfos[mod]:set("period",nums[1])
+  end
+  if nums[2]~=nil then
+    self.lfos[mod]:set("min",nums[2])
+  end
+  if nums[3]~=nil then
+    self.lfos[mod]:set("max",nums[3])
+  end
+  self.lfos[mod]:start()
 end
 
 function Track:dumps()
@@ -571,9 +614,11 @@ function Track:emit(beat)
       if d.mods~=nil then
         for k,v in pairs(d.mods) do
           if self.mods[k]~=nil then
-            local nn=tli.numdashcomr(v)
-            if nn~=nil then
-              self.mods[k](nn)
+            if k~="m" then
+              v=tli.numdashcomr(v)
+            end
+            if v~=nil then
+              self.mods[k](v)
             end
           end
         end
