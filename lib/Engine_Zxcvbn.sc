@@ -683,6 +683,8 @@ Engine_Zxcvbn : CroneEngine {
             snd = Saw.ar(\freq.kr(440) * ((-3..3) * 0.05).midiratio * [1, 2, 1, 4, 1, 2, 1]);
             snd = RLPF.ar(snd, LFNoise2.kr(0.3 ! snd.size).linexp(-1, 1, 100, 8000), 0.3);
             snd = Splay.ar(snd);
+			snd = Pan2.ar(snd,\pan.kr(0));
+			snd = LPF.ar(snd,\lpf.kr(18000));
             snd = snd * EnvGen.ar(Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)),\gate.kr(1) * ToggleFF.kr(1-TDelay.kr(DC.kr(1),\duration.kr(1))),doneAction:2);
             snd = snd * -30.dbamp * \amp.kr(1);
             Out.ar(\out.kr(0), (1-\sendreverb.kr(0))*snd);
@@ -693,6 +695,8 @@ Engine_Zxcvbn : CroneEngine {
             var snd;
             snd = Saw.ar(\freq.kr(440) * ((-3..3) * 0.05).midiratio * [1, 2, 1, 4, 1, 2, 1]);
             snd = Splay.ar(snd);
+			snd = Pan2.ar(snd,\pan.kr(0));
+			snd = LPF.ar(snd,\lpf.kr(18000));
             snd = MoogFF.ar(snd, XLine.kr(100,rrand(6000,12000),\duration.kr(1)*(1/\swell.kr(1))), 0);
             snd = snd * EnvGen.ar(Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)),\gate.kr(1) * ToggleFF.kr(1-TDelay.kr(DC.kr(1),\duration.kr(1))),doneAction:2);
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
@@ -1089,7 +1093,7 @@ Engine_Zxcvbn : CroneEngine {
         });
 
 
-        this.addCommand("note_on","fffffff",{ arg msg;
+        this.addCommand("note_on","fffffffff",{ arg msg;
             var note=msg[1];
             var amp=msg[2].dbamp;
             var attack=msg[3];
@@ -1097,6 +1101,8 @@ Engine_Zxcvbn : CroneEngine {
             var duration=msg[5];
             var swell=msg[6];
             var sendreverb=msg[7];
+            var pan=msg[8];
+            var lpf=msg[9].midicps;
             2.do{ arg i;
                 var id=note.asString++"_"++i;
                 if (syns.at(id).notNil,{
@@ -1114,6 +1120,8 @@ Engine_Zxcvbn : CroneEngine {
                     outreverb: buses.at("busReverb"),
                     out: buses.at("main"),
                     sendreverb: sendreverb,
+                    pan: pan,
+                    lpf: lpf,
                 ],
                 syns.at("reverb"),\addBefore));
                 NodeWatcher.register(syns.at(id));

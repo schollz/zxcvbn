@@ -359,8 +359,9 @@ table.insert(self.play_fn,{
       params:get(self.id.."db")+util.clamp((d.mods.v or 0)/10,0,10),
       params:get(self.id.."attack")/1000,
       params:get(self.id.."release")/1000,
-      d.duration_scaled, 
-      params:get(self.id.."swell"),params:get(self.id.."send_reverb"))
+      d.duration_scaled,
+      params:get(self.id.."swell"),params:get(self.id.."send_reverb"),
+    params:get(self.id.."pan"),params:get(self.id.."filter"))
   end,
 })
 -- softsample
@@ -476,8 +477,8 @@ end
 
 function Track:setup_lfo(x)
   print("setup_lfo",x)
-  if x==nil or tonumber(x)~=nil then 
-    do return end 
+  if x==nil or tonumber(x)~=nil then
+    do return end
   end
   local mod=x:sub(1,1)
   if mod=="m" or self.mods[mod]==nil then
