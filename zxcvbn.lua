@@ -31,23 +31,25 @@ softcut_buffers={1,1,2,1,1,2}
 softcut_offsets={2,70,2,2,70,2}
 softcut_positions={0,0,0,0,0,0}
 softcut_renders={{},{},{}}
-
-engine.name=util.file_exists("/home/we/.local/share/SuperCollider/Extensions/fverb/Fverb.so") and "Zxcvbn" or nil
+local fverb_so="/home/we/.local/share/SuperCollider/Extensions/fverb/Fverb.so"
+engine.name=util.file_exists(fverb_so) and "Zxcvbn" or nil
 
 debounce_fn={}
 osc_fun={}
 
 function init()
-  -- -- check if engine file exists
-  -- Needs_Restart=false
-  -- if not util.file_exists(extensions.."/fverb/Classes/Fverb.so") then
-  --   util.os_capture("cp -r " .._path.code.."zxcvbn/lib/ignore "..extensions.."/fverb")
-  --   print("installed Fverb")
-  --   Needs_Restart=true
-  -- end
-  -- Restart_Message=UI.Message.new{"please restart norns"}
-  -- if Needs_Restart then redraw() return end
-  -- -- rest of init()
+  -- check if engine file exists
+  Needs_Restart=false
+  if not util.file_exists(fverb_so) then
+    print("building Fverb...")
+    util.os_capture("cd ".._path.code.."zxcvbn/lib/ignore && ./build.sh")
+    util.os_capture("cp -r " .._path.code.."zxcvbn/lib/ignore/fverb/build /home/we/.local/share/SuperCollider/Extensions/fverb")
+    print("installed Fverb")
+    Needs_Restart=true
+  end
+  Restart_Message=UI.Message.new{"please restart norns"}
+  if Needs_Restart then redraw() return end
+  -- rest of init()
 
   -- setup screens
   screens={}
