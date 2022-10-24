@@ -411,6 +411,9 @@ end
 
 function VTerm:enc(k,d)
   if k==3 then
+    params:delta(self.id.."filter",d)
+    debounce_fn["filter_change"]={15,function()end}
+  elseif k==2 then
     params:delta(self.id.."db",d)
     debounce_fn["db_change"]={15,function()end}
   end
@@ -455,8 +458,13 @@ function VTerm:redraw()
 
   if debounce_fn["db_change"]~=nil then
     screen.level(debounce_fn["db_change"][1])
-    screen.move(128,63)
+    screen.move(128,15)
     screen.text_right(params:string(self.id.."db"))
+  end
+  if debounce_fn["filter_change"]~=nil then
+    screen.level(debounce_fn["filter_change"][1])
+    screen.move(128,15+8)
+    screen.text_right(string.format("%2.0f Hz",musicutil.note_num_to_freq(params:get(self.id.."filter"))))
   end
 end
 

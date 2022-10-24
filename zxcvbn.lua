@@ -276,14 +276,35 @@ function init2()
   params:set("1mod3",-0.3)
   params:set("1mod4",0.2)
   params:set("1db",-19)
-
-  params:set("1release",1000)
+  params:set("1attack",50)
+  params:set("1release",800)
+  params:set("1send_reverb",99)
   tracks[1]:load_text([[
-Gm;3 z99 k500 l100
-Bb;3
-Dm;3
-F;3
- 
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3 
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3 
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3 
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3 
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3
+         
 ]])
   -- Em;3 p2*m z50 k500 l100
   -- Bm;3
@@ -379,16 +400,25 @@ pattern c
   ]])
 
 
-  pattern:set("5track_type",6)
+  params:set("5track_type",7)
+  params:set("5attack",200)
+  params:set("5release",400)
   tracks[5]:load_text([[
-chain a
+chain a*4 b*4
+
+p96 
 
 pattern a
-g2 . p96 k2000 l100
-bb2 . 
-d2 . 
-f2 .
+g2 . . a2 
+bb2 . . f2 
+d2 . . a2
+f2 . . g2 a2 bb2 
 
+pattern b
+Gm;2 rtu t6 s7
+Bb;2 rtud t6 s8
+Dm;2 rtu t6 s9
+F;2 rtud t6 s7
   ]])
 
 
@@ -398,14 +428,7 @@ f2 .
   -- params:set("2drive",0.7)
   -- params:set("2compression",0.2)
   -- params:set("2db",-16)
-  params:set("track",5)
-  params:set("1play",1)
-  params:set("2play",1)
-  params:set("3play",1)
-  params:set("4play",1)
-  params:set("2mute",1)
-  params:set("3mute",1)
-  params:set("4mute",1)
+  params:set("track",3)
   --   tracks[2]:load_text([[
   -- chain a*4 b*4
 
