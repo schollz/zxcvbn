@@ -3,9 +3,11 @@ release: aubio audiowaveform ignore
 	cd aubiogo && go build -v
 	cd oscconnect && go build -v
 	cd oscnotify && go build -v
-	tar -czvf release.tar.gz aubio aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect audiowaveform
+	cp -r ~/dust/data/zxcvbn .
+	tar -czvf release.tar.gz zxcvbn aubio aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect audiowaveform
 	rm -rf aubio
 	rm -rf norns
+	rm -rf zxcvbn
 	
 audiowaveform:
 	git clone https://github.com/bbc/audiowaveform.git a1 && \

@@ -12,3 +12,6 @@ chmod +x oscnotify/oscnotify
 cd aubio && sudo ./waf install --destdir=/
 sudo ldconfig
 cd .. && rm -rf aubio
+## install demo into data folder
+mkdir -p ~/dust/data/zxcvbn
+rsync -avrP zxcvbn/ ~/dust/data/zxcvbn/
