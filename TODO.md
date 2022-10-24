@@ -1,6 +1,5 @@
 # To Do Now (Critical)
 
-- [ ] map K's to softcut find offsets
 - [ ] TEST softcut save
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
@@ -20,6 +19,7 @@
 
 # DONE
 
+- [x] map K's to softcut find offsets
 - [x] add mx.synths and special shortcode to change the parameters j???
 - [x] TEST should work without pattern or chain declaration
 - [x] get reverb send working

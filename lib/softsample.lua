@@ -322,6 +322,8 @@ end
 
 function SoftSample:enc(k,d)
   if k==1 then
+    params:delta(self.id.."rec_level",d)
+    debounce_fn["rec_change"]={15,function()end}
   elseif k==2 then
     self:do_move(d)
   elseif k==3 and d~=0 then
@@ -441,6 +443,12 @@ function SoftSample:redraw()
   screen.move(pos+x,64-self.height)
   screen.line(pos+x,64)
   screen.stroke()
+
+  if debounce_fn["rec_change"]~=nil then
+    screen.level(debounce_fn["rec_change"][1])
+    screen.move(128,15)
+    screen.text_right(params:string(self.id.."rec_level"))
+  end
 
   -- display title
   local title="/".."softcut "..params:get(self.id.."sc")
