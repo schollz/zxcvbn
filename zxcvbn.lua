@@ -268,18 +268,18 @@ function init2()
   end)
   softcut.poll_start_phase()
 
-  params:set("1track_type",5)
-  params:set("1mx_sample",3)
-  params:set("1mx_synths",9)
-  params:set("1mod1",0.5)
-  params:set("1mod2",0.2)
-  params:set("1mod3",-0.3)
-  params:set("1mod4",0.2)
-  params:set("1db",-19)
-  params:set("1attack",50)
-  params:set("1release",800)
-  params:set("1send_reverb",99)
-  tracks[1]:load_text([[
+  params:set("3track_type",5)
+  params:set("3mx_sample",3)
+  params:set("3mx_synths",9)
+  params:set("3mod1",0.5)
+  params:set("3mod2",0.2)
+  params:set("3mod3",-0.3)
+  params:set("3mod4",0.2)
+  params:set("3db",-19)
+  params:set("3attack",50)
+  params:set("3release",800)
+  params:set("3send_reverb",99)
+  tracks[3]:load_text([[
 - - - Bb;3
 - - - Dm;3
 - - - F;3
@@ -351,15 +351,15 @@ a6 g6 a6 f6
  
 ]])
 
-  params:set("3track_type",4)
-  params:set("3mx_sample",1)
-  params:set("3mx_synths",7)
-  params:set("3mod1",0.7)
-  params:set("3mod2",0.3)
-  params:set("3mod3",-0.32)
-  params:set("3mod4",0.0)
-  params:set("3release",3000)
-  tracks[3]:load_text([[
+  params:set("1track_type",4)
+  params:set("1mx_sample",1)
+  params:set("1mx_synths",7)
+  params:set("1mod1",0.7)
+  params:set("1mod2",0.3)
+  params:set("1mod3",-0.32)
+  params:set("1mod4",0.0)
+  params:set("1release",3000)
+  tracks[1]:load_text([[
 chain a
  
 pm
@@ -379,9 +379,7 @@ f5c4 d5 - - - . d5 c5a4
 
   params:set("4sample_file",_path.code.."zxcvbn/lib/AP2_Kick_Snare_Loop_135_Jack_key_bpm135_beats32_.flac")
   params:set("4drive",0.1)
-  params:set("4compression",0.0)
-  params:set("4db",-28)
-  params:set("4filter",10)
+  params:set("4db",-20)
   tracks[4]:load_text([[
 chain a b b a c b
  
@@ -396,19 +394,17 @@ pattern c
 2 x13 n1 v-1 24 h90
  
   ]])
-  params:set("6sample_file",_path.code.."zxcvbn/lib/Diver_Break_172_PL_key_bpm172_beats8_.flac")
-  params:set("6drive",0.2)
-  params:set("6compression",0.0)
-  params:set("6db",-18)
-  params:set("6filter",10)
-  tracks[6]:load_text([[
+  params:set("5sample_file",_path.code.."zxcvbn/lib/Diver_Break_172_PL_key_bpm172_beats8_.flac")
+  params:set("5drive",0.2)
+  params:set("5db",-18)
+  tracks[5]:load_text([[
 0123 rud s12 t12
  
   ]])
 
-  params:set("7sample_file",_path.code.."zxcvbn/lib/whatislove.flac")
-  params:set("7db",-18)
-  tracks[7]:load_text([[
+  params:set("6sample_file",_path.code.."zxcvbn/lib/whatislove_bpm150.flac")
+  params:set("6db",-18)
+  tracks[6]:load_text([[
 chain a
  
 pattern a
@@ -418,10 +414,10 @@ pattern a
  
   ]])
 
-  params:set("5track_type",7)
-  params:set("5attack",200)
-  params:set("5release",400)
-  tracks[5]:load_text([[
+  params:set("7track_type",7)
+  params:set("7attack",200)
+  params:set("7release",400)
+  tracks[7]:load_text([[
 chain a*4 b*4
  
 p96 
@@ -438,32 +434,7 @@ Bb;2 rtud t6 s8
 Dm;2 rtu t6 s9
 F;2 rtud t6 s7
   ]])
-
-  -- params:set("2track_type",1)
-  -- params:set("2play_through",1)
-  -- params:set("2sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
-  -- params:set("2drive",0.7)
-  -- params:set("2compression",0.2)
-  -- params:set("2db",-16)
-  params:set("track",3)
-  --   tracks[2]:load_text([[
-  -- chain a*4 b*4
-
-  -- p12
-
-  -- pattern b
-  -- 0
-  -- -
-  -- 2 x5 n-1
-  -- -
-
-  -- pattern a
-  -- 0123 rud s17 t24 p384 u50 w0 h100 i70
-
-  -- pattern b
-  -- 2acb012345a rud s17 t12 p384 m0 i80 h70 w-50,50
-
-  --           ]])
+  -- params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
 end
 
 function rerun()
