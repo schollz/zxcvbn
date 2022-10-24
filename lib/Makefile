@@ -1,4 +1,4 @@
-release: aubio audiowaveform ignore
+release: aubio audiowaveform
 	# build things
 	cd aubiogo && go build -v
 	cd oscconnect && go build -v
