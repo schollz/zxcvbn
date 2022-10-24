@@ -403,11 +403,11 @@ end
 
 function Sample:enc(k,d)
   if k==1 then
-    self:do_zoom(d)
+    self:adjust_kick(self.ci,d)
   elseif k==2 then
     self:do_move(d)
   elseif k==3 and d~=0 then
-    self:adjust_kick(self.ci,d)
+    self:do_zoom(d)
   end
 end
 
@@ -544,7 +544,7 @@ function Sample:redraw()
   -- TODO make this appear and dissappear
   if self.kick_change>0 then
     self.kick_change=self.kick_change-1
-    screen.move(128,63)
+    screen.move(128,15)
     screen.level(self.kick_change)
     screen.text_right(self.kick[self.ci].." dB")
   end
