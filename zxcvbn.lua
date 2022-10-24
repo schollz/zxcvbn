@@ -379,9 +379,9 @@ f5c4 d5 - - - . d5 c5a4
 
 ]])
 
-  params:set("4sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
-  params:set("4drive",0.9)
-  params:set("4compression",0.9)
+  params:set("4sample_file",_path.audio.."performances/performance3/AP2_Kick_Snare_Loop_135_Jack_key_bpm135_beats32_.flac")
+  params:set("4drive",0.1)
+  params:set("4compression",0.0)
   params:set("4db",-28)
   params:set("4filter",10)
   tracks[4]:load_text([[
@@ -398,7 +398,15 @@ pattern c
 2 x13 n1 v-1 24 h90
 
   ]])
+  params:set("6sample_file",_path.audio.."seamlessloops/172/Diver_Break_172_PL_key_bpm172_beats8_.flac")
+  params:set("6drive",0.2)
+  params:set("6compression",0.0)
+  params:set("6db",-18)
+  params:set("6filter",10)
+  tracks[6]:load_text([[
+0123 rud s12 t12
 
+  ]])
 
   params:set("5track_type",7)
   params:set("5attack",200)

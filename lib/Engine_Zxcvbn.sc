@@ -581,8 +581,8 @@ Engine_Zxcvbn : CroneEngine {
             var snd;
             snd=SoundIn.ar(ch);
             snd=Pan2.ar(snd,pan,amp);
-            // snd=RHPF.ar(snd,hpf,hpfqr);
-            // snd=RLPF.ar(snd,lpf,lpfqr);
+            snd=RHPF.ar(snd,hpf,hpfqr);
+            snd=RLPF.ar(snd,lpf,lpfqr);
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
