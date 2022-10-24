@@ -408,6 +408,18 @@ pattern c
 
   ]])
 
+  params:set("7sample_file",_path.code.."zxcvbn/lib/whatislove.flac")
+  params:set("7db",-18)
+  tracks[7]:load_text([[
+chain a
+
+pattern a
+- p4*m-32 n0 mi10,30,90
+0 p32
+- p8*m
+
+  ]])
+
   params:set("5track_type",7)
   params:set("5attack",200)
   params:set("5release",400)
