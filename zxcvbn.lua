@@ -60,6 +60,7 @@ function init()
   table.insert(screens,installer_:new())
   table.insert(screens,tracker_:new())
 
+  -- startupclock
   clock.run(function()
     while true do
       debounce_params()
@@ -377,7 +378,7 @@ f5c4 d5 - - - . d5 c5a4
  
 ]])
 
-  params:set("4sample_file",_path.code.."zxcvbn/lib/AP2_Kick_Snare_Loop_135_Jack_key_bpm135_beats32_.flac")
+  params:set("4sample_file",_path.data.."zxcvbn/samples/AP2_Kick_Snare_Loop_135_Jack_key_bpm135_beats32_.flac")
   params:set("4drive",0.1)
   params:set("4db",-20)
   tracks[4]:load_text([[
@@ -394,7 +395,7 @@ pattern c
 2 x13 n1 v-1 24 h90
  
   ]])
-  params:set("5sample_file",_path.code.."zxcvbn/lib/Diver_Break_172_PL_key_bpm172_beats8_.flac")
+  params:set("5sample_file",_path.data.."zxcvbn/samples/Diver_Break_172_PL_key_bpm172_beats8_.flac")
   params:set("5drive",0.2)
   params:set("5db",-18)
   tracks[5]:load_text([[
@@ -402,7 +403,7 @@ pattern c
  
   ]])
 
-  params:set("6sample_file",_path.code.."zxcvbn/lib/whatislove_bpm150.flac")
+  params:set("6sample_file",_path.data.."zxcvbn/samples/whatislove_bpm150.flac")
   params:set("6db",-18)
   tracks[6]:load_text([[
 chain a
