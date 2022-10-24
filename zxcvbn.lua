@@ -275,13 +275,14 @@ function init2()
   params:set("1mod2",0.2)
   params:set("1mod3",-0.3)
   params:set("1mod4",0.2)
+  params:set("1db",-19)
 
   params:set("1release",1000)
   tracks[1]:load_text([[
-Em;3 p2*m z50 k500 l100
-Bm;3
-C;3
-G;3
+Gm;3 z99 k500 l100
+Bb;3
+Dm;3
+F;3
  
 ]])
   -- Em;3 p2*m z50 k500 l100
@@ -304,20 +305,92 @@ G;3
 
   params:set("2track_type",4)
   params:set("2mx_sample",3)
-  params:set("2mx_synths",9)
+  params:set("2mx_synths",6)
   params:set("2mod1",0.5)
   params:set("2mod2",0.2)
   params:set("2mod3",-0.3)
-  params:set("2mod4",0.2)
+  params:set("2mod4",0.01)
+  params:set("2db",-10)
+  params:set("2db_sub",-96)
 
   params:set("2release",1000)
   tracks[2]:load_text([[
-Em;3 p2*m rud
-Bm;3  rud  
-C;3 rud  
-G;3 rud  
+chain a*2 b*2 c*2 d*2
+
+ph
+
+pattern a
+bb6 a6 bb6 g6
+pattern b
+bb6 a6 bb6 f6
+pattern c
+a6 g6 a6 f6 
+pattern d
+a6 g6 a6 f6 
  
 ]])
+
+
+
+params:set("3track_type",4)
+params:set("3mx_sample",1)
+params:set("3mx_synths",7)
+params:set("3mod1",0.7)
+params:set("3mod2",0.3)
+params:set("3mod3",-0.32)
+params:set("3mod4",0.0)
+params:set("3release",3000)
+tracks[3]:load_text([[
+chain a
+
+pm
+
+pattern a
+g5bb4 - - - d5 eb5 d5 f5
+- d5bb4 - - . . d5 f5
+f5c4 d5 - - - . d5 c5a4
+-
+. . . . d5 eb5 d5 f5
+-  d5 . . . . d5 f5
+- d5 . . . . d5 c5
+. . . . . d5 f4 g5
+
+
+]])
+
+  params:set("4sample_file",_path.code.."zxcvbn/lib/amenbreak_bpm136.wav")
+  params:set("4drive",0.9)
+  params:set("4compression",0.9)
+  params:set("4db",-28)
+  params:set("4filter",10)
+  tracks[4]:load_text([[
+chain a b b a c b
+
+pattern a
+0b1d0234 rud p96 u90 n0 h100 w0
+
+pattern b
+01234 rud n0 h100 w0
+
+pattern c
+2 x11 n-1 36 h70:100 w-50:50
+2 x13 n1 v-1 24 h90
+
+  ]])
+
+
+  pattern:set("5track_type",6)
+  tracks[5]:load_text([[
+chain a
+
+pattern a
+g2 . p96 k2000 l100
+bb2 . 
+d2 . 
+f2 .
+
+  ]])
+
 
   -- params:set("2track_type",1)
   -- params:set("2play_through",1)
@@ -325,8 +398,14 @@ G;3 rud
   -- params:set("2drive",0.7)
   -- params:set("2compression",0.2)
   -- params:set("2db",-16)
-  params:set("track",2)
-  params:set("1play",0)
+  params:set("track",5)
+  params:set("1play",1)
+  params:set("2play",1)
+  params:set("3play",1)
+  params:set("4play",1)
+  params:set("2mute",1)
+  params:set("3mute",1)
+  params:set("4mute",1)
   --   tracks[2]:load_text([[
   -- chain a*4 b*4
 
@@ -577,7 +656,7 @@ function params_reverb()
   -- modulator_depth: 0.1,
   local params_menu={
     {id="decay",name="decay time",min=0.4,max=100,exp=false,div=0.1,default=4,unit="s"},
-    {id="shimmer",name="shimmer",min=0,max=2,exp=false,div=0.01,default=0.0,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="shimmer",name="shimmer",min=0,max=2,exp=false,div=0.01,default=0.15,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="predelay",name="predelay",min=0,max=1000,exp=false,div=1,default=20.0,unit="ms"},
     {id="input_amount",name="input amount",min=0,max=100,exp=false,div=1,default=100.0,unit="%"},
     {id="input_lowpass_cutoff",name="lpf",min=10,max=18000,exp=true,div=10,default=10000,unit="Hz"},
@@ -587,7 +666,7 @@ function params_reverb()
     {id="tail_density",name="tail density",min=0,max=100,exp=false,div=0.5,default=70,unit="%"},
     {id="damping",name="damping",min=10,max=15000,exp=true,div=100,default=5500,unit="Hz"},
     {id="modulator_frequency",name="mod freq",min=0.01,max=4.0,exp=false,div=0.01,default=1.0,unit="Hz"},
-    {id="modulator_depth",name="mod depth",min=0.0,max=10.0,exp=false,div=0.01,default=0.8},
+    {id="modulator_depth",name="mod depth",min=0.0,max=10.0,exp=false,div=0.01,default=1.2},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
   }
   params:add_group("ZEVERB",#params_menu)

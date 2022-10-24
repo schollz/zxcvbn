@@ -367,7 +367,7 @@ function Sample:adjust_kick(i,d)
   if self.is_melodic then
     do return end
   end
-  self.kick[i]=self.kick[i]+d/10
+  self.kick[i]=self.kick[i]+d
   if self.kick[i]<-48 then
     self.kick[i]=-48
   elseif self.kick[i]>12 then

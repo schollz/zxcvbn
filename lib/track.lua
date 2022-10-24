@@ -611,7 +611,7 @@ function Track:emit(beat)
     if t==nil then
       do return end
     end
-    print("beati",beat,i,self.tli.pulses,json.encode(t))
+    -- print("beati",beat,i,self.tli.pulses,json.encode(t))
     for k,d in ipairs(t) do
       -- print(k,json.encode(d))
       local mods={}
