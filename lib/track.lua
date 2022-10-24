@@ -99,7 +99,6 @@ function Track:init()
     {id="rec_level",name="record",min=0,max=1,exp=false,div=0.01,default=0,fn=function(x) return x end},
     {id="level",name="volume (v)",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db",fn=function(x) return util.dbamp(x) end},
     {id="pan",name="pan (w)",min=-1,max=1,exp=false,div=0.01,default=0,fn=function(x) return x end},
-    {id="post_filter_fc",name="filter (i)",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end,fn=function(x) return musicutil.note_num_to_freq(x) end},
     {id="rate",name="rate (u)",min=-2,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()*100) end,fn=function(x) return x end},
   }
   for _,pram in ipairs(params_menu) do
@@ -193,7 +192,7 @@ function Track:init()
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
   self.params["mx.synths"]={"db","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
-  self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_post_filter_fc","sc_rate","sc_loop_end"}
+  self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
   self.mods={
@@ -214,7 +213,7 @@ function Track:init()
         params:set(self.id.."mod"..i,x)
       end
     end,
-  i=function(x,v) if v==nil then self.lfos["i"]:stop() end;params:set(self.id.."filter",x+30);params:set(self.id.."sc_post_filter_fc",x/100) end,
+  i=function(x,v) if v==nil then self.lfos["i"]:stop() end;params:set(self.id.."filter",x+30) end,
 q=function(x,v) if v==nil then self.lfos["q"]:stop() end;params:set(self.id.."probability",x) end,
 h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x) end,
 k=function(x,v) if v==nil then self.lfos["k"]:stop() end;params:set(self.id.."attack",x) end,
