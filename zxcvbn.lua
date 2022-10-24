@@ -337,9 +337,9 @@ function init2()
   params:set("2release",1000)
   tracks[2]:load_text([[
 chain a*2 b*2 c*2 d*2
-
+ 
 ph
-
+ 
 pattern a
 bb6 a6 bb6 g6
 pattern b
@@ -351,21 +351,19 @@ a6 g6 a6 f6
  
 ]])
 
-
-
-params:set("3track_type",4)
-params:set("3mx_sample",1)
-params:set("3mx_synths",7)
-params:set("3mod1",0.7)
-params:set("3mod2",0.3)
-params:set("3mod3",-0.32)
-params:set("3mod4",0.0)
-params:set("3release",3000)
-tracks[3]:load_text([[
+  params:set("3track_type",4)
+  params:set("3mx_sample",1)
+  params:set("3mx_synths",7)
+  params:set("3mod1",0.7)
+  params:set("3mod2",0.3)
+  params:set("3mod3",-0.32)
+  params:set("3mod4",0.0)
+  params:set("3release",3000)
+  tracks[3]:load_text([[
 chain a
-
+ 
 pm
-
+ 
 pattern a
 g5bb4 - - - d5 eb5 d5 f5
 - d5bb4 - - . . d5 f5
@@ -375,8 +373,8 @@ f5c4 d5 - - - . d5 c5a4
 -  d5 . . . . d5 f5
 - d5 . . . . d5 c5
 . . . . . d5 f4 g5
-
-
+ 
+ 
 ]])
 
   params:set("4sample_file",_path.code.."zxcvbn/lib/AP2_Kick_Snare_Loop_135_Jack_key_bpm135_beats32_.flac")
@@ -386,17 +384,17 @@ f5c4 d5 - - - . d5 c5a4
   params:set("4filter",10)
   tracks[4]:load_text([[
 chain a b b a c b
-
+ 
 pattern a
 0b1d0234 rud p96 u90 n0 h100 w0
-
+ 
 pattern b
 01234 rud n0 h100 w0
-
+ 
 pattern c
 2 x11 n-1 36 h70:100 w-50:50
 2 x13 n1 v-1 24 h90
-
+ 
   ]])
   params:set("6sample_file",_path.code.."zxcvbn/lib/Diver_Break_172_PL_key_bpm172_beats8_.flac")
   params:set("6drive",0.2)
@@ -405,19 +403,19 @@ pattern c
   params:set("6filter",10)
   tracks[6]:load_text([[
 0123 rud s12 t12
-
+ 
   ]])
 
   params:set("7sample_file",_path.code.."zxcvbn/lib/whatislove.flac")
   params:set("7db",-18)
   tracks[7]:load_text([[
 chain a
-
+ 
 pattern a
 - p4*m-32 n0 mi10,30,90
 0 p32
 - p8*m
-
+ 
   ]])
 
   params:set("5track_type",7)
@@ -425,22 +423,21 @@ pattern a
   params:set("5release",400)
   tracks[5]:load_text([[
 chain a*4 b*4
-
+ 
 p96 
-
+ 
 pattern a
 g2 . . a2 
 bb2 . . f2 
 d2 . . a2
 f2 . . g2 a2 bb2 
-
+ 
 pattern b
 Gm;2 rtu t6 s7
 Bb;2 rtud t6 s8
 Dm;2 rtu t6 s9
 F;2 rtud t6 s7
   ]])
-
 
   -- params:set("2track_type",1)
   -- params:set("2play_through",1)
@@ -647,10 +644,6 @@ function params_audioin()
   local params_menu={
     {id="amp",name="amp",min=0,max=2,exp=false,div=0.01,default=1.0},
     {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=-1,response=1},
-    {id="hpf",name="hpf",min=10,max=2000,exp=true,div=5,default=10},
-    {id="hpfqr",name="hpf qr",min=0.05,max=0.99,exp=false,div=0.01,default=0.61},
-    {id="lpf",name="lpf",min=200,max=20000,exp=true,div=100,default=18000},
-    {id="lpfqr",name="lpf qr",min=0.05,max=0.99,exp=false,div=0.01,default=0.61},
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
   }
@@ -737,6 +730,8 @@ function params_sidechain()
     {id="compress_level",name="level",min=0,max=1,exp=false,div=0.01,default=0.1},
     {id="compress_attack",name="attack",min=0,max=1,exp=false,div=0.001,default=0.01,formatter=function(param) return (param:get()*1000).." ms" end},
     {id="compress_release",name="release",min=0,max=2,exp=false,div=0.01,default=0.2,formatter=function(param) return (param:get()*1000).." ms" end},
+    {id="lpshelf",name="lp boost freq",min=12,max=127,exp=false,div=1,default=23,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end,fn=function(x) return musicutil.note_num_to_freq(x) end},
+    {id="lpgain",name="lp boost db",min=-48,max=36,exp=false,div=1,default=0,unit="dB"},
   }
   params:add_group("SIDECHAIN",#params_menu)
   for _,pram in ipairs(params_menu) do
@@ -748,7 +743,7 @@ function params_sidechain()
       formatter=pram.formatter,
     }
     params:set_action(pram.id,function(v)
-      engine.main_set(pram.id,v)
+      engine.main_set(pram.id,pram.fn~=nil and pram.fn(v) or v)
     end)
   end
 end

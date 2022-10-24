@@ -723,7 +723,6 @@ end
 function TLI:parse_pattern(text,use_hex,default_pulses)
   local key=text..(use_hex and "hex" or "")..default_pulses
   if self.cache[key]~=nil then
-    print("using cache")
     return self.cache[key]
   end
 
@@ -759,7 +758,6 @@ function TLI:parse_pattern(text,use_hex,default_pulses)
     for _,v in ipairs(p.mods) do
       mods[v[1]]=v[2]
     end
-    print(json.encode(mods))
     if mods.r~=nil then
       -- introduce as an arp
       local notes={}
@@ -784,8 +782,6 @@ function TLI:parse_pattern(text,use_hex,default_pulses)
       end
     end
   end
-
-  print("track",json.encode(track))
 
   local result={track=track,positions=positions,pulses=total_pulses}
   if err==nil then

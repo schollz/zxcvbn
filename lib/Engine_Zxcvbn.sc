@@ -246,7 +246,7 @@ Engine_Zxcvbn : CroneEngine {
 			hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
 			note=hz.cpsmidi;
 			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
-			snd=Mix.ar(Array.fill(2,{
+			snd=Mix.ar(Array.fill(1,{
 				arg i;
 				var hz_,snd_;
 				hz_=((2*hz).cpsmidi+SinOsc.kr(detuningSpeed*Rand(0.1,0.5),Rand(0,pi)).range(detuning.neg,detuning)).midicps;
@@ -581,8 +581,8 @@ Engine_Zxcvbn : CroneEngine {
             var snd;
             snd=SoundIn.ar(ch);
             snd=Pan2.ar(snd,pan,amp);
-            snd=RHPF.ar(snd,hpf,hpfqr);
-            snd=RLPF.ar(snd,lpf,lpfqr);
+            // snd=RHPF.ar(snd,hpf,hpfqr);
+            // snd=RLPF.ar(snd,lpf,lpfqr);
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
@@ -663,7 +663,7 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\main, {
-            arg outBus=0,inBusNSC,inSC,sidechain_mult=2,compress_thresh=0.1,compress_level=0.1,compress_attack=0.01,compress_release=1,inBus;
+            arg outBus=0,inBusNSC,inSC,lpshelf=60,lpgain=0,sidechain_mult=2,compress_thresh=0.1,compress_level=0.1,compress_attack=0.01,compress_release=1,inBus;
             var snd,sndSC,sndNSC;
             snd=In.ar(inBus,2);
             sndNSC=In.ar(inBusNSC,2);
@@ -673,7 +673,8 @@ Engine_Zxcvbn : CroneEngine {
                 compress_attack, compress_release);
             snd = snd + sndNSC;
             snd = LeakDC.ar(snd);
-            snd = RHPF.ar(snd,60,0.707);
+            // snd = RHPF.ar(snd,60,0.707);
+            snd=BLowShelf.ar(snd, lpshelf, 1, lpgain);
             Out.ar(outBus,snd);
         }).send(context.server);
 
@@ -693,11 +694,9 @@ Engine_Zxcvbn : CroneEngine {
 
         SynthDef(\pad1, {
             var snd;
-            snd = Saw.ar(\freq.kr(440) * ((-3..3) * 0.05).midiratio * [1, 2, 1, 4, 1, 2, 1]);
+            snd = SawDPW.ar(\freq.kr(440) * ((-3..2) * 0.05).midiratio * [1, 2, 1, 4, 1, 2]);
             snd = Splay.ar(snd);
-			snd = Pan2.ar(snd,\pan.kr(0));
-			snd = LPF.ar(snd,\lpf.kr(18000));
-            snd = MoogFF.ar(snd, XLine.kr(100,rrand(6000,12000),\duration.kr(1)*(1/\swell.kr(1))), 0);
+            snd = MoogFF.ar(snd, XLine.kr(100,rrand(6000,\lpf.kr(18000)),\duration.kr(1)*(1/\swell.kr(1))), 0);
             snd = snd * EnvGen.ar(Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)),\gate.kr(1) * ToggleFF.kr(1-TDelay.kr(DC.kr(1),\duration.kr(1))),doneAction:2);
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
             snd = snd * -10.dbamp * \amp.kr(1);
@@ -1103,14 +1102,14 @@ Engine_Zxcvbn : CroneEngine {
             var sendreverb=msg[7];
             var pan=msg[8];
             var lpf=msg[9].midicps;
-            2.do{ arg i;
+            1.do{ arg i;
                 var id=note.asString++"_"++i;
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
                         syns.at(id).set(\gate,0);
                     });
                 });
-                syns.put(id,Synth.new("pad"++i, [
+                syns.put(id,Synth.new("pad1", [
                     freq: note.midicps, 
                     amp: amp,
                     attack: attack,
