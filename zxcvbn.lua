@@ -379,7 +379,7 @@ f5c4 d5 - - - . d5 c5a4
 
 ]])
 
-  params:set("4sample_file",_path.audio.."performances/performance3/AP2_Kick_Snare_Loop_135_Jack_key_bpm135_beats32_.flac")
+  params:set("4sample_file",_path.code.."zxcvbn/lib/AP2_Kick_Snare_Loop_135_Jack_key_bpm135_beats32_.flac")
   params:set("4drive",0.1)
   params:set("4compression",0.0)
   params:set("4db",-28)
@@ -398,7 +398,7 @@ pattern c
 2 x13 n1 v-1 24 h90
 
   ]])
-  params:set("6sample_file",_path.audio.."seamlessloops/172/Diver_Break_172_PL_key_bpm172_beats8_.flac")
+  params:set("6sample_file",_path.code.."zxcvbn/lib/Diver_Break_172_PL_key_bpm172_beats8_.flac")
   params:set("6drive",0.2)
   params:set("6compression",0.0)
   params:set("6db",-18)
