@@ -1,5 +1,7 @@
 # To Do Now (Critical)
 
+- [ ] command add notes/chords without octave information
+- [ ] update NOTE and HEX information
 - [ ] TEST softcut save
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
