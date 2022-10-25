@@ -15,3 +15,9 @@ cd .. && rm -rf aubio
 ## install demo into data folder
 mkdir -p ~/dust/data/zxcvbn
 rsync -avrP zxcvbn/ ~/dust/data/zxcvbn/
+# install samples
+cd ~/dust/data/zxcvbn
+wget https://github.com/schollz/zxcvbn/releases/download/assets/samples.tar.gz
+tar -xvzf samples.tar.gz
+rm samples.tar.gz
+
