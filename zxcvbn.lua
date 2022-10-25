@@ -269,173 +269,10 @@ function init2()
   end)
   softcut.poll_start_phase()
 
-  params:set("3track_type",5)
-  params:set("3mx_sample",3)
-  params:set("3mx_synths",9)
-  params:set("3mod1",0.5)
-  params:set("3mod2",0.2)
-  params:set("3mod3",-0.3)
-  params:set("3mod4",0.2)
-  params:set("3db",-19)
-  params:set("3attack",50)
-  params:set("3release",800)
-  params:set("3send_reverb",99)
-  tracks[3]:load_text([[
-- - - Bb;3
-- - - Dm;3
-- - - F;3
-- - - Gm;3 
-- - - Bb;3
-- - - Dm;3
-- - - F;3
-- - - Gm;3 
-- - - Bb;3
-- - - Dm;3
-- - - F;3
-- - - Gm;3
-- - - Bb;3
-- - - Dm;3
-- - - F;3
-- - - Gm;3 
-- - - Bb;3
-- - - Dm;3
-- - - F;3
-- - - Gm;3 
-- - - Bb;3
-- - - Dm;3
-- - - F;3
-- - - Gm;3
-         
-]])
-  -- Em;3 p2*m z50 k500 l100
-  -- Bm;3
-  -- C;3
-  -- G;3
-  -- chain a*4 b*4
 
-  -- p96
-
-  -- pattern a
-  -- Em;3 rud s12 t12
-  -- Bm;3 rud s12 t12
-  -- C;3 rud s12 t12
-  -- G;3 rud s12 t12
-
-  -- pattern b
-  -- G;3 rud s12 t12
-  -- D;3 rud s12 t12
-
-  params:set("2track_type",4)
-  params:set("2mx_sample",3)
-  params:set("2mx_synths",6)
-  params:set("2mod1",0.5)
-  params:set("2mod2",0.2)
-  params:set("2mod3",-0.3)
-  params:set("2mod4",0.01)
-  params:set("2db",-10)
-  params:set("2db_sub",-96)
-
-  params:set("2release",1000)
-  tracks[2]:load_text([[
-chain a*2 b*2 c*2 d*2
- 
-ph
- 
-pattern a
-bb6 a6 bb6 g6
-pattern b
-bb6 a6 bb6 f6
-pattern c
-a6 g6 a6 f6 
-pattern d
-a6 g6 a6 f6 
- 
-]])
-
-  params:set("1track_type",4)
-  params:set("1mx_sample",1)
-  params:set("1mx_synths",7)
-  params:set("1mod1",0.7)
-  params:set("1mod2",0.3)
-  params:set("1mod3",-0.32)
-  params:set("1mod4",0.0)
-  params:set("1release",3000)
-  tracks[1]:load_text([[
-chain a
- 
-pm
- 
-pattern a
-g5bb4 - - - d5 eb5 d5 f5
-- d5bb4 - - . . d5 f5
-f5c4 d5 - - - . d5 c5a4
--
-. . . . d5 eb5 d5 f5
--  d5 . . . . d5 f5
-- d5 . . . . d5 c5
-. . . . . d5 f4 g5
- 
- 
-]])
-
-  params:set("4sample_file",_path.data.."zxcvbn/samples/AP2_Kick_Snare_Loop_135_Jack_key_bpm135_beats32_.flac")
-  params:set("4drive",0.1)
-  params:set("4db",-20)
-  tracks[4]:load_text([[
-chain a b b a c b
- 
-pattern a
-0b1d0234 rud p96 u90 n0 h100 w0
- 
-pattern b
-01234 rud n0 h100 w0
- 
-pattern c
-2 x11 n-1 36 h70:100 w-50:50
-2 x13 n1 v-1 24 h90
- 
-  ]])
-  params:set("5sample_file",_path.data.."zxcvbn/samples/Diver_Break_172_PL_key_bpm172_beats8_.flac")
-  params:set("5drive",0.2)
-  params:set("5db",-18)
-  tracks[5]:load_text([[
-0123 rud s12 t12
- 
-  ]])
-
-  params:set("6sample_file",_path.data.."zxcvbn/samples/whatislove_bpm150.flac")
-  params:set("6db",-18)
-  tracks[6]:load_text([[
-chain a
- 
-pattern a
-- p4*m-32 n0 mi10,30,90
-0 p32
-- p8*m
- 
-  ]])
-
-  params:set("7track_type",7)
-  params:set("7attack",200)
-  params:set("7release",400)
-  tracks[7]:load_text([[
-chain a*4 b*4
- 
-p96 
- 
-pattern a
-g2 . . a2 
-bb2 . . f2 
-d2 . . a2
-f2 . . g2 a2 bb2 
- 
-pattern b
-Gm;2 rtu t6 s7
-Bb;2 rtud t6 s8
-Dm;2 rtu t6 s9
-F;2 rtud t6 s7
-  ]])
-  -- params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
+  if util.file_exists(_path.data.."zxcvbn/first") then 
+    params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
+  end
 end
 
 function rerun()
@@ -749,4 +586,174 @@ function params_midi()
       end
     end
   end
+end
+
+
+function whatislove()
+  params:set("3track_type",5)
+  params:set("3mx_sample",3)
+  params:set("3mx_synths",9)
+  params:set("3mod1",0.5)
+  params:set("3mod2",0.2)
+  params:set("3mod3",-0.3)
+  params:set("3mod4",0.2)
+  params:set("3db",-19)
+  params:set("3attack",50)
+  params:set("3release",800)
+  params:set("3send_reverb",99)
+  tracks[3]:load_text([[
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3 
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3 
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3 
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3 
+- - - Bb;3
+- - - Dm;3
+- - - F;3
+- - - Gm;3
+         
+]])
+  -- Em;3 p2*m z50 k500 l100
+  -- Bm;3
+  -- C;3
+  -- G;3
+  -- chain a*4 b*4
+
+  -- p96
+
+  -- pattern a
+  -- Em;3 rud s12 t12
+  -- Bm;3 rud s12 t12
+  -- C;3 rud s12 t12
+  -- G;3 rud s12 t12
+
+  -- pattern b
+  -- G;3 rud s12 t12
+  -- D;3 rud s12 t12
+
+  params:set("2track_type",4)
+  params:set("2mx_sample",3)
+  params:set("2mx_synths",6)
+  params:set("2mod1",0.5)
+  params:set("2mod2",0.2)
+  params:set("2mod3",-0.3)
+  params:set("2mod4",0.01)
+  params:set("2db",-10)
+  params:set("2db_sub",-96)
+
+  params:set("2release",1000)
+  tracks[2]:load_text([[
+chain a*2 b*2 c*2 d*2
+ 
+ph
+ 
+pattern a
+bb6 a6 bb6 g6
+pattern b
+bb6 a6 bb6 f6
+pattern c
+a6 g6 a6 f6 
+pattern d
+a6 g6 a6 f6 
+ 
+]])
+
+  params:set("1track_type",4)
+  params:set("1mx_sample",1)
+  params:set("1mx_synths",7)
+  params:set("1mod1",0.7)
+  params:set("1mod2",0.3)
+  params:set("1mod3",-0.32)
+  params:set("1mod4",0.0)
+  params:set("1release",3000)
+  tracks[1]:load_text([[
+chain a
+ 
+pm
+ 
+pattern a
+g5bb4 - - - d5 eb5 d5 f5
+- d5bb4 - - . . d5 f5
+f5c4 d5 - - - . d5 c5a4
+-
+. . . . d5 eb5 d5 f5
+-  d5 . . . . d5 f5
+- d5 . . . . d5 c5
+. . . . . d5 f4 g5
+ 
+ 
+]])
+
+  params:set("4sample_file",_path.data.."zxcvbn/samples/AP2_Kick_Snare_Loop_135_Jack_key_bpm135_beats32_.flac")
+  params:set("4drive",0.1)
+  params:set("4db",-20)
+  tracks[4]:load_text([[
+chain a b b a c b
+ 
+pattern a
+0b1d0234 rud p96 u90 n0 h100 w0
+ 
+pattern b
+01234 rud n0 h100 w0
+ 
+pattern c
+2 x11 n-1 36 h70:100 w-50:50
+2 x13 n1 v-1 24 h90
+ 
+  ]])
+  params:set("5sample_file",_path.data.."zxcvbn/samples/Diver_Break_172_PL_key_bpm172_beats8_.flac")
+  params:set("5drive",0.2)
+  params:set("5db",-18)
+  tracks[5]:load_text([[
+0123 rud s12 t12
+ 
+  ]])
+
+  params:set("6sample_file",_path.data.."zxcvbn/samples/whatislove_bpm150.flac")
+  params:set("6db",-18)
+  tracks[6]:load_text([[
+chain a
+ 
+pattern a
+- p4*m-32 n0 mi10,30,90
+0 p32
+- p8*m
+ 
+  ]])
+
+  params:set("7track_type",7)
+  params:set("7attack",200)
+  params:set("7release",400)
+  tracks[7]:load_text([[
+chain a*4 b*4
+ 
+p96 
+ 
+pattern a
+g2 . . a2 
+bb2 . . f2 
+d2 . . a2
+f2 . . g2 a2 bb2 
+ 
+pattern b
+Gm;2 rtu t6 s7
+Bb;2 rtud t6 s8
+Dm;2 rtu t6 s9
+F;2 rtud t6 s7
+  ]])
 end

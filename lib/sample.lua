@@ -411,14 +411,14 @@ function Sample:enc(k,d)
   end
 end
 
-function SoftSample:key(k,z)
-  if k==1 then 
-    self.k1=z==1 
+function Sample:key(k,z)
+  if k==1 then
+    self.k1=z==1
   elseif k==2 and z==1 then
     self:sel_cursor(self.ci+1)
   elseif k==3 then
-    if self.k1 then 
-      if z==1 then 
+    if self.k1 then
+      if z==1 then
         -- calculate offsets
         self:get_onsets()
       end
