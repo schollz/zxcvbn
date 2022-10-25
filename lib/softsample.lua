@@ -103,20 +103,23 @@ function SoftSample:load_sample(path,get_onsets)
     table.insert(self.cursors,(i-1)/16*params:get(self.id.."sc_loop_end"))
     table.insert(self.cursor_durations,params:get(self.id.."sc_loop_end")/16)
   end
-
-  debounce_fn[path]={10,function()
-    print("softsample: rendering")
-    softcut.render_buffer(softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
-  end}
+  self:do_render_buffer()
 end
 
 function SoftSample:update_loop()
   self.view={0,params:get(self.id.."sc_loop_end")}
+  self:do_render_buffer()
+end
+
+function SoftSample:do_render_buffer()
+  if softcut_rendering[params:get(self.id.."sc")] then 
+    do return end 
+  end
   debounce_fn["render"]={10,function()
-    print("softsample: rendering")
+    print("softsample: rendering",softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
+    softcut_rendering[params:get(self.id.."sc")]=true
     softcut.render_buffer(softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
   end}
-
 end
 
 function SoftSample:dumps()
@@ -322,7 +325,7 @@ end
 
 function SoftSample:enc(k,d)
   if k==1 then
-    params:delta(self.id.."rec_level",d)
+    params:delta(self.id.."sc_rec_level",d)
     debounce_fn["rec_change"]={15,function()end}
   elseif k==2 then
     self:do_move(d)
@@ -447,7 +450,7 @@ function SoftSample:redraw()
   if debounce_fn["rec_change"]~=nil then
     screen.level(debounce_fn["rec_change"][1])
     screen.move(128,15)
-    screen.text_right(params:string(self.id.."rec_level"))
+    screen.text_right(params:string(self.id.."sc_rec_level"))
   end
 
   -- display title

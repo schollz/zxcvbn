@@ -52,6 +52,9 @@ function Track:init()
   end)
 
   params:add_number(self.id.."sc","softcut voice",1,3,1)
+  params:set_action(self.id.."sc",function(x)
+    self.states[STATE_SOFTSAMPLE]:update_loop()
+  end)
   params:add_option(self.id.."sc_sync","sync play/rec heads",{"no","yes"},1)
 
   -- mx.samples
@@ -199,7 +202,7 @@ function Track:init()
     j=function(x,v)
       if v==nil then self.lfos["j"]:stop() end
       if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
-        params:set(self.id.."rec_level",util.clamp(x,0,100)/100)
+        params:set(self.id.."sc_rec_level",util.clamp(x,0,100)/100)
       elseif params:get(self.id.."track_type")==TYPE_DRUM then
         params:set(self.id.."decimate",util.clamp(x,0,100)/100)
       elseif params:get(self.id.."track_type")==TYPE_INFINITEPAD then
@@ -471,6 +474,8 @@ function Track:description()
     s=s..string.format(" (%s:%d)",params:string(self.id.."midi_dev"),params:get(self.id.."midi_ch"))
   elseif params:get(self.id.."track_type")==TYPE_CROW then
     s=s..string.format(" (%s)",params:string(self.id.."crow_type"))
+  elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
+    s=s..string.format(" (%s)",params:string(self.id.."sc"))
   end
   return s
 end

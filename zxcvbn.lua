@@ -31,6 +31,7 @@ softcut_buffers={1,1,2,1,1,2}
 softcut_offsets={2,70,2,2,70,2}
 softcut_positions={0,0,0,0,0,0}
 softcut_renders={{},{},{}}
+softcut_rendering={false,false,false,false,false,false}
 local fverb_so="/home/we/.local/share/SuperCollider/Extensions/fverb/Fverb.so"
 engine.name=util.file_exists(fverb_so) and "Zxcvbn" or nil
 
@@ -100,6 +101,9 @@ function init2()
   end
 
   -- setup softcut
+  audio.level_adc_cut(1)
+  audio.level_eng_cut(0)
+  audio.level_tape_cut(1)
   for i=1,3 do
     -- enable playback head
     softcut.buffer(i,softcut_buffers[i])
@@ -131,7 +135,10 @@ function init2()
     softcut.pre_level(i,1)
     softcut.fade_time(i,0.05)
     softcut.loop_start(i,softcut_offsets[i])
+    softcut.level_input_cut(1,i,1)
+    softcut.level_input_cut(2,i,1)
     softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
+    softcut.position(i,softcut_offsets[i])    
   end
 
   -- add major parameters
@@ -260,10 +267,15 @@ function init2()
   softcut.event_phase(function(i,x)
     softcut_positions[i]=x
   end)
+  
   softcut.event_render(function(ch,start,sec_per_sample,samples)
+    print("got render for ",ch,start,sec_per_sample)
     for i=1,3 do
-      if ch==softcut_buffers[i] and start>=softcut_offsets[i] and start<=softcut_offsets[i+1] then
+      if ch==softcut_buffers[i] and start>=softcut_offsets[i] and start<=softcut_offsets[i]+60 then
+        print("assigned to ",i)
         softcut_renders[i]=samples
+        softcut_rendering[i]=false
+        do return end
       end
     end
   end)
