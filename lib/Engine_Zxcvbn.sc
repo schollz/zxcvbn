@@ -665,8 +665,8 @@ Engine_Zxcvbn : CroneEngine {
 
         SynthDef(\main, {
             arg outBus=0,inBusNSC,inSC,lpshelf=60,lpgain=0,sidechain_mult=2,compress_thresh=0.1,compress_level=0.1,compress_attack=0.01,compress_release=1,inBus,
-            tape_buf,t_tape=0,tape_duration=1;
-            var snd,sndSC,sndNSC,tapePos,tapeSnd,tapeRate;
+            tape_buf,tape_slow=0,tape_stretch=0;
+            var snd,sndSC,sndNSC,tapePosRec,tapePosStretch;
             snd=In.ar(inBus,2);
             sndNSC=In.ar(inBusNSC,2);
             sndSC=In.ar(inSC,2);
@@ -679,11 +679,15 @@ Engine_Zxcvbn : CroneEngine {
             snd=BLowShelf.ar(snd, lpshelf, 1, lpgain);
 
             // tape
-            tapeRate=EnvGen.kr(Env.new([1,0,1],[0.5,0.5]),gate:t_tape,timescale:tape_duration);
-            tapePos=Phasor.ar(aOrB,end:BufFrames.ir(tape_buf));
-            BufWr.ar(snd,tape_buf,tapePos);
-            tapeSnd=PlayBuf.ar(2,tape_buf,tapeRate,startPos:tapePos-10,loop:1,trigger:t_tape);
-            snd=SelectX.ar(Lag.kr(tapeRate<1,0.5),[snd,tapeSnd]);
+            tapePosRec=Phasor.ar(end:BufFrames.ir(tape_buf));
+            BufWr.ar(snd,tape_buf,tapePosRec);
+            // write to tape
+            // stretch 
+            tapePosStretch=Phasor.ar(rate:1/(1+tape_stretch),end:BufFrames.ir(tape_buf),reset:tapePosRec-10,trig:Trig.kr(tape_stretch>0));
+            snd = SelectX.ar(Lag.kr(tape_stretch>0),[snd,WarpZ.ar(2,tape_buf,tapePosStretch/BufFrames.ir(tape_buf),windowSize:0.25,overlaps:8,interp:4)]);
+            // tape slow
+            snd = SelectX.ar(Lag.kr(tape_slow>0,0.5),[snd,PlayBuf.ar(2,tape_buf,1/(tape_slow+1),startPos:tapePos-10,loop:1,trigger:Trig.kr(tape_slow>0)]);
+
 
             Out.ar(outBus,snd);
         }).send(context.server);
