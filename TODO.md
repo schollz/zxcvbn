@@ -1,5 +1,8 @@
 # To Do Now (Critical)
 
+- [ ] slice stretch synthdef (Using WarpZ)
+- [ ] Phasor for WarpZ gets input from a stretch bus
+- [ ] signal sent about whether stretch is nonzero
 - [ ] command add notes/chords without octave information
 - [ ] update NOTE and HEX information
 - [ ] TEST softcut save
