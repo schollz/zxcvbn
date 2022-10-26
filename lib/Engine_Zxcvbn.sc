@@ -63,6 +63,37 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
+		SynthDef("bigbass",{
+			arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+			var snd,note,freq,oscfreq,env,envFilter,detune,distortion,lowcut,chorus,res;
+			mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			note=Lag.kr(hz,portamento).cpsmidi+bend;
+			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+			sub=Lag.kr(sub,1);
+			distortion=LinLin.kr(mod1,-1,1,1,20);
+			lowcut=LinLin.kr(mod2,-1,1,1,16);
+			res=LinLin.kr(mod3,-1,1,-4,8);
+			detune=LinLin.kr(mod4,-1,1,-0.6,0.62);
+            freq=note.midicps/2;
+
+            oscfreq = {freq * LFNoise2.kr(0.5).range(1-detune, 1+detune)}!3;
+            snd = Splay.ar(LFSaw.ar(oscfreq));
+            envFilter = Env.adsr(attack/4, 4, 0, release).kr(gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))));
+            snd = (snd*distortion).tanh;
+            snd=BLowShelf.ar(snd,freq,1,res);
+            snd = LPF.ar(snd, (envFilter*freq*lowcut) + (2*freq));
+            snd = (snd*envFilter).tanh;
+
+			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
+            snd = LPF.ar(snd,lpf) * env * amp / 2;
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
+		}).add;
+
 		SynthDef("casio",{
 			arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
@@ -678,16 +709,16 @@ Engine_Zxcvbn : CroneEngine {
             // snd = RHPF.ar(snd,60,0.707);
             snd=BLowShelf.ar(snd, lpshelf, 1, lpgain);
 
-            // tape
-            tapePosRec=Phasor.ar(end:BufFrames.ir(tape_buf));
-            BufWr.ar(snd,tape_buf,tapePosRec);
-            // write to tape
-            // stretch 
-            snd = SelectX.ar(Lag.kr(tape_stretch>0,0.5),[snd,WarpZ.ar(2,tape_buf,
-                Phasor.ar(rate:1/(1+tape_stretch)/BufFrames.ir(tape_buf),end:1,reset:tapePosRec-10,trig:Trig.kr(tape_stretch>0)),
-                windowSize:0.25,overlaps:8,interp:4)]);
-            // tape slow
-            snd = SelectX.ar(Lag.kr(tape_slow>0,0.5),[snd,PlayBuf.ar(2,tape_buf,1/(tape_slow+1),startPos:tapePosRec-10,loop:1,trigger:Trig.kr(tape_slow>0))]);
+            // // tape
+            // tapePosRec=Phasor.ar(end:BufFrames.ir(tape_buf));
+            // BufWr.ar(snd,tape_buf,tapePosRec);
+            // // write to tape
+            // // stretch 
+            // snd = SelectX.ar(Lag.kr(tape_stretch>0,0.5),[snd,WarpZ.ar(2,tape_buf,
+            //     Phasor.ar(rate:1/(1+tape_stretch)/BufFrames.ir(tape_buf),end:1,reset:tapePosRec-10,trig:Trig.kr(tape_stretch>0)),
+            //     windowSize:0.25,overlaps:8,interp:4)]);
+            // // tape slow
+            // snd = SelectX.ar(Lag.kr(tape_slow>0,0.5),[snd,PlayBuf.ar(2,tape_buf,1/(tape_slow+1),startPos:tapePosRec-10,loop:1,trigger:Trig.kr(tape_slow>0))]);
 
 
             Out.ar(outBus,snd);

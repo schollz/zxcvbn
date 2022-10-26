@@ -77,7 +77,7 @@ function Track:init()
   params:add_number(self.id.."midi_ch","channel",1,16,1)
 
   -- mx.synths stuff
-  self.mx_synths={"synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","polyperc","dreadpiano","aaaaaa","triangles"}
+  self.mx_synths={"synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","polyperc","dreadpiano","aaaaaa","triangles","bigbass"}
   params:add_option(self.id.."mx_synths","synth",self.mx_synths)
   local params_menu={
     {id="mod1",name="mod 1",min=-1,max=1,exp=false,div=0.01,default=0},
