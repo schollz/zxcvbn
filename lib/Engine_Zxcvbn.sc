@@ -749,7 +749,7 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         (1..2).do({arg ch;
-        SynthDef("slice"++ch,{
+        SynthDef("slice0"++ch,{
             arg amp=0, buf=0, rate=1, pos=0, drive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
             var snd,snd2;
             var snd_pos = Phasor.ar(
@@ -760,6 +760,47 @@ Engine_Zxcvbn : CroneEngine {
             );
             SendReply.kr(Impulse.kr(10)*send_pos,'/position',[snd_pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
             snd = BufRd.ar(ch,buf,snd_pos,interpolation:4);
+            snd = snd * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
+		    snd=Pan2.ar(snd,0.0);
+		    snd=Pan2.ar(snd[0],1.neg+(2*pan))+Pan2.ar(snd[1],1+(2*pan));
+		    snd=Balance2.ar(snd[0],snd[1],pan);
+
+            // fx
+            snd = SelectX.ar(\decimate.kr(0).lag(0.01), [snd, Latch.ar(snd, Impulse.ar(LFNoise2.kr(0.3).exprange(1000,16e3)))]);
+
+            // drive
+            snd2 = (snd * 30.dbamp).tanh * -10.dbamp;
+            snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, -10), 3000, 1, -10);
+            snd2 = (snd2 * 10.dbamp).tanh * -10.dbamp;
+            snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, 10), 3000, 1, 10);
+            snd2 = snd2 * -10.dbamp;
+
+            snd = SelectX.ar(drive,[snd,snd2]);
+
+            snd = Compander.ar(snd,snd,compression,0.5,clampTime:0.01,relaxTime:0.01);
+
+            snd = RLPF.ar(snd,filter,0.707);
+
+            Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
+            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd*amp);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
+        }).send(context.server);
+        });
+
+
+        (1..2).do({arg ch;
+        SynthDef("slice1"++ch,{
+            arg amp=0, buf=0, rate=1, pos=0, drive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
+            var snd,snd2;
+            var snd_pos = Phasor.ar(
+                trig: Impulse.kr(0),
+                rate: rate * BufRateScale.ir(buf),
+                resetPos: pos / BufDur.ir(buf) * BufFrames.ir(buf),
+                end: BufFrames.ir(buf),
+            );
+            SendReply.kr(Impulse.kr(10)*send_pos,'/position',[snd_pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
+            snd = WarpZ.ar(ch,buf,snd_pos/BufFrames.ir(buf),windowSize:0.25,overlaps:8,interp:4);
             snd = snd * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
 		    snd=Pan2.ar(snd,0.0);
 		    snd=Pan2.ar(snd[0],1.neg+(2*pan))+Pan2.ar(snd[1],1+(2*pan));
@@ -866,7 +907,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("slice_on","ssffffffffffffffffffff",{ arg msg;
+        this.addCommand("slice_on","ssfffffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -889,6 +930,7 @@ Engine_Zxcvbn : CroneEngine {
             var send_pos=msg[20];
             var attack=msg[21];
             var release=msg[22];
+            var stretch=msg[23];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
@@ -899,7 +941,7 @@ Engine_Zxcvbn : CroneEngine {
                         syns.at(id).set(\gate,0);
                     });
                 });
-                syns.put(id,Synth.new("slice"++bufs.at(filename).numChannels, [
+                syns.put(id,Synth.new("slice"++(stretch>0)++bufs.at(filename).numChannels, [
                     out: buses.at("busCompressible"),
                     outsc: buses.at("busCompressing"),
                     outnsc: buses.at("busNotCompressible"),
@@ -913,7 +955,7 @@ Engine_Zxcvbn : CroneEngine {
                     amp: db_first.dbamp,
 		    		pan: pan,
                     filter: filter,
-                    rate: rate*pitch.midiratio,
+                    rate: rate*pitch.midiratio/(1+stretch),
                     pos: pos,
                     duration: (duration_slice * gate / (retrig + 1)),
                     decimate: decimate,
@@ -939,7 +981,7 @@ Engine_Zxcvbn : CroneEngine {
                                 release: release,
                                 amp: (db+(db_add*(i+1))).dbamp,
                                 filter: filter,
-                                rate: rate*((pitch.sign)*(i+1)+pitch).midiratio,
+                                rate: rate*((pitch.sign)*(i+1)+pitch).midiratio/(1+stretch),
                                 pos: pos,
                                 duration: duration_slice * gate / (retrig + 1),
                                 decimate: decimate,

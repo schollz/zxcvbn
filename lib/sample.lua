@@ -205,6 +205,7 @@ function Sample:play(d)
   d.reverb=d.reverb or params:get(self.id.."send_reverb")
   d.drive=d.drive or params:get(self.id.."drive")
   d.compression=d.compression or params:get(self.id.."compression")
+  d.stretch=d.stretch or params:get(self.id.."stretch")
   if self.is_melodic then
     if d.on then
       local sampleStart=self.cursors[1]
@@ -268,7 +269,7 @@ function Sample:play(d)
         d.compressible,
         d.compressing,
         d.reverb,d.drive,d.compression,
-      d.watch,d.attack,d.release)
+      d.watch,d.attack,d.release,d.stretch)
       if self.kick[d.ci]>-48 then
         engine.kick(
           musicutil.note_num_to_freq(params:get("kick_basenote")),
