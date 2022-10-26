@@ -10,6 +10,11 @@ end
 
 function TLI:init()
 
+  self.round=function(num,numDecimalPlaces)
+    local mult=10^(numDecimalPlaces or 0)
+    return math.floor(num*mult+0.5)/mult
+  end
+
   self.calc=function(s)
     -- returns ok, val
     return pcall(assert(load("return "..s)))
@@ -797,7 +802,7 @@ function TLI:parse_pattern(text,use_hex,default_pulses)
         table.insert(notes,note.m)
       end
       mods.s=mods.s or #notes
-      mods.t=mods.t or 12
+      mods.t=mods.t or self.round((p.stop-p.start)/mods.s)
       local arp_notes=self:get_arp(notes,p.stop-p.start,mods.r,mods.s)
       local skip=mods.t
       local j=0

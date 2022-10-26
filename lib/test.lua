@@ -13,8 +13,7 @@ local data,err=tli:parse_tli([[
 chain a
  
 pattern a
-g1b1e1
-Em
+C;4 ru s4
   ]],false)
 
 if err~=nil then
