@@ -687,7 +687,7 @@ Engine_Zxcvbn : CroneEngine {
                 Phasor.ar(rate:1/(1+tape_stretch)/BufFrames.ir(tape_buf),end:1,reset:tapePosRec-10,trig:Trig.kr(tape_stretch>0)),
                 windowSize:0.25,overlaps:8,interp:4)]);
             // tape slow
-            snd = SelectX.ar(Lag.kr(tape_slow>0,0.5),[snd,PlayBuf.ar(2,tape_buf,1/(tape_slow+1),startPos:tapePos-10,loop:1,trigger:Trig.kr(tape_slow>0)]);
+            snd = SelectX.ar(Lag.kr(tape_slow>0,0.5),[snd,PlayBuf.ar(2,tape_buf,1/(tape_slow+1),startPos:tapePosRec-10,loop:1,trigger:Trig.kr(tape_slow>0))]);
 
 
             Out.ar(outBus,snd);
