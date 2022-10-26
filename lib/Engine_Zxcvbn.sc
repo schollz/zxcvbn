@@ -710,16 +710,10 @@ Engine_Zxcvbn : CroneEngine {
             snd=BLowShelf.ar(snd, lpshelf, 1, lpgain);
 
             // // tape
-            // tapePosRec=Phasor.ar(end:BufFrames.ir(tape_buf));
-            // BufWr.ar(snd,tape_buf,tapePosRec);
-            // // write to tape
-            // // stretch 
-            // snd = SelectX.ar(Lag.kr(tape_stretch>0,0.5),[snd,WarpZ.ar(2,tape_buf,
-            //     Phasor.ar(rate:1/(1+tape_stretch)/BufFrames.ir(tape_buf),end:1,reset:tapePosRec-10,trig:Trig.kr(tape_stretch>0)),
-            //     windowSize:0.25,overlaps:8,interp:4)]);
-            // // tape slow
-            // snd = SelectX.ar(Lag.kr(tape_slow>0,0.5),[snd,PlayBuf.ar(2,tape_buf,1/(tape_slow+1),startPos:tapePosRec-10,loop:1,trigger:Trig.kr(tape_slow>0))]);
-
+            tapePosRec=Phasor.ar(end:BufFrames.ir(tape_buf));
+            BufWr.ar(snd,tape_buf,tapePosRec);
+            // tape slow
+            snd = SelectX.ar(VarLag.kr(tape_slow>0,1,warp:\sine),[snd,PlayBuf.ar(2,tape_buf,Lag.kr(1/(tape_slow+1),1),startPos:tapePosRec-10,loop:1,trigger:Trig.kr(tape_slow>0))]);
 
             Out.ar(outBus,snd);
         }).send(context.server);
@@ -978,6 +972,10 @@ Engine_Zxcvbn : CroneEngine {
             var release=msg[22];
             var stretch=msg[23];
             var db_first=db+db_add;
+            var do_stretch=0;
+            if (stretch>0,{
+                do_stretch=1;
+            });
             if (retrig>0,{
                 db_first=db;
             });
@@ -987,7 +985,7 @@ Engine_Zxcvbn : CroneEngine {
                         syns.at(id).set(\gate,0);
                     });
                 });
-                syns.put(id,Synth.new("slice"++(stretch>0)++bufs.at(filename).numChannels, [
+                syns.put(id,Synth.new("slice"++do_stretch++bufs.at(filename).numChannels, [
                     out: buses.at("busCompressible"),
                     outsc: buses.at("busCompressing"),
                     outnsc: buses.at("busNotCompressible"),
@@ -1013,7 +1011,7 @@ Engine_Zxcvbn : CroneEngine {
                     Routine {
                         (retrig).do{ arg i;
                             (duration_total/ (retrig+1) ).wait;
-                            syns.put(id,Synth.new("slice"++bufs.at(filename).numChannels, [
+                            syns.put(id,Synth.new("slice"++do_stretch++bufs.at(filename).numChannels, [
                                 out: buses.at("busCompressible"),
                                 outsc: buses.at("busCompressing"),
                                 outnsc: buses.at("busNotCompressible"),
