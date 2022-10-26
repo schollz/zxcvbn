@@ -1,5 +1,6 @@
 # To Do Now (Critical)
 
+- [ ] Tapestop?? (Buffer constantly writing/reading)
 - [ ] slice stretch synthdef (Using WarpZ)
 - [ ] Phasor for WarpZ gets input from a stretch bus
 - [ ] signal sent about whether stretch is nonzero
