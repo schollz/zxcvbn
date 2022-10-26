@@ -25,6 +25,7 @@ Engine_Zxcvbn : CroneEngine {
         bufs = Dictionary.new();
         oscs = Dictionary.new();
 
+        bufs.put("tape",Buffer.alloc(context.server, context.server.sampleRate * 18.0, 2));
         oscs.put("position",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("progress",msg[3],msg[3]); }, '/position'));
         oscs.put("audition",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("audition",msg[3],msg[3]); }, '/audition'));
 
@@ -663,8 +664,9 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\main, {
-            arg outBus=0,inBusNSC,inSC,lpshelf=60,lpgain=0,sidechain_mult=2,compress_thresh=0.1,compress_level=0.1,compress_attack=0.01,compress_release=1,inBus;
-            var snd,sndSC,sndNSC;
+            arg outBus=0,inBusNSC,inSC,lpshelf=60,lpgain=0,sidechain_mult=2,compress_thresh=0.1,compress_level=0.1,compress_attack=0.01,compress_release=1,inBus,
+            tape_buf,t_tape=0,tape_duration=1;
+            var snd,sndSC,sndNSC,tapePos,tapeSnd,tapeRate;
             snd=In.ar(inBus,2);
             sndNSC=In.ar(inBusNSC,2);
             sndSC=In.ar(inSC,2);
@@ -675,6 +677,14 @@ Engine_Zxcvbn : CroneEngine {
             snd = LeakDC.ar(snd);
             // snd = RHPF.ar(snd,60,0.707);
             snd=BLowShelf.ar(snd, lpshelf, 1, lpgain);
+
+            // tape
+            tapeRate=EnvGen.kr(Env.new([1,0,1],[0.5,0.5]),gate:t_tape,timescale:tape_duration);
+            tapePos=Phasor.ar(aOrB,end:BufFrames.ir(tape_buf));
+            BufWr.ar(snd,tape_buf,tapePos);
+            tapeSnd=PlayBuf.ar(2,tape_buf,tapeRate,startPos:tapePos-10,loop:1,trigger:t_tape);
+            snd=SelectX.ar(Lag.kr(tapeRate<1,0.5),[snd,tapeSnd]);
+
             Out.ar(outBus,snd);
         }).send(context.server);
 
@@ -838,7 +848,7 @@ Engine_Zxcvbn : CroneEngine {
         context.server.sync;
         mx = MxSamplesZ(Server.default,100,buses.at("busCompressible").index,buses.at("busNotCompressible").index,buses.at("busCompressing"),buses.at("busReverb"));
         context.server.sync;
-        syns.put("main",Synth.new(\main,[\outBus,0,\sidechain_mult,8,\inBus,buses.at("busCompressible"),\inBusNSC,buses.at("busNotCompressible"),\inSC,buses.at("busCompressing")]));
+        syns.put("main",Synth.new(\main,[\tapeBuf,bufs.at("tape"),\outBus,0,\sidechain_mult,8,\inBus,buses.at("busCompressible"),\inBusNSC,buses.at("busNotCompressible"),\inSC,buses.at("busCompressing")]));
         NodeWatcher.register(syns.at("main"));
         context.server.sync;
         syns.put("reverb", Synth.new(\padFx, [
