@@ -457,13 +457,19 @@ function TLI:init()
 end
 
 function TLI:to_midi(s,midi_near)
+  midi_note=midi_near or self.midi_near
+  local notes={}
   if string.lower(string.sub(s,1,1))==string.sub(s,1,1) then
     -- lowercase, assume it is a note
-    return self:note_to_midi(s,midi_near)
+    notes=self:note_to_midi(s,midi_near)
   else
     -- uppercase, assume it is a chord
-    return self:chord_to_midi(s,midi_near)
+    notes=self:chord_to_midi(s,midi_near)
   end
+  if len(notes)>1 then 
+    self.midi_near=notes[1].m
+  end
+  return notes
 end
 
 function TLI:hex_to_midi(s)
@@ -482,20 +488,24 @@ function TLI:note_to_midi(n,midi_near)
     midi_near=60
   end
   success=false
-  note_name="no note found"
-  midi_note=0
   local notes={}
   for i=1,20 do
     if #n==0 then
       break
     end
+    local new_note={m=300,note_name="no note found"}
     for _,m in ipairs(self.database) do
-      for _,note in ipairs(m.y) do
-        if n:find(note)==1 and #note<=#note_name and math.abs(m.m-midi_near)<math.abs(midi_note-midi_near) then
-          table.insert(notes,{m=m.m,n=m.i})
-          n=string.sub(n,#note+1,#n)
+      for _,note_name in ipairs(m.y) do
+        if note_name:find(n)==1 and #note_name<=#new_note.note_name and math.abs(m.m-midi_near)<math.abs(new_note.m-midi_near) then
+          new_note={m=m.m,n=m.i,note_name=note_name}
         end
       end
+    end
+    if new_note.m~=300 then 
+      table.insert(notes,new_note)
+      n=string.sub(n,#new_note.note_name+1,#n)
+    else
+      break
     end
   end
   if #notes==0 then
