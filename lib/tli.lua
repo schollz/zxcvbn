@@ -91,6 +91,23 @@ function TLI:init()
     end
   end
 
+  self.find_max_prefix=function(a,b)
+    local j=0
+    for i=1,#a do
+      if i>#b then
+        break
+      end
+      if a:sub(i,i)==b:sub(i,i) then
+        j=i
+      else
+        break
+      end
+    end
+    if j>0 then
+      return a:sub(1,j)
+    end
+  end
+
   self.cache={}
 
   self.hex_to_num={}
@@ -457,7 +474,7 @@ function TLI:init()
 end
 
 function TLI:to_midi(s,midi_near)
-  midi_note=midi_near or self.midi_near
+  midi_near=midi_near or self.midi_near
   local notes={}
   if string.lower(string.sub(s,1,1))==string.sub(s,1,1) then
     -- lowercase, assume it is a note
@@ -466,8 +483,8 @@ function TLI:to_midi(s,midi_near)
     -- uppercase, assume it is a chord
     notes=self:chord_to_midi(s,midi_near)
   end
-  if len(notes)>1 then 
-    self.midi_near=notes[1].m
+  if next(notes)~=nil then
+    self.midi_near=notes[#notes].m
   end
   return notes
 end
@@ -487,28 +504,33 @@ function TLI:note_to_midi(n,midi_near)
   if midi_near==nil then
     midi_near=60
   end
-  success=false
   local notes={}
   for i=1,20 do
     if #n==0 then
       break
     end
-    local new_note={m=300,note_name="no note found"}
+    local new_note={m=300,note_name=""}
+    local octave=math.floor(midi_near/12-1)
+    local found=false
     for _,m in ipairs(self.database) do
-      for _,note_name in ipairs(m.y) do
-        if note_name:find(n)==1 and #note_name<=#new_note.note_name and math.abs(m.m-midi_near)<math.abs(new_note.m-midi_near) then
-          new_note={m=m.m,n=m.i,note_name=note_name}
+      for _,note_full_name in ipairs(m.y) do
+        local note_name=self.find_max_prefix(n,note_full_name)
+        if note_name~=nil and (note_name==note_full_name or (note_name..octave)==note_full_name) then
+          if #note_full_name>#new_note.note_name then
+            new_note={m=m.m,n=m.i,note_name=note_name}
+          end
         end
       end
     end
-    if new_note.m~=300 then 
+    if new_note.m~=300 then
       table.insert(notes,new_note)
       n=string.sub(n,#new_note.note_name+1,#n)
+      midi_near=new_note.m
     else
       break
     end
   end
-  if #notes==0 then
+  if next(notes)==0 then
     error("no notes found")
   end
   return notes

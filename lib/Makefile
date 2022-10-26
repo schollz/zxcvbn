@@ -1,14 +1,16 @@
-release: aubio audiowaveform
-	# build things
-	cd aubiogo && go build -v
-	cd oscconnect && go build -v
-	cd oscnotify && go build -v
+release: aubio audiowaveform build
 	cp -r ~/dust/data/zxcvbn .
 	rm -rf zxcvbn/samples
 	touch zxcvbn/first
 	tar -czvf release.tar.gz zxcvbn aubio aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect audiowaveform
 	rm -rf norns
 	rm -rf zxcvbn
+
+build:
+	# build things
+	cd aubiogo && go build -v
+	cd oscconnect && go build -v
+	cd oscnotify && go build -v
 
 samples:
 	mkdir -p ~/dust/data/zxcvbn

@@ -13,9 +13,9 @@ local data,err=tli:parse_tli([[
 chain a
  
 pattern a
-0 p24
-. p12 i60 mz10 mz20,30
-  ]],true)
+g1b1e1
+Em
+  ]],false)
 
 if err~=nil then
   print(err)
