@@ -344,6 +344,9 @@ function Sample:do_zoom(d)
 end
 
 function Sample:do_move(d)
+  if self.duration==nil then
+    do return end
+  end
   self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
 
   -- update cursor durations
@@ -435,6 +438,9 @@ function Sample:set_position(pos)
 end
 
 function Sample:sel_cursor(ci)
+  if self.duration==nil then
+    do return end
+  end
   if ci<1 then
     ci=ci+self.slice_num
   elseif ci>self.slice_num then
@@ -458,6 +464,10 @@ function Sample:sel_cursor(ci)
 end
 
 function Sample:zoom(zoom_in,zoom_amount)
+  if self.duration==nil then
+    do return end
+  end
+
   zoom_amount=zoom_amount or 1.5
   local view_duration=(self.view[2]-self.view[1])
   local view_duration_new=zoom_in and view_duration/zoom_amount or view_duration*zoom_amount
@@ -500,7 +510,6 @@ function Sample:redraw()
     screen.aa(1)
     screen.display_png(self:get_render(),x,y)
     screen.aa(0)
-    screen.update()
   end
 
   for i,cursor in ipairs(self.cursors) do
