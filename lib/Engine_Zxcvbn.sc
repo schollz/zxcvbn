@@ -1292,7 +1292,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             mx.note(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb);
         });
 
-        this.addCommand("mx_synths","sffffffffffffffff", { arg msg;
+        this.addCommand("mx_synths","sffffffffffffffffs", { arg msg;
             var synth=msg[1].asString;
             var note=msg[2];
             var amp=msg[3].dbamp;
@@ -1310,12 +1310,13 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var sendReverb=msg[15];
             var lpf=msg[16].midicps;
             var monophonic_release=msg[17];
+            var id=msg[18];
             var syn;
             if (monophonic_release>0,{
-                if (syns.at(synth).notNil,{
-                    if (syns.at(synth).isRunning,{
-                        syns.at(synth).set("gate_release",monophonic_release);
-                        syns.at(synth).set("gate_done",1);
+                if (syns.at(id).notNil,{
+                    if (syns.at(id).isRunning,{
+                        syns.at(id).set("gate_release",monophonic_release);
+                        syns.at(id).set("gate_done",1);
                     });                    
                 });
             });
@@ -1342,7 +1343,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             ],syns.at("reverb"),\addBefore).onFree({"freed!"});
             if (monophonic_release>0,{
                 NodeWatcher.register(syn);
-                syns.put(synth,syn);
+                syns.put(id,syn);
             });
         });
 

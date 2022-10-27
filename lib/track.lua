@@ -354,7 +354,7 @@ table.insert(self.play_fn,{
     local duration=d.duration_scaled
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
-    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000)
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id)
   end,
 })
 -- infinite pad
