@@ -1244,6 +1244,23 @@ function randomString(length) {
 }
 
 
+function isElementInViewport (el) {
+
+    // Special bonus for those using jQuery
+    if (typeof jQuery === "function" && el instanceof jQuery) {
+        el = el[0];
+    }
+
+    var rect = el.getBoundingClientRect();
+
+    return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /* or $(window).height() */
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */
+    );
+}
+
 function debounce(func, wait, immediate) {
   var timeout;
   return function() {
@@ -1411,9 +1428,11 @@ const socketOpenListener = (e) => {
     clearInterval(imageTimer);
   }
   imageTimer = setInterval(function() {
-    socket.send(JSON.stringify({
-      kind: "img",
-    }));
+    if (isElementInViewport(document.getElementById('norns_screen'))) {
+        socket.send(JSON.stringify({
+            kind: "img",
+        }));
+    }
   }, 100);
 };
 const socketErrorListener = (e) => {
