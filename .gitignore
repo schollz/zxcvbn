@@ -1,4 +1,5 @@
 # Compiled Lua sources
+docs/build/index.html
 builder
 luac.out
 lib/audiowaveform
