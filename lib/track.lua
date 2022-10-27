@@ -139,6 +139,7 @@ function Track:init()
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
     {id="swell",name="swell (j)",min=0.1,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="release",name="release (l)",min=1,max=10000,exp=true,div=10,default=5,unit="ms"},
+    {id="monophonic_release",name="mono release",min=0,max=2000,exp=false,div=10,default=0,unit="ms"},
     {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="decimate",name="decimate (m)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
@@ -195,7 +196,7 @@ function Track:init()
   self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","send_reverb"}
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["midi"]={"midi_ch","midi_dev"}
-  self.params["mx.synths"]={"db","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
+  self.params["mx.synths"]={"db","monophonic_release","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
@@ -353,7 +354,7 @@ table.insert(self.play_fn,{
     local duration=d.duration_scaled
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
-    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"))
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000)
   end,
 })
 -- infinite pad

@@ -283,37 +283,39 @@ function init2()
   softcut.poll_start_phase()
 
 
---   params:set("7track_type",4)
---   params:set("7mx_synths",13)
---   params:set("7attack",20)
---   params:set("7release",800)
---   tracks[7]:load_text([[
--- chain a*4 b*4
- 
--- p96 
- 
--- pattern a
--- g2 . . a2 
--- bb2 . . f2 
--- d2 . . a2
--- f2 . . g2 a2 bb2 
- 
--- pattern b
--- Gm;2 rtu t6 s7
--- Bb;2 rtud t6 s8
--- Dm;2 rtu t6 s9
--- F;2 rtud t6 s7
---   ]])
---   params:set("track",7)
---   params:set("7play",1)
-
 
   if util.file_exists(_path.data.."zxcvbn/first") or true==true then 
     params:set("clock_tempo",150)
     params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
-  params:set("track",5)
+
+  params:set("7track_type",4)
+  params:set("7mx_synths",13)
+  params:set("7attack",20)
+  params:set("7release",2400)
+  params:set("7monophonic_release",10)
+  tracks[7]:load_text([[
+chain a*4 b*4
+ 
+p96 
+ 
+pattern a
+g2 . . a2 
+bb2 . . f2 
+d2 . . a2
+f2 . . g2 a2 bb2 
+ 
+pattern b
+Gm;2 rtu t6 s7
+Bb;2 rtud t6 s8
+Dm;2 rtu t6 s9
+F;2 rtud t6 s7
+  ]])
+  params:set("track",7)
+  params:set("7play",1)
+
+  params:set("track",7)
 end
 
 function rerun()
@@ -584,7 +586,7 @@ function params_sidechain()
     {id="lpgain",name="lp boost db",min=-48,max=36,exp=false,div=1,default=0,unit="dB"},
     {id="tape_slow",name="tape slow",min=0,max=2,exp=false,div=0.01,default=0.0,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
   }
-  params:add_group("SIDECHAIN",#params_menu)
+  params:add_group("AUDIO OUT",#params_menu)
   for _,pram in ipairs(params_menu) do
     params:add{
       type="control",
