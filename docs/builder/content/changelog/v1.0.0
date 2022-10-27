@@ -1,0 +1,11 @@
+---
+version: v1.0.0
+---
+- **NEW** Select samples in editor without typing them. (!)
+- **NEW** Edit macros in the editor.
+- **NEW** "Off" phenomenon to send MIDI off signals to all notes on the track.
+- **NEW** View macros with `v;m1` and `v;m2`.
+- **NEW** Toggle synth encoder override while in Y Mode with _p_.
+- **NEW** Execute arbitrary routines with `routine;anthropocene.txt`.
+- **CHANGE** After committing values in the editor, the last selected field remains selected.
+- **DEV** Refactor commands to each use individual files.

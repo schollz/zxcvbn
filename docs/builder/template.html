@@ -1,0 +1,781 @@
+<html>
+
+<head>
+    <title>🖳 zxɔvdn</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/static/all.min.css" />
+    <style>
+        html {
+        scroll-behavior: smooth;
+    }
+
+    ul {
+        font-size: 1.25em;
+        margin-top: 0;
+    }
+
+    [id]::before {
+      content: '';
+      display: block;
+      height:      25px;
+      margin-top: -25px;
+      visibility: hidden;
+    }
+
+    img {
+        padding: 10px;
+        background: #000;
+        border-radius: 15px;
+        box-shadow: -5px -5px #22;
+    }
+
+    /* cyrillic-ext */
+    @font-face {
+        font-family: 'PT Mono';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(/static/9oRONYoBnWILk-9AnCIzM-Py.woff2) format('woff2');
+        unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+        font-family: 'PT Mono';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(/static/9oRONYoBnWILk-9AnCszM-Py.woff2) format('woff2');
+        unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+        font-family: 'PT Mono';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(/static/9oRONYoBnWILk-9AnCEzM-Py.woff2) format('woff2');
+        unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+        font-family: 'PT Mono';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(/static/9oRONYoBnWILk-9AnC8zMw.woff2) format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    body {
+        max-width: 950px;
+        margin: 0 auto;
+        font-size: 1rem;
+        color: #F8F0E3;
+        background: #111;
+        font-family: "PT Mono";
+    }
+
+    section {
+        padding: 1em;
+
+    }
+
+    p {
+        line-height: 1.5;
+        margin-top: 0 !important;
+        font-size: 1.1em;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        margin-bottom: .5rem;
+        font-weight: 500;
+        line-height: 1.2;
+        color: #54b654;
+    }
+
+    h1,
+    h3 {
+        color: #F8F0E3;
+
+    }
+
+    .hrwhite {
+        border-top: 1px #F8F0E3 solid !important;
+        margin-top: 0 !important;
+    }
+
+
+    .hrgreen {
+        border-bottom: 4px #54b654 solid;
+    }
+
+    em {
+        font-style: normal;
+        border-radius: 2px;
+        padding: 2px 8px;
+        background: #54b654;
+        color: #000000;
+    }
+
+    code {
+        background: #F8F0E3;
+        color: #000;
+        border-radius: 4px;
+        padding: 1px 4px;
+    }
+
+    .clade {
+        font-style: normal;
+        border-radius: 4px;
+        padding: 2px 8px;
+        background: #F8F0E3;
+        color: #000000;
+    }
+
+    .fr {
+        width: 40%;
+        float: right;
+        margin-left: 1em;
+    }
+
+    .fl {
+        width: 40%;
+        float: left;
+        margin-left: 1em;
+    }
+
+    div {
+        clear: both;
+    }
+
+
+    .fbox {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding-bottom: 0em;
+    }
+
+
+    .fboxl {
+        display: flex;
+        flex-direction: column;
+        flex-basis: 0 0 15%;
+        vertical-align: top;
+        text-align: center;
+    }
+
+    .fboxr {
+        display: flex;
+        flex-direction: column;
+        flex: 100 0 85%;
+        padding-bottom: 1em;
+        padding-top: 0.9em;
+        vertical-align: top;
+    }
+
+
+    .box {
+        display: flex;
+        border: 4px solid #F8F0E3;
+        flex-wrap: wrap;
+        flex-direction: row;
+        flex-wrap: wrap;
+        margin-bottom: 2em;
+    }
+
+    .box h1 {
+        color: #F8F0E3;
+        border-bottom: 1px solid #F8F0E3;
+        margin: 0.5em;
+        font-size: 1.9rem;
+    }
+
+
+    .box h2 {
+        font-style: italic;
+        font-size: 1.5rem;
+        border-bottom: 1px solid #F8F0E3;
+        padding-bottom: 0.5rem;
+        color: #F8F0E3;
+        margin: 0.7em;
+        margin-bottom: 0.5em;
+    }
+
+
+    .box p {
+        margin: 1em;
+    }
+
+    .boxl {
+        display: flex;
+        flex-direction: column;
+        flex-basis: 0 0 17%;
+    }
+
+    .boxr {
+        display: flex;
+        flex-direction: column;
+        flex: 100 0 83%;
+        padding-bottom: 1em;
+    }
+
+
+    .h2under {
+        font-style: italic;
+        font-size: 1.5rem;
+        border-bottom: 1px solid #F8F0E3;
+        padding-bottom: 0.5rem;
+        color: #F8F0E3;
+        margin-bottom: 0.5em;
+    }
+
+
+    .command-icon {
+        align: center;
+        text-align: center;
+        display: block;
+        color: #000000;
+        padding: 5px;
+        width: 100px;
+        height: 100px;
+        background: #F8F0E3;
+        margin-top: 1em;
+        margin-left: 1em;
+    }
+
+    .command-icon>div {
+        position: relative;
+        top: 25px;
+    }
+
+    .fas {
+        font-size: 1rem;
+        color: #54b654;
+        padding: 2px;
+        border-radius: 2px;
+    }
+
+    .command-icon .fas {
+        color: inherit;
+        font-size: 2rem;
+    }
+
+    .shiny {
+        background: linear-gradient(to right, #54b654 20%, #8acd8a 40%, #54b654 60%, #8acd8a 80%, #54b654 100%);
+        background-size: 100px;
+        color: #000000;
+        background-clip: text;
+        text-fill-color: transparent;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: variableAnimation 10s linear infinite;
+        font-size: 1.6em;
+        box-sizing: border-box;
+        display: inline;
+        margin: 0 !important;
+        margin-top: -0.5em !important;
+        margin-left: 0.5em !important;
+    }
+
+    .shiny + p {
+        padding-top: 0.7em;
+    }
+
+    @-webkit-keyframes variableAnimation {
+        to {
+            background-position: 200% center;
+        }
+    }
+
+    @-moz-keyframes variableAnimation {
+        to {
+            background-position: 200% center;
+        }
+    }
+
+    @-o-keyframes variableAnimation {
+        to {
+            background-position: 200% center;
+        }
+    }
+
+    @keyframes variableAnimation {
+        to {
+            background-position: 200% center;
+        }
+    }
+
+    .pb {
+        margin-bottom: 2em;
+        padding-bottom: 2em;
+    }
+
+    .pt {
+        margin-top: 1.5em;
+        padding-top: 1.5em;
+    }
+
+    a {
+        color: #54b654;
+        text-decoration: underline;
+    }
+
+    a:hover,
+    a:active {
+        color: #F8F0E3;
+        text-decoration: none;
+    }
+
+    a.clade,
+    a.clade:hover,
+    a.clade:active {
+        color: #000;
+        text-decoration: none;
+    }
+
+    a.clade:hover {
+        text-decoration: underline;
+    }
+
+    .list {
+        max-width: 500px;
+        margin: auto;
+        text-align: center;
+    }
+
+    .list>a {
+        display: inline-block;
+        margin: 0.2em 0;
+    }
+
+    .flexer {
+        flex-wrap: wrap;
+        display: flex;
+    }
+
+    .flexer>.col3 {
+        flex-grow: 1;
+        width: 33%;
+        padding-bottom: 0.5em;
+    }
+
+    .w25 {
+        width: 25%;
+    }
+
+    .w50 {
+        width: 50%;
+    }
+
+    .w75 {
+        width: 75%;
+    }
+
+    .wr {
+        flex-grow: 1;
+        width: 90%;
+    }
+
+    .wl {
+        flex-grow: 1;
+        width: 10%;
+    }
+
+    .hrw {
+        border-bottom: 1px #F8F0E3 solid !important;
+        border-top: 1px #F8F0E3 solid !important;
+    }
+
+
+    table {
+        border-collapse: collapse;
+        padding-top: 1em;
+        line-height: 1.5 !important;
+    }
+
+    td {
+        padding: 0.5em 0.25em;
+    }
+
+    .bold {
+        font-weight: 900;
+    }
+
+    .hero {
+        /* Sizing */
+        height: 100vh;
+        /* Flexbox stuff */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        /* Text styles */
+        text-align: center;
+    }
+
+    .hero-inner {
+        position: relative;
+        top: -3em;
+    }
+
+    .changelog strong {
+        border: 1px solid #54b654;
+        color:  #54b654;
+        padding: 1px 8px;
+        border-radius: 2px;
+        font-weight: 400;
+    }
+
+    .h2under {
+        padding-top: 1.25em;
+    }
+    </style>
+</head>
+
+<body>
+    <section class="hero">
+        <div class="hero-inner">
+            <p align=center><strong><em>zxcvbn</em></strong></p>
+            <p><code>v0.0.0 (unreleased)</code></p>
+            <p align=center id="app"></span>
+            </p>
+        </div>
+    </section>
+    <section class="hero">
+        <div class="hero-inner" style="max-width: 800px; width:100%;">
+            <div>
+                <hr class="hrgreen">
+            </div>
+            <div>
+                <hr class="hrgreen">
+            </div>
+            <div class="pb">
+                <span style="text-align:center;">
+                    <h1 id="outline">Outline<a href="#outline" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h1>
+                    <h3>Blurbs</h3>
+                    <p class="list">{{ range .Blurbs}}<a class="clade" href="#{{slugify .Title}}">{{lowercase .Title}}</a> {{end}} <a class="clade" href="#invocations">invocations</a></p>
+                    <h3>Clades</h3>
+                    <p class="list">{{ range .Clades}}<a class="clade" href="#{{slugify .Title}}">{{lowercase .Title}}</a> {{end}}</p>
+                    <h3>Routing</h3>
+                    <p class="list">{{ range .Routing}}<a class="clade" href="#{{slugify .Title}}">{{lowercase .Title}}</a> {{end}}</p>
+                    <h3>Commands</h3>
+                    <p class="list">{{ range .Commands}}<a class="clade" href="#{{slugify .Title}}">{{lowercase .Title}}</a> {{end}}</p>
+                </span>
+            </div>
+            <div>
+                <hr class="hrgreen">
+            </div>
+            <div>
+                <hr class="hrgreen">
+            </div>
+        </div>
+    </section>
+    <section>
+        <div>
+            <hr class="hrgreen">
+        </div>
+        {{ with index .Blurbs "Abstract"}}
+        <div class="pb">
+            <h1 id="{{slugify .Title}}">{{.Title}}<a href="#{{ slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h1>
+            {{.Body}}
+        </div>
+        {{end}}
+        <div>
+            <hr class="hrgreen">
+        </div>
+        {{ with index .Blurbs "TLI"}}
+        <div class="pb pt">
+            <h1 id="{{slugify .Title}}">{{.Title}}<a href="#{{ slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h1>
+            {{.Body}}
+        </div>
+        {{end}}
+        <div>
+            <hr class="hrgreen">
+        </div>
+        {{ with index .Blurbs "Routing"}}
+        <div class="pb pt">
+            <h1 id="{{slugify .Title}}">{{.Title}}<a href="#{{ slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h1>
+            {{.Body}}
+        </div>
+        {{end}}
+        {{ range .Routing }}
+        <div class="pb">
+            <h2 id="{{slugify .Title}}">
+                {{.Title}}
+                <a href="#{{slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a>
+            </h2>
+            <hr class="hrwhite">
+            {{.Body}}
+        </div>
+        {{end}}
+        <div>
+            <hr class="hrgreen">
+        </div>
+        {{ with index .Blurbs "Clades"}}
+        <div class="pb pt">
+            <h1 id="{{slugify .Title}}">{{.Title}}<a href="#{{ slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h1>
+            {{.Body}}
+        </div>
+        {{end}}
+        {{ range .Clades }}
+        <div class="pb">
+            <h2 id="{{slugify .Title}}">
+                {{.Title}}
+                <a href="#{{slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a>
+            </h2>
+            <hr class="hrwhite">
+            {{.Body}}
+        </div>
+        {{end}}
+        <div>
+            <hr class="hrgreen">
+        </div>
+        <div>
+            <h1>Index</h1>
+            <div class="flexer" style="font-size:1.5em;">
+                {{ range .Commands }}
+                <div class="col3"><a href="#{{slugify .Title}}">{{.Title}} {{if .Shortcode}}({{.Shortcode}}){{end}}</a></div>
+                {{end}}
+            </div>
+        </div>
+        <div>
+            <hr class="hrgreen">
+        </div>
+        {{ with index .Blurbs "Commands"}}
+        <div>
+            <h1 id="{{slugify .Title}}">{{.Title}}<a href="#{{ slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h1>
+            {{.Body}}
+        </div>
+        {{end}}
+        {{ range .Commands}}
+        <div class="box">
+            <div class="boxl">
+                <div class="command-icon">
+                    <div>{{with .Shortfa}}<i class="fas fa-{{.}}" aria-hidden="true"></i>{{end}}{{with .Shortcode}}<span style="font-size:2.5em;font-weight:900;">{{.}}</span>{{end}}</div>
+                </div>
+            </div>
+            <div class="boxr">
+                <h1 id="{{slugify .Title}}">{{.Title}} {{if .Shortcode}}({{.Shortcode}}{{if .Range}}, {{.Range}}{{end}}){{end}}<a href="#{{slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h1>
+                {{.Body}}
+                {{ with .Clades }}
+                <h2>Clades</h2>
+                <p>
+                    {{ range .}}
+                    <a class="clade" href="#{{slugify .}}">{{.}}</a>
+                    {{end}}
+                </p>
+                {{end }}
+            </div>
+        </div>
+        {{end}}
+        <div>
+            <hr class="hrgreen">
+        </div>
+        {{ with index .Blurbs "Invocations"}}
+        <div class="pb pt">
+            <h1 id="{{slugify .Title}}">{{.Title}}<a href="#{{ slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h1>
+            {{.Body}}
+        </div>
+        {{end}}
+        <h2 id="main-invocation">Main invocations<a href="#main-invocation" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h2>
+        <table style="width:100%;" class="pb">
+            <tr class="hrw hrt">
+                <td class="w25 bold">Move</td>
+                <td class="w25"><em>←</em>/<em>→</em>/<em>↑</em>/<em>↓</em></td>
+                <td class="w50">Pressing the arrow keys will move the cursor to new positions.</td>
+            </tr>
+            <tr class="hrw hrt">
+                <td class="w25 bold">Jump to track</td>
+                <td class="w25"><em>ctrl</em> + <em>0-9</em></td>
+                <td class="w50">Jumps to the track of that number.</td>
+            </tr>
+            <tr class="hrw hrt">
+                <td class="w25 bold">Change track</td>
+                <td class="w25"><em>shift</em> + <em>←</em>/<em>→</em></td>
+                <td class="w50">Move to the next or previous track.</td>
+            </tr>
+            <tr class="hrw hrt">
+                <td class="w25 bold">Change track mode</td>
+                <td class="w25"><em>shift</em> + <em>↑</em>/<em>↓</em></td>
+                <td class="w50">Some tracks have various modes (like midi devices) which can be swapped.</td>
+            </tr>
+            <tr class="hrw hrt">
+                <td class="w25 bold">Change view</td>
+                <td class="w25"><em>tab</em></td>
+                <td class="w50">For clades with samples, this will switch to sample view.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Play track</td>
+                <td class="w25"><em>ctrl</em> + <em>p</em></td>
+                <td class="w50">Plays or stops the current track.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Save/parse</td>
+                <td class="w25"><em>ctrl</em> + <em>s</em></td>
+                <td class="w50">Saves the current text to history and parses.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Copy</td>
+                <td class="w25"><em>ctrl</em> + <em>c</em></td>
+                <td class="w50">Copies the current line into a buffer.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Paste</td>
+                <td class="w25"><em>ctrl</em> + <em>v</em></td>
+                <td class="w50">Pastes the current line.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Undo</td>
+                <td class="w25"><em>ctrl</em> + <em>z</em></td>
+                <td class="w50">Undoes the last parsed entry.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Redo</td>
+                <td class="w25"><em>ctrl</em> + <em>y</em></td>
+                <td class="w50">Redoes the next entry in history (only once undone).</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Mute track</td>
+                <td class="w25"><em>ctrl</em> + <em>m</em></td>
+                <td class="w50">Mutes or unmutes the current track.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Mute group</td>
+                <td class="w25"><em>atl</em> + <em>0-9</em></td>
+                <td class="w50">Mutes the specified group (set groups in `PARAMS`).</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Remote control</td>
+                <td class="w25"><em>meta</em> + <em>0-9</em></td>
+                <td class="w50">When another norns is on LAN, send commands to it.</td>
+            </tr>
+        </table>
+        <h2 id="menu-invocation">Menu invocations<a href="#menu-invocation" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h2>
+        <table style="width:100%;" class="pb">
+            <tr class="hrw hrt">
+                <td class="w25 bold">Toggle menu</td>
+                <td class="w25"><em>F1-5</em></td>
+                <td class="w50">Opens menu page (mixer, tape, parameters, or system). F5 toggles.</td>
+            </tr>
+            <tr class="hrw hrt">
+                <td class="w25 bold">Move</td>
+                <td class="w25"><em>←</em>/<em>→</em>/<em>↑</em>/<em>↓</em></td>
+                <td class="w50">Pressing the arrow keys move around menu system.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Modify parameter</td>
+                <td class="w25"><em>+</em> or <em>-</em></td>
+                <td class="w50">Increase or decrease a parameter.</td>
+            </tr>
+        </table>
+        <h2 id="sample-view">Sample view invocations<a href="#sample-view" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h2>
+        <p>These invocations are only applicable to the clades that utilize samples: <a class="clade" href="#drum">drum</a>,
+            <a class="clade" href="#softcut">softcut</a>, and
+            <a class="clade" href="#melodic">melodic</a>.</p>
+        <table style="width:100%;" class="pb">
+            <tr class="hrw hrt">
+                <td class="w25 bold">Exit view</td>
+                <td class="w25"><em>tab</em></td>
+                <td class="w50">This will toggle in/out of sample view.</td>
+            </tr>
+            <tr class="hrw hrt">
+                <td class="w25 bold">Audition splice</td>
+                <td class="w25"><em>space</em></td>
+                <td class="w50">Plays the splice at current position.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Select slice</td>
+                <td class="w25"><em>shift</em> + <em>←</em>/<em>→</em></td>
+                <td class="w50">Selects a slice across the range.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Zoom</td>
+                <td class="w25"><em>↑</em>/<em>↓</em></td>
+                <td class="w50">Zooms into or out of the current position.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Jog position</td>
+                <td class="w25"><em>←</em>/<em>→</em></td>
+                <td class="w50">Changes the position of the current slice.</td>
+            </tr>
+        </table>
+        <div>
+            <hr class="hrgreen">
+        </div>
+        {{ with index .Blurbs "Lessons"}}
+        <div class="pt">
+            <h1 id="{{slugify .Title}}">{{.Title}}<a href="#{{ slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a></h1>
+            {{.Body}}
+        </div>
+        {{end}}
+        {{ range .Lessons }}
+        <div class="pb pt">
+            <h2 id="{{slugify .Title}}">
+                {{.Title}}
+                <a href="#{{slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a>
+            </h2>
+            {{.Body}}
+            {{ if .Clades}}
+            <p style="padding-top: 0.5em; font-size:1.0rem;">
+                Applicable to: {{ range .Clades}}
+                <a class="clade" href="#{{slugify .}}">{{.}}</a>
+                {{end}}
+            </p>
+            {{ end }}
+        </div>
+        {{end}}
+        <h1 id="changelog">Changelog<a href="#changelog" class="link-anchor"><i class="fas fa-edit" aria-hidden="true"></i></a></h1>
+        <table style="width:100%;" class="pb changelog">
+            {{ range .Changelog }}
+            <tr class="hrw hrt fbox">
+                <td class="fboxl bold" style="vertical-align: top; color: #54b654; font-size:1.5em;">{{.Version}}</td>
+                <td class="fboxr">{{.Body}}</td>
+            </tr>
+            {{end }}
+        </table>
+    </section>
+    <br>
+    <br>
+    <br>
+    <br>
+    <p align="center"><a href="#outline">Back to top</a></p>
+    <br>
+    <br>
+    <br>
+    <br>
+    <script type="text/javascript">
+    var blink =
+        document.getElementById('blink');
+
+    var blinkFn = function() {
+        clearInterval(blinkInterval);
+        blinkInterval = setInterval(blinkFn, blink.style.opacity == 0 ? 800 : 500);
+        blink.style.opacity =
+            (blink.style.opacity == 0 ? 1 : 0);
+    }
+    var blinkInterval = setInterval(blinkFn, 100);
+    </script>
+    <script src="https://unpkg.com/typewriter-effect@latest/dist/core.js"></script>
+    <script>
+    var app = document.getElementById('app');
+
+    var typewriter = new Typewriter(app, {
+        loop: false
+    });
+
+    typewriter.typeString('a tracker for norns.')
+        .start();
+    </script>
+</body>
+
+</html>
