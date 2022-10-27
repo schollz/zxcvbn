@@ -3,7 +3,7 @@ title: TLI
 weight: 2.0
 ---
 
-TLI means "**text-limited interface**". It is the basis of *zxcvbn*, as the primary control of this script is through a text editor that receives input from a keyboard. This script is used by entering commands, or collections of commands (called "patterns"), or collections of patterns (called "chains"). The commands are often notes, but they can also be modifiers that augment the way that a note is played.
+TLI means "**text-limited interface**". It is the basis of *zxcvbn*, as the primary control of this script is through a text editor that receives input from a keyboard. This script is used by entering commands, or collections of commands (called a "[pattern](#pattern)"), or collections of patterns (called a "[chain](#chain)"). The commands are often notes, but they can also be modifiers that augment the way that a note is played.
 
 TLI also means "**too little information**". It is a style of syntax developed for producing oblique rhythms without music theory. TLI at its core is a single line of letters or numbers separated by spaces. The tracker allocates time to each line, and subdivides the time equally among each entity on the line.
 
