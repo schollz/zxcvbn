@@ -27,6 +27,7 @@ type Entry struct {
 	Shortcode string
 	Shortfa   string
 	Version   string
+	Path      string
 	Clades    []string
 	Body      template.HTML
 }
@@ -104,6 +105,7 @@ func run() (err error) {
 				if err != nil {
 					return err
 				}
+				e.Path = path
 				if strings.Contains(path, "commands/") {
 					d.Commands = append(d.Commands, e)
 				} else if strings.Contains(path, "clades/") {
