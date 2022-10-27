@@ -678,6 +678,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
 
             snd=LPF.ar(snd,filter);
             snd = snd * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
+            snd = snd * EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
 		    snd=Pan2.ar(snd,0.0);
 		    snd=Pan2.ar(snd[0],1.neg+(2*pan))+Pan2.ar(snd[1],1+(2*pan));
 		    snd=Balance2.ar(snd[0],snd[1],pan);
@@ -1085,6 +1086,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var watch=msg[18];
             var attack=msg[19];
             var release=msg[20];
+            var monophonic_release=msg[21];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
@@ -1092,9 +1094,12 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             ["duration",duration,"release",release,"gate",gate,"retrig",retrig].postln;
             if (bufs.at(filename).notNil,{
                 var buf=bufs.at(filename);
-                if (syns.at(id).notNil,{
-                    if (syns.at(id).isRunning,{
-                        syns.at(id).set(\gate,0);
+                if (monophonic_release>0,{
+                    if (syns.at(id).notNil,{
+                        if (syns.at(id).isRunning,{
+                            syns.at(id).set(\gate_release,monophonic_release);
+                            syns.at(id).set(\gate_done,0);
+                        });
                     });
                 });
                 syns.put(id,Synth.new("playerInOut"++buf.numChannels, [

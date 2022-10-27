@@ -206,6 +206,7 @@ function Sample:play(d)
   d.drive=d.drive or params:get(self.id.."drive")
   d.compression=d.compression or params:get(self.id.."compression")
   d.stretch=d.stretch or params:get(self.id.."stretch")
+  d.monophonic_release=d.monophonic_release or params:get(self.id.."monophonic_release")/1000
   if self.is_melodic then
     if d.on then
       local sampleStart=self.cursors[1]
@@ -230,7 +231,7 @@ function Sample:play(d)
         d.compressible,
         d.compressing,
         d.reverb,
-      d.watch,d.attack,d.release)
+      d.watch,d.attack,d.release,d.monophonic_release)
     end
   else
     if d.on and self.cursors~=nil then

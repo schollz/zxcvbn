@@ -191,7 +191,7 @@ function Track:init()
 
   self.params={shared={"track_type","play","db","probability","pitch","mute","mute_group"}}
   self.params["drum"]={"sample_file","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
-  self.params["melodic"]={"sample_file","attack","release","filter","pan","source_note","compressing","compressible"}
+  self.params["melodic"]={"sample_file","monophonic_release","attack","release","filter","pan","source_note","compressing","compressible"}
   self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","send_reverb"}
   self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","send_reverb"}
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
