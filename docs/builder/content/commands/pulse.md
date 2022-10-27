@@ -24,9 +24,9 @@ c4 p24*2+48</pre>
 
 When played together, this whole pattern is 96 pulses, or five beats.
 
-## Traditional notes
+## Traditional note lengths
 
-In traditional music we mostly define note lengths as power-of-2 fractions of a measure - with a measure being four notes. There is shorthand for this in the pulse syntax. You can write `m`, `h`, `q`, `s`, `e` for measures, half-notes, quarter-notes, sixteenth-notes respectively. The measure is defined as 96 pulses and everything is a division from that.
+In traditional music note lengths are usually defined as power-of-2 fractions of a measure - with a measure being four notes. There is shorthand for this in the pulse syntax. You can write `m`, `h`, `q`, `s`, `e` for measures, half-notes, quarter-notes, sixteenth-notes respectively. The measure is defined as 96 pulses and everything is a division from that.
 
 You can also use mathematical expressions with pulses. So if you want a line to be one quarter-note less than two measures you can write:
 
