@@ -1,11 +1,11 @@
 -- zxcvbn
 --
 --
--- llllllll.co/t/zxcvbn
+-- zxcvbn.norns.online
+-- 
 --
 --
---
---    ▼ instructions below ▼
+--    
 
 if not string.find(package.cpath,"/home/we/dust/code/zxcvbn/lib/") then
   package.cpath=package.cpath..";/home/we/dust/code/zxcvbn/lib/?.so"
