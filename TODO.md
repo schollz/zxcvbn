@@ -1,11 +1,8 @@
 # To Do Now (Critical)
 
-- [ ] Tapestop?? (Buffer constantly writing/reading)
 - [ ] slice stretch synthdef (Using WarpZ)
 - [ ] Phasor for WarpZ gets input from a stretch bus
 - [ ] signal sent about whether stretch is nonzero
-- [ ] command add notes/chords without octave information
-- [ ] update NOTE and HEX information
 - [ ] TEST softcut save
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
@@ -25,6 +22,9 @@
 
 # DONE
 
+- [x] command add notes/chords without octave information
+- [x] update NOTE and HEX information
+- [x] Tapestop?? (Buffer constantly writing/reading)
 - [x] map K's to softcut find offsets
 - [x] add mx.synths and special shortcode to change the parameters j???
 - [x] TEST should work without pattern or chain declaration
