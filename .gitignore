@@ -1,4 +1,5 @@
 # Compiled Lua sources
+builder
 luac.out
 lib/audiowaveform
 lib/aubiogo/aubiogo
