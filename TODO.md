@@ -1,9 +1,7 @@
 # To Do Now (Critical)
 
-- [ ] slice stretch synthdef (Using WarpZ)
-- [ ] Phasor for WarpZ gets input from a stretch bus
-- [ ] signal sent about whether stretch is nonzero
-- [ ] TEST softcut save
+- [ ] K2/K3 mute/play?
+- [ ] E1/E2/E3 parameters (volume/filter/clade specific)
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
 - [ ] TEST retrig/volume w/ midi
@@ -17,11 +15,14 @@
 
 # To Do Later (Not Critical)
 
+- [ ] slice stretch synthdef (Using WarpZ)
 - [ ] have tli keep track of originating line and highlight it
 - [ ] use blend_mode to highlight the region being played
 
 # DONE
 
+- [x] TEST softcut save
+- ~~[ ] Phasor for WarpZ gets input from a stretch bus~~
 - [x] command add notes/chords without octave information
 - [x] update NOTE and HEX information
 - [x] Tapestop?? (Buffer constantly writing/reading)
