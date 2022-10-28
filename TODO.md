@@ -2,6 +2,7 @@
 
 - [ ] K2/K3 mute/play?
 - [ ] E1/E2/E3 parameters (volume/filter/clade specific)
+- [ ] drum: drive, melodic: drive?, softcut: rec_level, 
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
 - [ ] TEST retrig/volume w/ midi
