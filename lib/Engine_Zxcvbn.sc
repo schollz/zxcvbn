@@ -991,6 +991,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             if (retrig>0,{
                 db_first=db;
             });
+            // ["duration_slice",duration_slice,"duration_total",duration_total,"retrig",retrig].postln;
             if (bufs.at(filename).notNil,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{
@@ -1065,7 +1066,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             });            
         });
 
-        this.addCommand("melodic_on","ssffffffffffffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssfffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -1091,7 +1092,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             if (retrig>0,{
                 db_first=db;
             });
-            ["duration",duration,"release",release,"gate",gate,"retrig",retrig].postln;
+            // ["duration",duration,"release",release,"gate",gate,"retrig",retrig].postln;
             if (bufs.at(filename).notNil,{
                 var buf=bufs.at(filename);
                 if (monophonic_release>0,{
@@ -1125,34 +1126,36 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                     release: release,
                 ], syns.at("reverb"), \addBefore));
                 if (retrig>0,{
-                    Routine {
-                        (retrig).do{ arg i;
-                            (duration/ (retrig+1) ).wait;
-                            syns.put(id,Synth.new("playerInOut"++buf.numChannels, [
-                                out: buses.at("busCompressible"),
-                                outsc: buses.at("busCompressing"),
-                                outnsc: buses.at("busNotCompressible"),
-                                outreverb: buses.at("busReverb"),
-                                sendreverb: send_reverb,
-                                compressible: compressible,
-                                compressing: compressing,
-                                buf: buf,
-                                amp: (db+(db_add*(i+1))).dbamp,
-                                pan: pan,
-                                filter: filter,
-                                pitch: pitch,
-                                sampleStart: sampleStart,
-                                sampleIn: sampleIn,
-                                sampleOut: sampleOut,
-                                sampleEnd: sampleEnd,
-                                duration: (duration * gate / (retrig + 1)),
-                                watch: watch,
-			                    attack: attack,
-			                    release: release,
-                            ], syns.at("reverb"), \addBefore));
-                        };
-                        NodeWatcher.register(syns.at(id));
-                    }.play;
+                    if ((duration/ (retrig+1))>0.01, {
+                        Routine {
+                            (retrig).do{ arg i;
+                                (duration/ (retrig+1) ).wait;
+                                syns.put(id,Synth.new("playerInOut"++buf.numChannels, [
+                                    out: buses.at("busCompressible"),
+                                    outsc: buses.at("busCompressing"),
+                                    outnsc: buses.at("busNotCompressible"),
+                                    outreverb: buses.at("busReverb"),
+                                    sendreverb: send_reverb,
+                                    compressible: compressible,
+                                    compressing: compressing,
+                                    buf: buf,
+                                    amp: (db+(db_add*(i+1))).dbamp,
+                                    pan: pan,
+                                    filter: filter,
+                                    pitch: pitch,
+                                    sampleStart: sampleStart,
+                                    sampleIn: sampleIn,
+                                    sampleOut: sampleOut,
+                                    sampleEnd: sampleEnd,
+                                    duration: (duration * gate / (retrig + 1)),
+                                    watch: watch,
+                                    attack: attack,
+                                    release: release,
+                                ], syns.at("reverb"), \addBefore));
+                            };
+                            NodeWatcher.register(syns.at(id));
+                        }.play;
+                    });
                  },{ 
                     NodeWatcher.register(syns.at(id));
                 });

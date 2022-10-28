@@ -463,10 +463,12 @@ function Track:description()
   local s=params:string(self.id.."track_type")
   if params:get(self.id.."track_type")==TYPE_MXSYNTHS then
     s=s..string.format(" (%s)",params:string(self.id.."mx_synths"))
-  elseif params:get(self.id.."track_type")==TYPE_DRUM then
+  elseif params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_MELODIC then
     local fname=params:string(self.id.."sample_file")
     if string.find(fname,".wav") or string.find(fname,".flac") then
-      fname=fname:sub(1,12).."..."
+      if (#fname>12) then 
+        fname=fname:sub(1,12).."..."
+      end
     else
       fname="not loaded"
     end
