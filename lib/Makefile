@@ -1,23 +1,11 @@
 release: aubio audiowaveform build
-	cp -r ~/dust/data/zxcvbn .
-	rm -rf zxcvbn/samples
-	touch zxcvbn/first
-	tar -czvf release.tar.gz zxcvbn aubio aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect audiowaveform
-	rm -rf norns
-	rm -rf zxcvbn
+	tar -czvf release.tar.gz aubio aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect audiowaveform
 
 build:
 	# build things
 	cd aubiogo && go build -v
 	cd oscconnect && go build -v
 	cd oscnotify && go build -v
-
-samples:
-	mkdir -p ~/dust/data/zxcvbn
-	cd ~/dust/data/zxcvbn && \
-		wget https://github.com/schollz/zxcvbn/releases/download/assets/samples.tar.gz && \
-		tar -xvzf samples.tar.gz && \
-		rm samples.tar.gz
 
 audiowaveform:
 	git clone https://github.com/bbc/audiowaveform.git a1 && \

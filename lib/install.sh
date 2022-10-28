@@ -12,12 +12,9 @@ chmod +x oscnotify/oscnotify
 cd aubio && sudo ./waf install --destdir=/
 sudo ldconfig
 cd .. && rm -rf aubio
-## install demo into data folder
-mkdir -p ~/dust/data/zxcvbn
-rsync -avrP zxcvbn/ ~/dust/data/zxcvbn/
-# install samples
-cd ~/dust/data/zxcvbn
-wget https://github.com/schollz/zxcvbn/releases/download/assets/samples.tar.gz
-tar -xvzf samples.tar.gz
-rm samples.tar.gz
+# install first data folder
+cd ~/dust/data/
+wget https://github.com/schollz/zxcvbn/releases/download/assets/zxcvbn.tar.gz
+tar -xvzf zxcvbn.tar.gz
+rm zxcvbn.tar.gz
 
