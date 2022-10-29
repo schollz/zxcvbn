@@ -287,7 +287,7 @@ function init2()
   end)
   softcut.poll_start_phase()
 
-  if util.file_exists(_path.data.."zxcvbn/first") then
+  if util.file_exists(_path.data.."zxcvbn/first") or true==true then
     params:set("clock_tempo",150)
     params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
     os.execute("rm -f ".._path.data.."zxcvbn/first")

@@ -5,12 +5,12 @@ STATE_SAMPLE=2
 STATE_LOADSCREEN=3
 STATE_SOFTSAMPLE=4
 
-TYPE_DRUM=1
-TYPE_MELODIC=2
-TYPE_MXSAMPLES=3
-TYPE_MXSYNTHS=4
-TYPE_INFINITEPAD=5
-TYPE_SOFTSAMPLE=6
+TYPE_MXSYNTHS=1
+TYPE_INFINITEPAD=2
+TYPE_MELODIC=3
+TYPE_MXSAMPLES=4
+TYPE_SOFTSAMPLE=5
+TYPE_DRUM=6
 TYPE_CROW=7
 TYPE_MIDI=8
 
@@ -44,7 +44,16 @@ end
 function Track:init()
   self.lfos={}
   -- initialize parameters
-  self.track_type_options={"drum","melodic","mx.samples","mx.synths","infinite pad","softcut","crow","midi"}
+--   TYPE_MXSYNTHS=1
+-- TYPE_INFINITEPAD=2
+-- TYPE_MELODIC=3
+-- TYPE_MXSAMPLES=4
+-- TYPE_SOFTSAMPLE=5
+-- TYPE_DRUM=6
+-- TYPE_CROW=7
+-- TYPE_MIDI=8
+
+  self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
     -- rerun show/hiding
@@ -77,7 +86,7 @@ function Track:init()
   params:add_number(self.id.."midi_ch","channel",1,16,1)
 
   -- mx.synths stuff
-  self.mx_synths={"synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","polyperc","dreadpiano","aaaaaa","triangles","bigbass"}
+  self.mx_synths={"polyperc","synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","dreadpiano","aaaaaa","triangles","bigbass"}
   params:add_option(self.id.."mx_synths","synth",self.mx_synths)
   local params_menu={
     {id="mod1",name="mod 1",min=-1,max=1,exp=false,div=0.01,default=0},
@@ -178,9 +187,9 @@ function Track:init()
         reset_clocks()
       end
     else
-      if params:get(self.id.."track_type")==5 then
+      if params:get(self.id.."crow_type")==1 then
         crow.output[2](false)
-      elseif params:get(self.id.."track_type")==6 then
+      elseif params:get(self.id.."crow_type")==2 then
         crow.output[4](false)
       end
     end
@@ -288,7 +297,7 @@ self.scroll={"","","","","","",""}
 -- add playback functions for each kind of engine
 self.play_fn={}
 -- spliced sample
-table.insert(self.play_fn,{
+self.play_fn[TYPE_DRUM]={
   note_on=function(d,mods)
     if d.m==nil then
       do return end
@@ -308,9 +317,9 @@ table.insert(self.play_fn,{
       gate=params:get(self.id.."gate")/100,
     }
   end,
-})
+}
 -- melodic sample
-table.insert(self.play_fn,{
+self.play_fn[TYPE_MELODIC]={
   note_on=function(d,mods)
     if d.m==nil then
       do return end
@@ -327,9 +336,9 @@ table.insert(self.play_fn,{
       gate=params:get(self.id.."gate")/100,
     }
   end,
-})
+}
 -- mx.samples
-table.insert(self.play_fn,{
+self.play_fn[TYPE_MXSAMPLES]={
   note_on=function(d,mods)
     if params:get(self.id.."mx_sample")==1 then
       do return end
@@ -353,9 +362,9 @@ table.insert(self.play_fn,{
     local sendReverb=params:get(self.id.."send_reverb")
     engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
   end,
-})
+}
 -- mx.synths
-table.insert(self.play_fn,{
+self.play_fn[TYPE_MXSYNTHS]={
   note_on=function(d,mods)
     local synth=params:string(self.id.."mx_synths")
     local note=d.m+params:get(self.id.."pitch")
@@ -368,9 +377,9 @@ table.insert(self.play_fn,{
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
     duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id)
   end,
-})
+}
 -- infinite pad
-table.insert(self.play_fn,{
+self.play_fn[TYPE_INFINITEPAD]={
   note_on=function(d,mods)
     local note=d.m+params:get(self.id.."pitch")
     engine.note_on(note,
@@ -381,9 +390,9 @@ table.insert(self.play_fn,{
       params:get(self.id.."swell"),params:get(self.id.."send_reverb"),
     params:get(self.id.."pan"),params:get(self.id.."filter"))
   end,
-})
+}
 -- softsample
-table.insert(self.play_fn,{
+self.play_fn[TYPE_SOFTSAMPLE]={
   note_on=function(d,mods)
     if d.m==nil then
       do return end
@@ -404,9 +413,9 @@ table.insert(self.play_fn,{
       gate=params:get(self.id.."gate")/100,
     }
   end,
-})
+}
 -- crow
-table.insert(self.play_fn,{
+self.play_fn[TYPE_CROW]={
   note_on=function(d,mods)
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
@@ -435,9 +444,9 @@ table.insert(self.play_fn,{
       end)
     end
   end,
-})
+}
 -- midi device
-table.insert(self.play_fn,{
+self.play_fn[TYPE_MIDI]={
   note_on=function(d,mods)
     if params:get(self.id.."midi_dev")==1 then
       do return end
@@ -467,7 +476,7 @@ table.insert(self.play_fn,{
       end)
     end
   end,
-})
+}
 
 end
 
@@ -652,7 +661,7 @@ function Track:emit(beat)
       d.duration_scaled=d.duration*(clock.get_beat_sec()/24)
       --print("d.duration_scaled",d.duration_scaled,"d.duration",d.duration)
       if d.m~=nil then
-        self:scroll_add(params:get(self.id.."track_type")==1 and d.m or string.lower(musicutil.note_num_to_name(d.m)))
+        self:scroll_add((params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE) and d.m or string.lower(musicutil.note_num_to_name(d.m)))
       end
       if d.m==nil or params:get(self.id.."mute")==1 then
         do return end
@@ -706,7 +715,7 @@ function Track:load_sample(path)
   if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
     self.states[STATE_SOFTSAMPLE]:load_sample(path,true)
   else
-    self.states[STATE_SAMPLE]:load_sample(path,params:get(self.id.."track_type")==2,params:get(self.id.."slices"))
+    self.states[STATE_SAMPLE]:load_sample(path,params:get(self.id.."track_type")==TYPE_MELODIC,params:get(self.id.."slices"))
   end
 end
 
@@ -714,7 +723,7 @@ end
 
 function Track:keyboard(k,v)
   if k=="TAB" then
-    if v==1 and params:get(self.id.."track_type")<3 then
+    if v==1 and (params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_MELODIC) then
       if self.state==STATE_VTERM then
         self.state=STATE_SAMPLE
       else
@@ -738,7 +747,7 @@ function Track:keyboard(k,v)
       show_message((params:get(self.id.."mute")==1 and "muted" or "unmuted").." track "..self.id)
     end
     do return end
-  elseif k=="CTRL+O" and (params:get(self.id.."track_type")<3 or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE) then
+  elseif k=="CTRL+O" and (params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_MELODIC or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE) then
     if v==1 then
       if self.state==STATE_LOADSCREEN then
         self.state=STATE_SAMPLE
