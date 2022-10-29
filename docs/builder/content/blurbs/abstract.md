@@ -12,13 +12,17 @@ weight: 1.0
 
 ## Install
 
-Install from the maiden catalog, or enter the install command into the maiden repl:
+Installation is a multi-step progress. Make sure you have an internet connection, at least 150 MB of free space, and at least 10 minutes.
+
+1. Download *zxcvbn* from the maiden catalog, or enter the install command into the maiden repl:
 
 `;install https://github.com/schollz/zxcvbn`
 
 After installing, you will need to restart your norns. 
 
-When you first start *zxvcbn* you will see `loading...` and it might take a few minutes. Just wait. After that you may see a message to restart your norns, again. Do another restart and then restart the script.
+2. Start *zxvcbn*. You will see `loading...` and it might take a few minutes. Just wait. After it finishes, restart the norns.
+
+3. Start *zxcvbn* again. This time it'll say to "Press K3 to install".
 
 Finally, on the next restart you'll be asked to install required libraries. These take up about 150 MB of disk space. Press K3 to accept and install - installation may take up to 5 minutes.
 
