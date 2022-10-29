@@ -424,6 +424,21 @@ function VTerm:enc(k,d)
 end
 
 function VTerm:key(k,z)
+  if k==1 then 
+    self.k1=z==1
+  elseif k==2 and z==1 then 
+    if self.k1 then 
+      params:set(self.id.."mute",1-params:get(self.id.."mute"))
+    else
+      params:delta("track",-1)
+    end
+  elseif k==3 and z==1 then 
+    if self.k1 then 
+      params:set(self.id.."play",1-params:get(self.id.."play"))
+    else
+      params:delta("track",1)
+    end
+  end
 end
 
 function VTerm:redraw()
