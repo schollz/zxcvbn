@@ -17,6 +17,7 @@ function VTerm:init()
   self.lines={""}
   self.tosave={"history","history_pos","view","cursor","text"}
   self:move_cursor(0,0)
+
 end
 
 function VTerm:dumps()
@@ -410,12 +411,15 @@ function VTerm:keyboard(k,v)
 end
 
 function VTerm:enc(k,d)
-  if k==3 then
-    params:delta(self.id.."filter",d)
-    debounce_fn["filter_change"]={15,function()end}
-  elseif k==2 then
+  if k==1 then   
     params:delta(self.id.."db",d)
-    debounce_fn["db_change"]={15,function()end}
+    debounce_fn["1"]={15,function() returnparams:string(self.id.."db")  end}
+  elseif k==2 then
+    params:delta(self.id.."filter",d)
+    debounce_fn["2"]={15,function() return params:string(self.id.."filter") end}
+  elseif k==3 then
+    params:delta(self.id..self.enc3(),d)
+    debounce_fn["3"]={15,function() return params:string(self.id..self.enc3()) end}
   end
 end
 
@@ -456,15 +460,13 @@ function VTerm:redraw()
   screen.move(8,6)
   screen.text(tracks[params:get("track")]:description())
 
-  if debounce_fn["db_change"]~=nil then
-    screen.level(debounce_fn["db_change"][1])
-    screen.move(128,15)
-    screen.text_right(params:string(self.id.."db"))
-  end
-  if debounce_fn["filter_change"]~=nil then
-    screen.level(debounce_fn["filter_change"][1])
-    screen.move(128,15+8)
-    screen.text_right(string.format("%2.0f Hz",musicutil.note_num_to_freq(params:get(self.id.."filter"))))
+  for i=1,3 do 
+    local k=""..i
+    if debounce_fn[k]~=nil then
+      screen.level(debounce_fn[k][1])
+      screen.move(128,15+(i-1)*8)
+      screen.text_right(debounce_fn[k][2]())
+    end  
   end
 end
 

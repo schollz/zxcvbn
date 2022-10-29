@@ -244,6 +244,16 @@ for k,_ in pairs(self.mods) do
     }
   end
 end
+-- enc3
+self.enc3={}
+self.enc3[TYPE_CROW]="sustain"
+self.enc3[TYPE_DRUM]="drive"
+self.enc3[TYPE_INFINITEPAD]="swell"
+self.enc3[TYPE_MELODIC]="pan"
+self.enc3[TYPE_MIDI]="pan"
+self.enc3[TYPE_MXSAMPLES]="pan"
+self.enc3[TYPE_MXSYNTHS]="pan"
+self.enc3[TYPE_SOFTSAMPLE]="pan"
 
 -- initialize track data
 self.state=STATE_VTERM
@@ -263,6 +273,8 @@ end,shift_updown=function(d)
   elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
     params:delta(self.id.."sc",d)
   end
+end,enc3=function()
+  return self.enc3[params:get(self.id.."track_type")]
 end})
 table.insert(self.states,sample_:new{id=self.id})
 table.insert(self.states,viewselect_:new{id=self.id})
