@@ -231,7 +231,7 @@ function Sample:play(d)
         d.compressible,
         d.compressing,
         d.reverb,
-      d.watch,d.attack,d.release,d.monophonic_release)
+      d.watch,d.attack,d.release,d.monophonic_release,d.drive)
     end
   else
     if d.on and self.cursors~=nil then

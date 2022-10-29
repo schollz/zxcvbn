@@ -413,13 +413,13 @@ end
 function VTerm:enc(k,d)
   if k==1 then   
     params:delta(self.id.."db",d)
-    debounce_fn["1"]={15,function() returnparams:string(self.id.."db")  end}
+    debounce_fn["1"]={15,function() return "vol: "..params:string(self.id.."db")  end}
   elseif k==2 then
     params:delta(self.id.."filter",d)
-    debounce_fn["2"]={15,function() return params:string(self.id.."filter") end}
+    debounce_fn["2"]={15,function() return "lpf: "..math.floor(musicutil.note_num_to_freq(params:get(self.id.."filter"))) end}
   elseif k==3 then
     params:delta(self.id..self.enc3(),d)
-    debounce_fn["3"]={15,function() return params:string(self.id..self.enc3()) end}
+    debounce_fn["3"]={15,function() return params.id_to_name[self.id..self.enc3()]..": "..params:string(self.id..self.enc3()) end}
   end
 end
 

@@ -636,10 +636,10 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
         (1..2).do({arg ch;
         SynthDef("playerInOut"++ch,{
             arg out=0, buf, id=0,amp=1.0, pan=0, filter=18000, rate=1.0,pitch=0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.1,
-            duration=10000,attack=0.001,decay=0.3,sustain=1.0,release=2.0;
+            duration=10000,attack=0.001,decay=0.3,sustain=1.0,release=2.0,drive=0;
             
             // vars
-            var snd,pos,trigger,sampleDuration,sampleDurationInOut,imp,aOrB,posA,sndA,posB,sndB,trigA,trigB;
+            var snd,snd2,pos,trigger,sampleDuration,sampleDurationInOut,imp,aOrB,posA,sndA,posB,sndB,trigA,trigB;
             var durationBuffer=BufDur.ir(buf);
             var frames=BufFrames.ir(buf);
             
@@ -675,6 +675,14 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
 
             pos=Select.kr(aOrB,[posA,posB]);
             snd=SelectX.ar(Lag.kr(aOrB,xfade),[sndA,sndB],0)*amp;
+
+            // drive
+            snd2 = (snd * 30.dbamp).tanh * -10.dbamp;
+            snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, -10), 3000, 1, -10);
+            snd2 = (snd2 * 10.dbamp).tanh * -10.dbamp;
+            snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, 10), 3000, 1, 10);
+            snd2 = snd2 * -10.dbamp;
+            snd = SelectX.ar(drive,[snd,snd2]);
 
             snd=LPF.ar(snd,filter);
             snd = snd * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
@@ -1066,7 +1074,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             });            
         });
 
-        this.addCommand("melodic_on","ssfffffffffffffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssffffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -1088,6 +1096,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var attack=msg[19];
             var release=msg[20];
             var monophonic_release=msg[21];
+            var drive=msg[22];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
@@ -1124,6 +1133,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                     watch: watch,
                     attack: attack,
                     release: release,
+                    drive: drive,
                 ], syns.at("reverb"), \addBefore));
                 if (retrig>0,{
                     if ((duration/ (retrig+1))>0.01, {
@@ -1151,6 +1161,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                                     watch: watch,
                                     attack: attack,
                                     release: release,
+                                    drive: drive,
                                 ], syns.at("reverb"), \addBefore));
                             };
                             NodeWatcher.register(syns.at(id));

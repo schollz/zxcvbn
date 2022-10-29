@@ -164,6 +164,12 @@ function init2()
   -- define param actions
   params_action()
 
+  -- add lookups
+  params.id_to_name={}
+  for _, p in ipairs(params.params) do
+    params.id_to_name[p.id]=p.name
+  end
+
   -- bang params
   params:bang()
 
@@ -286,6 +292,8 @@ function init2()
     params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
+
+  params:set("track",7)
 
 end
 
