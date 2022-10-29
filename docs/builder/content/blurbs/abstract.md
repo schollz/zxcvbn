@@ -16,9 +16,13 @@ Install from the maiden catalog, or enter the install command into the maiden re
 
 `;install https://github.com/schollz/zxcvbn`
 
-After installing, you will need to restart your norns.
+After installing, you will need to restart your norns. 
 
-Then start the script and you'll be asked to install required libraries. These take up about 150 MB of disk space. Press K3 to accept and install - installation may take up to 5 minutes.
+When you first start *zxvcbn* you will see `loading...` and it might take a few minutes. Just wait. After that you may see a message to restart your norns, again. Do another restart and then restart the script.
+
+Finally, on the next restart you'll be asked to install required libraries. These take up about 150 MB of disk space. Press K3 to accept and install - installation may take up to 5 minutes.
+
+After that all is good! Use *ctrl* + *p* to play a track and *ctrl* + *0-9* to select a track. The first time you start you will see a demo song (which you can load back up through the `PSET` menu). Read further to learn other invocations.
 
 
 ## Bugs
