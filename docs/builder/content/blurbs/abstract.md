@@ -22,18 +22,16 @@ After installing, you will need to restart your norns.
 
 2. Start *zxvcbn*. You will see `loading...` and it might take a few minutes. Just wait. After it finishes, restart the norns.
 
-3. Start *zxcvbn* again. This time it'll say to "Press K3 to install".
+3. Start *zxcvbn* again. This time it'll say to "Press K3 to install". When you have a stable internet connection, you can press *K3* and wait. Installation may take up to 10 minutes.
 
-Finally, on the next restart you'll be asked to install required libraries. These take up about 150 MB of disk space. Press K3 to accept and install - installation may take up to 5 minutes.
-
-After that all is good! Use *ctrl* + *p* to play a track and *ctrl* + *0-9* to select a track. The first time you start you will see a demo song (which you can load back up through the `PSET` menu). Read further to learn other invocations.
+4. Play! After step 3, *zxcvbn* will automatically load with a demo program. Use *ctrl* + *p* to play a track and *ctrl* + *0-9* to select a track. The first time you start you will see a demo song (which you can load back up through the `PSET` menu). Read further to learn other invocations.
 
 
 ## Bugs
 
 Its inevitable that you may experience bugs. Please report bugs back to me through the [lines forum](https://llllllll.co/t/zxcvbn) or through [github](https://github.com/schollz/zxcvbn/issues/new?assignees=&labels=&template=bug_report.md&title=).
 
-When sharing a bug, its vital to include the system log. I can use this log to figure out exactly what happened, but without it it will be difficult to determine. Follow [these instructions for gathering system logs](https://monome.org/docs/norns/help/#logs).
+When sharing a bug, its vital to include the system log and a specification of what kind of norns you are using (physical device, shield, fates, desktop, etc). Follow [these instructions for gathering system logs](https://monome.org/docs/norns/help/#logs).
 
 ## Acknowledgements
 
