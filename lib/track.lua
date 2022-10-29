@@ -651,7 +651,11 @@ function Track:emit(beat)
           v=vvv[2]
           mods[k]=tli.numdashcomr(v) or v
           if self.mods[k]~=nil and mods[k]~=nil then
-            self.mods[k](k=="m" and vvv[2] or mods[k])
+            pcall(
+              function()
+                self.mods[k](k=="m" and vvv[2] or mods[k])
+              end
+            )
           end
         end
       end

@@ -1,12 +1,27 @@
--- zxcvbn
+-- zxcvbn v1.0.0
 --
 --
 -- zxcvbn.norns.online
 -- 
 --
 --
---    
-
+--    ▼ instructions below ▼
+--
+-- E1/E2/E3 change parameters
+-- K2/K3 change track
+-- K1+K2 mutes
+-- K1+K3 plays
+-- 
+-- keyboard quickstart
+--
+-- ctrl+p plays
+-- ctrl+<num> change track
+-- tab toggles sample mode
+-- ctrl+s saves and parses
+-- 
+-- see zxcvbn.norns.online 
+--    for further help.
+--
 if not string.find(package.cpath,"/home/we/dust/code/zxcvbn/lib/") then
   package.cpath=package.cpath..";/home/we/dust/code/zxcvbn/lib/?.so"
 end
