@@ -1,8 +1,6 @@
 # To Do Now (Critical)
 
-- [ ] K2/K3 mute/play?
-- [ ] E1/E2/E3 parameters (volume/filter/clade specific)
-- [ ] drum: drive, melodic: drive?, softcut: rec_level, 
+- [ ] option to automatically load default
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
 - [ ] TEST retrig/volume w/ midi
@@ -22,6 +20,9 @@
 
 # DONE
 
+- [x] K2/K3 mute/play?
+- [x] E1/E2/E3 parameters (volume/filter/clade specific)
+- [x] drum: drive, melodic: drive?, softcut: rec_level, 
 - [x] TEST softcut save
 - ~~[ ] Phasor for WarpZ gets input from a stretch bus~~
 - [x] command add notes/chords without octave information
