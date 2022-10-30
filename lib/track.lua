@@ -68,7 +68,7 @@ function Track:init()
       self:load_sample(x)
     end
   end)
-  params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},1)
+  params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},2)
   params:add_number(self.id.."slices","slices",1,16,16)
   params:add_number(self.id.."bpm","bpm",10,600,math.floor(clock.get_tempo()))
 

@@ -373,8 +373,11 @@ function Sample:do_move(d)
       self.cursor_durations[v.i]=next.c-v.c
     end
   end
+  cursors={}
+  for i,c in ipairs(self.cursors) do
+    table.insert(cursors,{i=i,c=c})
+  end
   self.cursor_sorted=cursors
-
   if d>0 then
     self:sel_cursor(self.ci)
   end
@@ -407,6 +410,8 @@ function Sample:keyboard(k,v)
     self:delta_cursor(-1)
   elseif k=="SHIFT+RIGHT" and v==1 then
     self:delta_cursor(1)
+  elseif k=="CTRL+D" and v==1 then
+    self:get_onsets()
   elseif k=="LEFT" and v>0 then
     self:do_move(-1)
   elseif k=="RIGHT" and v>0 then

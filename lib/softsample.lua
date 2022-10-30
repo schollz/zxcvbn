@@ -31,7 +31,7 @@ function SoftSample:init()
   self.debounce_fn={}
 
   -- choose audiowaveform binary
-  self.tosave={"ci","cursors","cursor_durations","view","path_to_save"}
+  self.tosave={"ci","cursors","cursor_durations","cursor_deleted","view","path_to_save"}
 
   -- initialize
   self.ci=1
@@ -39,14 +39,18 @@ function SoftSample:init()
   self.height=56
   self.width=120
   self.debounce_zoom=0
+  self.blink=0
 
   self.slice_num=16
   self.cursors={}
   self.cursor_durations={}
+  self.cursor_deleted={}
   for i=1,self.slice_num do
     table.insert(self.cursors,(i-1)/16*params:get(self.id.."sc_loop_end"))
     table.insert(self.cursor_durations,params:get(self.id.."sc_loop_end")/16)
+    table.insert(self.cursor_deleted,false)
   end
+  self:do_move(0)
 
   self.phase=0
 end
@@ -93,6 +97,7 @@ function SoftSample:load_sample(path,get_onsets)
     do return end
   end
   self.duration=self.samples/self.sample_rate
+  print("self.duration",self.duration)
   self.duration=self.duration<=60 and self.duration or 60
   softcut.buffer_read_mono(path,0,softcut_offsets[params:get(self.id.."sc")],self.duration,0,softcut_buffers[params:get(self.id.."sc")],0,1)
   params:set(self.id.."sc_loop_end",self.duration)
@@ -112,8 +117,8 @@ function SoftSample:update_loop()
 end
 
 function SoftSample:do_render_buffer()
-  if softcut_rendering[params:get(self.id.."sc")] then 
-    do return end 
+  if softcut_rendering[params:get(self.id.."sc")] then
+    do return end
   end
   debounce_fn["render"]={10,function()
     print("softsample: rendering",softcut_buffers[params:get(self.id.."sc")],self.view[1]+softcut_offsets[params:get(self.id.."sc")],self.view[2]-self.view[1],self.width)
@@ -281,21 +286,33 @@ function SoftSample:do_zoom(d)
 end
 
 function SoftSample:do_move(d)
+  if d>0 then
+    self.cursor_deleted[self.ci]=false
+  end
   self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,params:get(self.id.."sc_loop_end"))
 
   -- update cursor durations
   local cursors={}
   for i,c in ipairs(self.cursors) do
-    table.insert(cursors,{i=i,c=c})
-  end
-  table.insert(cursors,{i=17,c=params:get(self.id.."sc_loop_end")})
-  table.sort(cursors,function(a,b) return a.c<b.c end)
-  for i,cursor in ipairs(cursors) do
-    if i<#cursors then
-      self.cursor_durations[cursor.i]=cursors[i+1].c-cursor.c
+    if not self.cursor_deleted[i] then
+      table.insert(cursors,{i=i,c=c})
     end
   end
-  self.cursor_durations[#cursors]=params:get(self.id.."sc_loop_end")-cursors[#cursors].c
+  table.sort(cursors,function(a,b) return a.c<b.c end)
+  for i,v in ipairs(cursors) do
+    if v.i<#self.cursor_durations then
+      local next=cursors[i+1] or {c=params:get(self.id.."sc_loop_end")}
+      self.cursor_durations[v.i]=next.c-v.c
+    end
+  end
+  cursors={}
+  for i,c in ipairs(self.cursors) do
+    table.insert(cursors,{i=i,c=c})
+  end
+  self.cursor_sorted=cursors
+  if d>0 then
+    self:sel_cursor(self.ci)
+  end
 end
 
 function SoftSample:keyboard(k,v)
@@ -309,13 +326,18 @@ function SoftSample:keyboard(k,v)
   elseif k=="DOWN" and v>0 then
     self:do_zoom(-1)
   elseif k=="SHIFT+LEFT" and v==1 then
-    self:sel_cursor(self.ci-1)
+    self:delta_cursor(-1)
   elseif k=="SHIFT+RIGHT" and v==1 then
-    self:sel_cursor(self.ci+1)
+    self:delta_cursor(1)
   elseif k=="LEFT" and v>0 then
     self:do_move(-1)
+  elseif k=="CTRL+D" and v==1 then
+    self:get_onsets()
   elseif k=="RIGHT" and v>0 then
     self:do_move(1)
+  elseif k=="DELETE" and v==1 then
+    self.cursor_deleted[self.ci]=not self.cursor_deleted[self.ci]
+    self:do_move(0)
   elseif k=="SPACE" or k=="ENTER" then
     if v==1 then
       self:audition(v>0)
@@ -335,13 +357,13 @@ function SoftSample:enc(k,d)
 end
 
 function SoftSample:key(k,z)
-  if k==1 then 
-    self.k1=z==1 
+  if k==1 then
+    self.k1=z==1
   elseif k==2 and z==1 then
     self:sel_cursor(self.ci+1)
   elseif k==3 then
-    if self.k1 then 
-      if z==1 then 
+    if self.k1 then
+      if z==1 then
         -- calculate offsets
         self:get_onsets()
       end
@@ -356,6 +378,18 @@ function SoftSample:set_position(pos)
   self.show_pos=pos
 end
 
+function SoftSample:delta_cursor(d)
+  if self.cursor_sorted==nil then
+    do return end
+  end
+  for i,v in ipairs(self.cursor_sorted) do
+    if v.i==self.ci then
+      self:sel_cursor(self.cursor_sorted[(i+d-1)%#self.cursor_sorted+1].i)
+      do return end
+    end
+  end
+end
+
 function SoftSample:sel_cursor(ci)
   if ci<1 then
     ci=ci+self.slice_num
@@ -365,19 +399,11 @@ function SoftSample:sel_cursor(ci)
   self.ci=ci
   local view_duration=(self.view[2]-self.view[1])
   local cursor=self.cursors[self.ci]
-  if view_duration~=params:get(self.id.."sc_loop_end") and cursor-self.cursor_durations[ci]<self.view[1] or cursor+self.cursor_durations[ci]>self.view[2] then
-    local cursor_frac=0.5
-    local next_view=cursor+self.cursor_durations[ci]
-    if ci<self.slice_num then
-      next_view=next_view+self.cursor_durations[ci+1]/2
-    end
-    local prev_view=cursor-self.cursor_durations[ci]
-    if ci>1 then
-      prev_view=self.cursors[ci-1]+self.cursor_durations[ci-1]/3
-    end
-    self.view={util.clamp(prev_view,0,params:get(self.id.."sc_loop_end")),util.clamp(next_view,0,params:get(self.id.."sc_loop_end"))}
+  if view_duration~=params:get(self.id.."sc_loop_end") and (cursor<self.view[1] or cursor>self.view[2]) then
+    local prev_view=cursor-view_duration/2
+    local next_view=cursor+view_duration/2
+    self.view={util.clamp(prev_view,0,self.duration),util.clamp(next_view,0,self.duration)}
     self:do_render()
-
   end
 end
 
@@ -398,6 +424,11 @@ function SoftSample:zoom(zoom_in,zoom_amount)
 end
 
 function SoftSample:redraw()
+  self.blink=self.blink-1
+  if self.blink<0 then
+    self.blink=8
+  end
+  local sel_level=self.blink>4 and (self.cursor_deleted[self.ci] and 3 or 15) or 1
   local x=7
   local y=15
   if show_cursor==nil then
@@ -424,7 +455,8 @@ function SoftSample:redraw()
   for i,cursor in ipairs(self.cursors) do
     if cursor>=self.view[1] and cursor<=self.view[2] then
       local pos=util.linlin(self.view[1],self.view[2],1,self.width,cursor)
-      screen.level(i==self.ci and 15 or 5)
+      local level=i==self.ci and sel_level or (self.cursor_deleted[i] and 1 or 5)
+      screen.level(level)
       screen.move(pos+x,64-self.height)
       screen.line(pos+x,64)
       screen.stroke()
