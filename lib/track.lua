@@ -43,15 +43,6 @@ end
 
 function Track:init()
   self.lfos={}
-  -- initialize parameters
---   TYPE_MXSYNTHS=1
--- TYPE_INFINITEPAD=2
--- TYPE_MELODIC=3
--- TYPE_MXSAMPLES=4
--- TYPE_SOFTSAMPLE=5
--- TYPE_DRUM=6
--- TYPE_CROW=7
--- TYPE_MIDI=8
 
   self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
@@ -144,10 +135,10 @@ function Track:init()
     {id="pan",name="pan (w)",min=-1,max=1,exp=false,div=0.01,default=0},
     {id="filter",name="filter (i)",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="probability",name="probability (q)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
-    {id="attack",name="attack (k)",min=1,max=10000,exp=false,div=1,default=1,unit="ms"},
+    {id="attack",name="attack (k)",min=5,max=2000,exp=true,div=5,default=1,unit="ms"},
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
     {id="swell",name="swell (j)",min=0.1,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
-    {id="release",name="release (l)",min=1,max=10000,exp=true,div=10,default=5,unit="ms"},
+    {id="release",name="release (l)",min=5,max=2000,exp=true,div=5,default=50,unit="ms"},
     {id="monophonic_release",name="mono release",min=0,max=2000,exp=false,div=10,default=0,unit="ms"},
     {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="decimate",name="decimate (m)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
@@ -487,7 +478,7 @@ function Track:description()
   elseif params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_MELODIC then
     local fname=params:string(self.id.."sample_file")
     if string.find(fname,".wav") or string.find(fname,".flac") then
-      if (#fname>12) then 
+      if (#fname>12) then
         fname=fname:sub(1,12).."..."
       end
     else
