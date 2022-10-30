@@ -120,16 +120,19 @@ end
 function Tracker:redraw()
   tracks[params:get("track")]:redraw()
   screen.level(5)
-  screen.rect(0,0,6,66)
+  screen.rect(0,8,6,66)
   screen.fill()
-  screen.level(params:get(params:get("track").."play")==0 and 3 or 0)
+  screen.level(params:get(params:get("track").."play")==0 and 5 or 12)
+  screen.rect(0,0,6 ,7)
+  screen.fill()
+  screen.level(params:get(params:get("track").."play")==0 and 1 or 0)
   screen.move(3,6)
   screen.text_center(params:get("track"))
+  screen.level(params:get(params:get("track").."play")==0 and 3 or 0)
   for i,v in ipairs(tracks[params:get("track")].scroll) do
     screen.move(3,6+(i*8))
     screen.text_center(v)
   end
-
 end
 
 return Tracker

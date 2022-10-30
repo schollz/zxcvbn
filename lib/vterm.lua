@@ -468,7 +468,7 @@ function VTerm:redraw()
     end
   end
 
-  screen.level(5)
+  screen.level(7)
   screen.rect(7,0,128,7)
   screen.fill()
   screen.level(params:get(params:get("track").."mute")==1 and 3 or 0)

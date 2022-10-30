@@ -92,6 +92,7 @@ function init2()
   screen_ind=2
   show_message("zxcvbn ready.",2)
   -- make the default pages
+  os.execute("mkdir -p ".._path.data.."zxcvbn/meta")
   os.execute("mkdir -p ".._path.data.."zxcvbn/pages")
   for i=1,10 do
     if not util.file_exists(_path.data.."zxcvbn/pages/"..i) then
@@ -157,6 +158,7 @@ function init2()
   end
 
   -- add major parameters
+  params_meta()
   params_audioin()
   params_sidechain()
   params_reverb()
@@ -186,7 +188,14 @@ function init2()
   end
 
   -- bang params
-  params:bang()
+  if util.file_exists(_path.data.."zxcvbn/meta/load_default") then 
+    print("zxcvbn: loading default")
+    params:default()
+    params:set("load_default",3)
+  else
+    params:bang()
+  end
+
 
   -- setup osc
   other_norns={}
@@ -481,6 +490,18 @@ function params_kick()
       formatter=pram.formatter,
     }
   end
+end
+
+function params_meta()
+  params:add_group("META",1)
+  params:add_option("load_default","load default on startup",{"n/a","no","yes"},1)
+  params:set_action("load_default",function(x)
+    if x==2 then 
+      os.execute("rm ".._path.data.."zxcvbn/meta/load_default")
+    elseif x==3 then 
+      os.execute("touch ".._path.data.."zxcvbn/meta/load_default")
+    end
+  end)
 end
 
 function params_audioin()
