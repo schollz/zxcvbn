@@ -247,6 +247,9 @@ function Sample:play(d)
       if params:get(self.id.."play_through")==2 and d.duration_slice>self.cursor_durations[d.ci] then
         d.duration_slice=self.cursor_durations[d.ci]
       end
+      if d.duration_total/d.retrig<d.duration_slice then
+        d.duration_slice=d.duration_total
+      end
       if d.duration_slice<0.01 then
         do return end
       end
