@@ -19,8 +19,9 @@ function Sample:init()
 
   -- initialize debouncer
   self.debounce_fn={}
+  self.blink=0
 
-  self.tosave={"ci","cursors","cursor_durations","view","kick"}
+  self.tosave={"ci","cursors","cursor_durations","cursor_deleted","view","kick"}
 end
 
 function Sample:load_sample(path,is_melodic,slices)
@@ -44,12 +45,14 @@ function Sample:load_sample(path,is_melodic,slices)
   self.slice_num=self.is_melodic and 4 or slices
   self.cursors={}
   self.cursor_durations={}
+  self.cursor_deleted={}
   self.kick={}
   self.kick_change=0
   for i=1,self.slice_num do
     table.insert(self.cursors,0)
     table.insert(self.kick,-48)
     table.insert(self.cursor_durations,0)
+    table.insert(self.cursor_deleted,false)
   end
 
   -- create dat file
@@ -351,24 +354,30 @@ function Sample:do_move(d)
   if self.duration==nil then
     do return end
   end
+  if d>0 then
+    self.cursor_deleted[self.ci]=false
+  end
   self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
 
   -- update cursor durations
   local cursors={}
   for i,c in ipairs(self.cursors) do
-    table.insert(cursors,{i=i,c=c})
-  end
-  table.insert(cursors,{i=17,c=self.duration})
-  table.sort(cursors,function(a,b) return a.c<b.c end)
-  for i,cursor in ipairs(cursors) do
-    if i<#cursors then
-      self.cursor_durations[cursor.i]=cursors[i+1].c-cursor.c
+    if not self.cursor_deleted[i] then
+      table.insert(cursors,{i=i,c=c})
     end
   end
-  self.cursor_durations[#cursors]=self.duration-cursors[#cursors].c
+  table.sort(cursors,function(a,b) return a.c<b.c end)
+  for i,v in ipairs(cursors) do
+    if v.i<#self.cursor_durations then
+      local next=cursors[i+1] or {c=self.duration}
+      self.cursor_durations[v.i]=next.c-v.c
+    end
+  end
+  self.cursor_sorted=cursors
 
-  -- TODO: fix this
-  --self.debounce_fn["save_cursors"]={30,function() self:save_cursors() end}
+  if d>0 then
+    self:sel_cursor(self.ci)
+  end
 end
 
 function Sample:adjust_kick(i,d)
@@ -395,13 +404,16 @@ function Sample:keyboard(k,v)
   elseif k=="DOWN" and v>0 then
     self:do_zoom(-1)
   elseif k=="SHIFT+LEFT" and v==1 then
-    self:sel_cursor(self.ci-1)
+    self:delta_cursor(-1)
   elseif k=="SHIFT+RIGHT" and v==1 then
-    self:sel_cursor(self.ci+1)
+    self:delta_cursor(1)
   elseif k=="LEFT" and v>0 then
     self:do_move(-1)
   elseif k=="RIGHT" and v>0 then
     self:do_move(1)
+  elseif k=="DELETE" and v==1 then
+    self.cursor_deleted[self.ci]=not self.cursor_deleted[self.ci]
+    self:do_move(0)
   elseif k=="SPACE" or k=="ENTER" then
     if v==1 then
       self:audition(v>0)
@@ -441,6 +453,18 @@ function Sample:set_position(pos)
   self.show_pos=pos
 end
 
+function Sample:delta_cursor(d)
+  if self.cursor_sorted==nil then
+    do return end
+  end
+  for i,v in ipairs(self.cursor_sorted) do
+    if v.i==self.ci then
+      self:sel_cursor(self.cursor_sorted[(i+d-1)%#self.cursor_sorted+1].i)
+      do return end
+    end
+  end
+end
+
 function Sample:sel_cursor(ci)
   if self.duration==nil then
     do return end
@@ -453,16 +477,9 @@ function Sample:sel_cursor(ci)
   self.ci=ci
   local view_duration=(self.view[2]-self.view[1])
   local cursor=self.cursors[self.ci]
-  if view_duration~=self.duration and cursor-self.cursor_durations[ci]<self.view[1] or cursor+self.cursor_durations[ci]>self.view[2] then
-    local cursor_frac=0.5
-    local next_view=cursor+self.cursor_durations[ci]
-    if ci<self.slice_num then
-      next_view=next_view+self.cursor_durations[ci+1]/2
-    end
-    local prev_view=cursor-self.cursor_durations[ci]
-    if ci>1 then
-      prev_view=self.cursors[ci-1]+self.cursor_durations[ci-1]/3
-    end
+  if view_duration~=self.duration and (cursor<self.view[1] or cursor>self.view[2]) then
+    local prev_view=cursor-view_duration/2
+    local next_view=cursor+view_duration/2
     self.view={util.clamp(prev_view,0,self.duration),util.clamp(next_view,0,self.duration)}
   end
 end
@@ -503,6 +520,11 @@ function Sample:redraw()
   if not self.loaded then
     do return end
   end
+  self.blink=self.blink-1
+  if self.blink<0 then
+    self.blink=8
+  end
+  local sel_level=self.blink>4 and (self.cursor_deleted[self.ci] and 3 or 15) or 1
   local x=7
   local y=8
   if show_cursor==nil then
@@ -519,7 +541,8 @@ function Sample:redraw()
   for i,cursor in ipairs(self.cursors) do
     if cursor>=self.view[1] and cursor<=self.view[2] then
       local pos=util.linlin(self.view[1],self.view[2],1,self.width,cursor)
-      screen.level(i==self.ci and 15 or 5)
+      local level=i==self.ci and sel_level or (self.cursor_deleted[i] and 1 or 5)
+      screen.level(level)
       screen.move(pos+x,64-self.height)
       screen.line(pos+x,64)
       screen.stroke()
