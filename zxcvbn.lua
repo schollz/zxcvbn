@@ -35,6 +35,7 @@ installer_=include("lib/installer")
 tracker_=include("lib/tracker")
 softsample_=include("lib/softsample")
 tli_=include("lib/tli")
+archive_=include("lib/archive")
 tli=tli_:new()
 lattice=require("lattice")
 musicutil=require("musicutil")
@@ -316,6 +317,9 @@ function init2()
     params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
+
+  a=archive_:new()
+  
 end
 
 function rerun()

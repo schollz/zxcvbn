@@ -546,7 +546,7 @@ function Track:loads(s)
   for i,v in ipairs(data.states) do
     if i==STATE_SAMPLE or i==STATE_VTERM then
       if v~="{}" then
-        print("track: loads",i,v)
+        -- print("track: loads",i,v)
         self.states[i]:loads(v)
       end
     end
