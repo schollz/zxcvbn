@@ -1,6 +1,6 @@
 # To Do Now (Critical)
 
-- [ ] option to automatically load default
+- [ ] META > make bundle / load bundle (goes through and produces a shareable PSET, samples, dats, pngs, in a single file)
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
 - [ ] TEST retrig/volume w/ midi
@@ -20,6 +20,7 @@
 
 # DONE
 
+- [x] option to automatically load default
 - [x] K2/K3 mute/play?
 - [x] E1/E2/E3 parameters (volume/filter/clade specific)
 - [x] drum: drive, melodic: drive?, softcut: rec_level, 
