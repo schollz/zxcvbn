@@ -53,17 +53,27 @@ function Archive:init()
   end
 
   os.execute("mkdir -p ".._path.data.."zxcvbn/archives")
-
-  local pset_options={"select"}
-  for _,v in ipairs(self:get_psets()) do
-    table.insert(pset_options,v)
-  end
-  params:add_option("sel_pset","pset",pset_options)
-  params:add{type="binary",name="make archive",id="make_archive",behavior="mometary",action=function(v)
-    self:make_archive(params:get("sel_pset")-1)
+  params:add_file("load_archive","load archive",_path.data.."zxcvbn/archives/")
+  params:set_action("load_archive",function(x)
+    if string.find(x,".zip") then 
+      _,fname,_=self.path_split(x)
+      self:load_archive(fname)
+      params:set("archive_info","loaded "..fname)
+    end
+  end)
+  params:add{type="binary",name="make archive",id="make_archive",behavior="toggle",action=function(v)
+    print("make_archive",v)
+    if v==1 then 
+      params:set("archive_info","")
+      params:set("load_archive",_path.data.."zxcvbn/archives/",true)
+      local fname=self:make_archive()
+      if fname~=nil then 
+        params:set("archive_info","saved "..fname)
+        params:set("make_archive",0,true)
+      end
+    end
   end}
-  local archive_name=self:make_archive(1)
-  self:load_archive(archive_name)
+  params:add_text("archive_info","","")
 end
 
 function Archive:load_archive(name)
@@ -73,19 +83,17 @@ function Archive:load_archive(name)
     print("loading archive: archive not found")
     do return end
   end
+  os.execute("cp "..path.." ".._path.data.."zxcvbn/")
+  os.execute("cd ".._path.data.."zxcvbn".." && unzip -o "..name)
+  os.execute("rm ".._path.data.."zxcvbn/"..name)
+  params:read(_path.data.."zxcvbn/temp_pset")
 end
 
-function Archive:make_archive(pset_num)
-  if pset_num<1 then
-    do return end
-  end
-  local fname=string.format("/home/we/dust/data/zxcvbn/zxcvbn-%02d.pset",pset_num)
-  if not util.file_exists(fname) then
-    do return end
-  end
-  local name=util.os_capture(string.format("sha256sum /home/we/dust/data/zxcvbn/zxcvbn-%02d.pset | head -c 8",pset_num))..".zip"
-  self:dump(name,string.format("zxcvbn-%02d.pset",pset_num))
-
+function Archive:make_archive()
+  local temp_pset="/home/we/dust/data/zxcvbn/temp_pset"
+  params:write(temp_pset)
+  local name=util.os_capture(string.format("cat %s | sha256sum | head -c 8",temp_pset,pset_num))..".zip"
+  self:dump(name,"temp_pset")
   print("made archive "..name)
   return name
 end
@@ -127,10 +135,9 @@ function Archive:package_psets(fname,pset)
   local s=util.os_capture(string.format("cd %s && find * -name '%s*' -type f",_path.data.."zxcvbn",pset))
   local pset_files=self.fields(s)
   local pset_lines={}
-  for _,v in ipairs(pset_files) do
-    local f=v:sub(11)
-    pset_lines=self:remake_pset(v,f) or pset_lines
-    os.execute(string.format("cd %s && zip %s -u %s",_path.data.."zxcvbn",fname,f))
+  local pset_lines=self:remake_pset(pset)
+  for _,v in ipairs({pset,pset..".json"}) do
+    os.execute(string.format("cd %s && zip %s -u %s",_path.data.."zxcvbn",fname,v))
   end
   return pset_lines
 end
@@ -169,27 +176,23 @@ function Archive:get_list(fname)
   return self.fields(s)
 end
 
-function Archive:remake_pset(fname,fname2)
-  if not string.find(fname,".json") then
-    local lines=self:get_lines(_path.data.."zxcvbn/"..fname)
+function Archive:remake_pset(fname)
+  local lines=self:get_lines(_path.data.."zxcvbn/"..fname)
 
-    for i,v in ipairs(lines) do
-      if string.find(v,"sample_file") and
-        (string.find(v,".wav") or string.find(v,".flac")) then
-        local foo=self.string_split(v,":")
-        local _,old_fname,_=self.path_split(foo[2])
-        lines[i]=string.format("%s: /home/we/dust/data/zxcvbn/samples/%s",foo[1],old_fname)
-      end
+  for i,v in ipairs(lines) do
+    if string.find(v,"sample_file") and
+      (string.find(v,".wav") or string.find(v,".flac")) then
+      local foo=self.string_split(v,":")
+      local _,old_fname,_=self.path_split(foo[2])
+      lines[i]=string.format("%s: /home/we/dust/data/zxcvbn/samples/%s",foo[1],old_fname)
     end
-
-    f=io.open(_path.data.."zxcvbn/"..fname2,"w")
-    io.output(f)
-    io.write(table.concat(lines,"\n"))
-    io.close()
-    do return lines end
-  else
-    os.execute(string.format("cd %s && cp %s %s",_path.data.."zxcvbn",fname,fname2))
   end
+
+  local f=io.open(_path.data.."zxcvbn/"..fname,"w")
+  io.output(f)
+  io.write(table.concat(lines,"\n"))
+  io.close()
+  do return lines end
 end
 
 return Archive

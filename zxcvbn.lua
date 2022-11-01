@@ -318,8 +318,6 @@ function init2()
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
 
-  a=archive_:new()
-  
 end
 
 function rerun()
@@ -497,7 +495,7 @@ function params_kick()
 end
 
 function params_meta()
-  params:add_group("META",1)
+  params:add_group("META",4)
   params:add_option("load_default","load default on startup",{"n/a","no","yes"},1)
   params:set_action("load_default",function(x)
     if x==2 then 
@@ -506,6 +504,7 @@ function params_meta()
       os.execute("touch ".._path.data.."zxcvbn/meta/load_default")
     end
   end)
+  archive_:new()
 end
 
 function params_audioin()
