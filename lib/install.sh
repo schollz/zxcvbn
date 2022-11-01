@@ -23,6 +23,7 @@ sudo ln -s /usr/local/lib/libaubio.so /usr/local/lib/libaubio.so.5.4.8
 sudo cp aubio/aubioonset /usr/local/bin/
 sudo ldconfig
 rm -rf aubio
+rm -rf aubio.tar.gz
 
 # install first data folder
 cd ~/dust/data/
