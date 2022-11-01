@@ -122,7 +122,7 @@ function Sample:dumps()
 end
 
 function Sample:loads(s)
-  print("sample: loads",s)
+  -- print("sample: loads",s)
   local data=json.decode(s)
   if data==nil then
     do return end

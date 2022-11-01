@@ -35,6 +35,7 @@ installer_=include("lib/installer")
 tracker_=include("lib/tracker")
 softsample_=include("lib/softsample")
 tli_=include("lib/tli")
+archive_=include("lib/archive")
 tli=tli_:new()
 lattice=require("lattice")
 musicutil=require("musicutil")
@@ -316,6 +317,7 @@ function init2()
     params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
+
 end
 
 function rerun()
@@ -493,7 +495,7 @@ function params_kick()
 end
 
 function params_meta()
-  params:add_group("META",1)
+  params:add_group("META",4)
   params:add_option("load_default","load default on startup",{"n/a","no","yes"},1)
   params:set_action("load_default",function(x)
     if x==2 then 
@@ -502,6 +504,7 @@ function params_meta()
       os.execute("touch ".._path.data.."zxcvbn/meta/load_default")
     end
   end)
+  archive_:new()
 end
 
 function params_audioin()
