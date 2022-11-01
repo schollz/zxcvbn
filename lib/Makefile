@@ -1,5 +1,5 @@
-release: aubio audiowaveform build
-	tar -czvf release.tar.gz aubio aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect audiowaveform
+release: build
+	tar -czvf release.tar.gz aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect
 
 build:
 	# build things

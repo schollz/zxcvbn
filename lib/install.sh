@@ -8,10 +8,22 @@ rm -f release.tar.gz
 chmod +x aubiogo/aubiogo
 chmod +x oscconnect/oscconnect
 chmod +x oscnotify/oscnotify
+
+## install audiowaveform
+wget https://github.com/schollz/zxcvbn/releases/download/assets/audiowaveform.tar.gz
+tar -xvzf audiowaveform.tar.gz 
+rm audiowaveform.tar.gz
+
 ## install aubio
-cd aubio && sudo ./waf install --destdir=/
+wget https://github.com/schollz/zxcvbn/releases/download/assets/aubio.tar.gz
+sudo cp aubio/libaubio.a /usr/local/lib/
+sudo cp aubio/libaubio.so /usr/local/lib/
+sudo ln -s /usr/local/lib/libaubio.so /usr/local/lib/libaubio.so.5
+sudo ln -s /usr/local/lib/libaubio.so /usr/local/lib/libaubio.so.5.4.8
+sudo cp aubio/aubioonset /usr/local/bin/
 sudo ldconfig
-cd .. && rm -rf aubio
+rm -rf aubio
+
 # install first data folder
 cd ~/dust/data/
 wget https://github.com/schollz/zxcvbn/releases/download/assets/zxcvbn.tar.gz
