@@ -927,6 +927,15 @@
         <div>
             <hr class="hrgreen">
         </div>
+        {{ with index .Blurbs "Archive"}}
+        <div class="pt pb">
+            <h1 id="{{slugify .Title}}">{{.Title}}<a href="#{{ slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a><a href="https://github.com/schollz/zxcvbn/edit/main/docs/builder/{{.Path}}" class="link-anchor"><i class="fas fa-edit" aria-hidden="true"></i></a></h1>
+            {{.Body}}
+        </div>
+        {{end}}
+        <div>
+            <hr class="hrgreen">
+        </div>
         {{ with index .Blurbs "Lessons"}}
         <div class="pt">
             <h1 id="{{slugify .Title}}">{{.Title}}<a href="#{{ slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a><a href="https://github.com/schollz/zxcvbn/edit/main/docs/builder/{{.Path}}" class="link-anchor"><i class="fas fa-edit" aria-hidden="true"></i></a></h1>
