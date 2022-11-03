@@ -1,8 +1,8 @@
--- zxcvbn v1.0.0
+-- zxcvbn v1.1.0
 --
 --
 -- zxcvbn.norns.online
--- 
+--
 --
 --
 --    ▼ instructions below ▼
@@ -11,15 +11,15 @@
 -- K2/K3 change track
 -- K1+K2 mutes
 -- K1+K3 plays
--- 
+--
 -- keyboard quickstart
 --
 -- ctrl+p plays
 -- ctrl+<num> change track
 -- tab toggles sample mode
 -- ctrl+s saves and parses
--- 
--- see zxcvbn.norns.online 
+--
+-- see zxcvbn.norns.online
 --    for further help.
 --
 if not string.find(package.cpath,"/home/we/dust/code/zxcvbn/lib/") then
@@ -184,12 +184,12 @@ function init2()
 
   -- add lookups
   params.id_to_name={}
-  for _, p in ipairs(params.params) do
+  for _,p in ipairs(params.params) do
     params.id_to_name[p.id]=p.name
   end
 
   -- bang params
-  if util.file_exists(_path.data.."zxcvbn/meta/load_default") then 
+  if util.file_exists(_path.data.."zxcvbn/meta/load_default") then
     print("zxcvbn: loading default")
     params:default()
     params:set("load_default",3)
@@ -498,9 +498,9 @@ function params_meta()
   params:add_group("META",4)
   params:add_option("load_default","load default on startup",{"n/a","no","yes"},1)
   params:set_action("load_default",function(x)
-    if x==2 then 
+    if x==2 then
       os.execute("rm ".._path.data.."zxcvbn/meta/load_default")
-    elseif x==3 then 
+    elseif x==3 then
       os.execute("touch ".._path.data.."zxcvbn/meta/load_default")
     end
   end)
