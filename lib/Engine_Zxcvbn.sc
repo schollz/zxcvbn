@@ -64,6 +64,62 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
 		}).add;
 
+		// https://gist.github.com/audionerd/fe50790b7601cba65ddd855caffb05ad
+		SynthDef("supersaw",{
+			arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+			attack=0.01,decay=0.2,sustain=0.9,release=5,
+			mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+			var snd,note,mix,freq,env,detune,stereo,lowcut,chorus,res,detuneCurve,centerGain,sideGain,center,freqs,side;
+			hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+			note=Lag.kr(hz,portamento).cpsmidi+bend;
+			env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
+			sub=Lag.kr(sub,1);
+			snd=Pan2.ar(Pulse.ar((note-12).midicps,LinLin.kr(LFTri.kr(0.5),-1,1,0.2,0.8))*sub);
+			mix=LinLin.kr(mod1,-1,1,0,1);
+			stereo=LinLin.kr(mod1,-1,1,0,1);
+			res=LinExp.kr(mod3,-1,1,0.65,1.0);
+			detune=LinLin.kr(mod4,-1,1,0,1);
+			freq=note.midicps;
+			detuneCurve = { |x|
+				(10028.7312891634*x.pow(11)) -
+				(50818.8652045924*x.pow(10)) +
+				(111363.4808729368*x.pow(9)) -
+				(138150.6761080548*x.pow(8)) +
+				(106649.6679158292*x.pow(7)) -
+				(53046.9642751875*x.pow(6)) +
+				(17019.9518580080*x.pow(5)) -
+				(3425.0836591318*x.pow(4)) +
+				(404.2703938388*x.pow(3)) -
+				(24.1878824391*x.pow(2)) +
+				(0.6717417634*x) +
+				0.0030115596
+			};
+			centerGain = { |x| (-0.55366 * x) + 0.99785 };
+			sideGain = { |x| (-0.73764 * x.pow(2)) + (1.2841 * x) + 0.044372 };
+
+			center = Pan2.ar(LFSaw.ar(freq, Rand()));
+			freqs = [
+				(freq - (freq*(detuneCurve.(detune))*0.11002313)),
+				(freq - (freq*(detuneCurve.(detune))*0.06288439)),
+				(freq - (freq*(detuneCurve.(detune))*0.01952356)),
+				(freq + (freq*(detuneCurve.(detune))*0.01991221)),
+				(freq + (freq*(detuneCurve.(detune))*0.06216538)),
+				(freq + (freq*(detuneCurve.(detune))*0.10745242))
+			];
+			side=Pan2.ar(LFSaw.ar(freqs[0], Rand(0, 2))+LFSaw.ar(freqs[1], Rand(0, 2))+LFSaw.ar(freqs[2], Rand(0, 2)),stereo);
+			side=side+Pan2.ar(LFSaw.ar(freqs[3], Rand(0, 2))+LFSaw.ar(freqs[4], Rand(0, 2))+LFSaw.ar(freqs[5], Rand(0, 2)),stereo.neg);
+
+			snd = (center * centerGain.(mix)) + (side * sideGain.(mix));
+
+			snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
+            snd = RLPF.ar(snd,lpf,res) * env * amp / 8;
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
+		}).add;
+
 		SynthDef("bigbass",{
 			arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
 			attack=0.01,decay=0.2,sustain=0.9,release=5,
