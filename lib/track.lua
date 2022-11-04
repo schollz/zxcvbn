@@ -62,6 +62,7 @@ function Track:init()
   -- crow
   params:add_option(self.id.."crow_type","outputs",{"1+2","3+4"},1)
   -- sliced sample
+  params:add_number(self.id.."slices","slices",1,16,16)
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
   params:set_action(self.id.."sample_file",function(x)
     if util.file_exists(x) and string.sub(x,-1)~="/" then
@@ -69,7 +70,6 @@ function Track:init()
     end
   end)
   params:add_option(self.id.."play_through","play through",{"until stop","until next slice"},2)
-  params:add_number(self.id.."slices","slices",1,16,16)
   params:add_number(self.id.."bpm","bpm",10,600,math.floor(clock.get_tempo()))
 
   -- midi stuff

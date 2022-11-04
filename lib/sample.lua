@@ -25,7 +25,7 @@ function Sample:init()
 end
 
 function Sample:load_sample(path,is_melodic,slices)
-  print("sample: load_sample "..path)
+  print("sample: load_sample "..path,slices)
   self.path=path
   -- load sample
   print("sample: init "..self.path)
@@ -136,7 +136,6 @@ end
 function Sample:get_onsets()
   show_message("determing onsets",4)
   show_progress(0)
-
   self.path_to_cursors=_path.data.."/zxcvbn/cursors/"..self.filename.."_"..self.slice_num..".cursors"
   -- try to load the cached cursors
   if util.file_exists(self.path_to_cursors) then
@@ -256,7 +255,7 @@ function Sample:play(d)
       if d.duration_slice<0.01 then
         do return end
       end
-      --print("duration",d.duration,"gate",d.gate,"retrig",d.retrig,"rate",d.rate,"pitch",d.pitch)
+      -- print("duration",d.duration,"gate",d.gate,"retrig",d.retrig,"rate",d.rate,"pitch",d.pitch)
       local send_pos=1
       engine.slice_on(
         d.id,
@@ -368,10 +367,8 @@ function Sample:do_move(d)
   end
   table.sort(cursors,function(a,b) return a.c<b.c end)
   for i,v in ipairs(cursors) do
-    if v.i<#self.cursor_durations then
-      local next=cursors[i+1] or {c=self.duration}
-      self.cursor_durations[v.i]=next.c-v.c
-    end
+    local next=cursors[i+1] or {c=self.duration}
+    self.cursor_durations[v.i]=next.c-v.c
   end
   cursors={}
   for i,c in ipairs(self.cursors) do
