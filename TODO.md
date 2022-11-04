@@ -1,6 +1,6 @@
 # To Do Now (Critical)
 
-- [ ] META > make bundle / load bundle (goes through and produces a shareable PSET, samples, dats, pngs, in a single file)
+- [ ] Ctl+0 doesn't work?
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
 - [ ] TEST retrig/volume w/ midi
@@ -20,6 +20,7 @@
 
 # DONE
 
+- [x] META > make bundle / load bundle (goes through and produces a shareable PSET, samples, dats, pngs, in a single file)
 - [x] option to automatically load default
 - [x] K2/K3 mute/play?
 - [x] E1/E2/E3 parameters (volume/filter/clade specific)
