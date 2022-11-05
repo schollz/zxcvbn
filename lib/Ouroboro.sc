@@ -55,7 +55,6 @@ Ouroboro {
 			);
 			SendReply.kr(Impulse.kr(10),"/recordingProgress",[id,pos/duration/server.sampleRate]);
 			SendReply.kr(done,"/recordingProgress",[id,1.0]);
-			SendReply.kr(done,"/recordingDone",[id]);
 			FreeSelf.kr(done);
 		}).send(server);
 		SynthDef("defRecord1",{
@@ -86,7 +85,6 @@ Ouroboro {
 		}, '/recordingProgress');
 		oscRecordDone = OSCFunc({ |msg|
 			var id=msg[3];
-			NetAddr("127.0.0.1", 10111).sendMsg("recordingDone",id,id);
 			if (bufRecord.at(id).notNil,{
 				xfaRecord.at(id).postln;
 				if (xfaRecord.at(id)>0.0,{
@@ -100,6 +98,8 @@ Ouroboro {
 				},{
 					actRecord.at(id).(bufRecord.at(id));
 				});
+			},{
+				"id empty?".postln;
 			});
 		}, '/recordingDone');
 

@@ -44,7 +44,7 @@ Engine_Zxcvbn : CroneEngine {
                 var pos=Phasor.ar(end:BufFrames.ir(bufnum));
 				var snd=BufRd.ar(ch,bufnum,pos,1);
 				snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
-				snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
+				// snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
                 SendReply.kr(Impulse.kr(10),"/loopPosition",[id,pos/BufFrames.ir(bufnum)]);
 	            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
 	            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
@@ -1469,6 +1469,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
         			bufs.at(key).free;
         		});
         		bufs.put(key,buf);
+                NetAddr("127.0.0.1", 10111).sendMsg("recordingDone",id,id);
         	});
         });
 
@@ -1481,15 +1482,17 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
     				syns.at(key).set(\t_trig,1);// free current
     			});
     		});
-    		syns.put(key,Synth.new("defLoop"++bufs.at(key).numChannels,[
-                id:id,
-    			bufnum: bufs.at(key),
-                out: buses.at("busCompressible"),
-                outsc: buses.at("busCompressing"),
-                outnsc: buses.at("busNotCompressible"),
-                outreverb: buses.at("busReverb"),
-            ],syns.at("reverb"),\addBefore).onFree({"freed"+key}));
-            NodeWatcher.register(syns.at(key));
+            if (bufs.at(key).notNil,{
+                syns.put(key,Synth.new("defLoop"++bufs.at(key).numChannels,[
+                    id:id,
+                    bufnum: bufs.at(key),
+                    out: buses.at("busCompressible"),
+                    outsc: buses.at("busCompressing"),
+                    outnsc: buses.at("busNotCompressible"),
+                    outreverb: buses.at("busReverb"),
+                ],syns.at("reverb"),\addBefore).onFree({"freed"+key}));
+                NodeWatcher.register(syns.at(key));
+            });
         });
 
 

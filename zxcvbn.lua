@@ -343,6 +343,20 @@ function init2()
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
 
+
+  tracks[1]:load_text([[
+chain a
+  
+pm
+  
+pattern a
+g5bb4 - - - d5 eb5 d5 f5
+g5bb4 y1 - - - d5 eb5 d5 f5
+     
+    ]])
+  params:set("1play",1)
+    
+
 end
 
 function rerun()

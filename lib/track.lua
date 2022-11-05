@@ -230,7 +230,25 @@ m=function(x) self:setup_lfo(x) end,
 n=function(x,v) if v==nil then self.lfos["n"]:stop() end;params:set(self.id.."pitch",x) end,
 u=function(x,v) if v==nil then self.lfos["u"]:stop() end;params:set(self.id.."rate",x/100);params:set(self.id.."sc_rate",x/100) end,
 z=function(x,v) if v==nil then self.lfos["z"]:stop() end;params:set(self.id.."send_reverb",x/100) end,
-y=function(x,v) if v==nil then self.lfos["y"]:stop() end;params:set(self.id.."stretch",x/100) end,
+y=function(x,v) print("y",x) 
+  if x==0 then 
+    if self.loop.playing then 
+      self:loop_toggle(false)
+    end
+  elseif x==1 then 
+    if self.loop.playing then 
+      print("loop playing")
+    elseif self.loop.recording then 
+      print("loop recording")
+    elseif not self.loop.recorded then 
+      print("loop record")
+      self:loop_record()
+    elseif not self.loop.playing then 
+      print("loop play")
+      self:loop_toggle(true)
+    end
+  end
+end,
 }
 -- setup lfos
 self.lfos={}
@@ -718,19 +736,29 @@ end
 
 
 function Track:loop_record()
+  if self.tli==nil then 
+    do return end 
+  end
+  if self.tli.pulses==nil then 
+    do return end 
+  end
+  local duration=self.tli.pulses/24.0*clock.get_beat_sec()
+  local crossfade=duration>0.2 and 0.2 or duration/2
+  print("recording "..self.tli.pulses.." pulses ".." for "..duration.." seconds")
   self.loop.recorded=false
   self.loop.progress=0
-  engine.loop_record(self.id,3,0.2,2)
+  engine.loop_record(self.id,duration,crossfade,2)
 end
 
-function Track:loop_toggle()
+function Track:loop_toggle(on)
   if not self.loop.recorded then 
     do return end 
   end
-  if self.loop.playing then 
-    engine.loop_stop(self.id)
-  else
+  on = on or not self.loop.playing
+  if on then 
     engine.loop_start(self.id)
+  else
+    engine.loop_sto(self.id)
   end
 end
 
