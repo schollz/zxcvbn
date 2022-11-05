@@ -44,7 +44,7 @@ end
 function Track:init()
   self.lfos={}
 
-  self.loop={recorded=false,recording=false,playing=false,progress=0,position=-1}
+  self.loop={pos_play=-1,pos_rec=-1,arm_play=false,arm_rec=false}
 
   self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
@@ -179,12 +179,14 @@ function Track:init()
       if play_count==1 then
         reset_clocks()
       end
+      self.loop.arm_play=self.loop.pos_rec>-1
     else
       if params:get(self.id.."crow_type")==1 then
-        crow.output[2](false)
+        -- crow.output[2](false) -- TODO WTF
       elseif params:get(self.id.."crow_type")==2 then
-        crow.output[4](false)
+        -- crow.output[4](false)
       end
+      self:loop_toggle(false)
     end
   end}
   params:add{type="binary",name="mute",id=self.id.."mute",behavior="toggle",action=function(v)
@@ -230,25 +232,7 @@ m=function(x) self:setup_lfo(x) end,
 n=function(x,v) if v==nil then self.lfos["n"]:stop() end;params:set(self.id.."pitch",x) end,
 u=function(x,v) if v==nil then self.lfos["u"]:stop() end;params:set(self.id.."rate",x/100);params:set(self.id.."sc_rate",x/100) end,
 z=function(x,v) if v==nil then self.lfos["z"]:stop() end;params:set(self.id.."send_reverb",x/100) end,
-y=function(x,v) print("y",x) 
-  if x==0 then 
-    if self.loop.playing then 
-      self:loop_toggle(false)
-    end
-  elseif x==1 then 
-    if self.loop.playing then 
-      print("loop playing")
-    elseif self.loop.recording then 
-      print("loop recording")
-    elseif not self.loop.recorded then 
-      print("loop record")
-      self:loop_record()
-    elseif not self.loop.playing then 
-      print("loop play")
-      self:loop_toggle(true)
-    end
-  end
-end,
+y=function(x,v) print("y",x) end,
 }
 -- setup lfos
 self.lfos={}
@@ -648,6 +632,22 @@ function Track:emit(beat)
   end
   if self.tli~=nil and self.track~=nil and self.tli.pulses>0 then
     local i=(beat-1)%self.tli.pulses+1
+    if i==1 then
+      if self.loop.arm_play then 
+        self.loop.arm_play=false 
+        self:loop_toggle(true)   
+      elseif self.loop.arm_rec then
+        print("dearming rec")
+        self.loop.arm_rec=false
+        if self.tli~=nil and self.tli.pulses~=nil then 
+          local duration=self.tli.pulses/24.0*clock.get_beat_sec()
+          local crossfade=duration>0.5 and 0.5 or duration/2
+          print("recording "..self.tli.pulses.." pulses ".." for "..duration.." seconds")
+          engine.loop_record(self.id,duration,crossfade,2)
+          self.loop.arm_play=true
+        end     
+      end
+    end  
     local t=self.track[i]
     if t==nil then
       do return end
@@ -734,31 +734,23 @@ function Track:load_sample(path)
   end
 end
 
-
 function Track:loop_record()
-  if self.tli==nil then 
-    do return end 
-  end
-  if self.tli.pulses==nil then 
-    do return end 
-  end
-  local duration=self.tli.pulses/24.0*clock.get_beat_sec()
-  local crossfade=duration>0.2 and 0.2 or duration/2
-  print("recording "..self.tli.pulses.." pulses ".." for "..duration.." seconds")
-  self.loop.recorded=false
-  self.loop.progress=0
-  engine.loop_record(self.id,duration,crossfade,2)
+  print(string.format("track %d: recording armed",self.id))
+  self.loop.pos_rec=-1
+  self.loop.pos_play=-1
+  self.loop.arm_rec=true
 end
 
 function Track:loop_toggle(on)
-  if not self.loop.recorded then 
+  if self.loop.pos_rec<0 then 
     do return end 
   end
-  on = on or not self.loop.playing
+  on=on or self.loop.pos_play<0 
+  print(string.format("track %d: loop toggle %s",self.id,on and "on" or "off"))
   if on then 
     engine.loop_start(self.id)
   else
-    engine.loop_sto(self.id)
+    engine.loop_stop(self.id)
   end
 end
 
@@ -786,7 +778,11 @@ function Track:keyboard(k,v)
     do return end
   elseif k=="CTRL+L" then
     if v==1 then
-      self:loop_toggle()
+      if self.loop.pos_rec<0 then 
+        self:loop_record()
+      else
+        self:loop_toggle()
+      end
     end
     do return end
   elseif k=="CTRL+R" then

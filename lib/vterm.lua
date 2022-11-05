@@ -484,20 +484,25 @@ function VTerm:redraw()
     end  
   end
 
-  if tracks[params:get("track")].loop.progress>0 then 
-    local pos=tracks[params:get("track")].loop.position
+  if tracks[params:get("track")].loop.pos_rec>0 then 
     screen.level(7)
     screen.move(7,8)
-    screen.line(util.linlin(0,1,7,128,tracks[params:get("track")].loop.progress),8)
+    screen.line(util.linlin(0,1,7,128,tracks[params:get("track")].loop.pos_rec),8)
     screen.stroke()
     screen.level(0)
+    local pos=tracks[params:get("track")].loop.pos_play
     if pos>-1 then 
-      screen.level(15)
+      screen.level(debounce_fn[params:get("track").."looping"][1]*2+1)
       pos=util.linlin(0,1,7,128,pos)
       screen.move(7,8)
       screen.line(pos,8)
       screen.stroke()
     end
+  elseif tracks[params:get("track")].loop.arm_rec then
+    screen.level(self.cursor.blink<5 and 15 or 3)
+    screen.move(7,8)
+    screen.line(128,8)
+    screen.stroke()     
   end
 
 end

@@ -36,22 +36,36 @@ Engine_Zxcvbn : CroneEngine {
         context.server.sync;
 
         // looper
-		2.do({
-			arg n;
-			var ch=n+1;
-			SynthDef("defLoop"++ch,{
-				arg id,bufnum,t_trig;
-                var pos=Phasor.ar(end:BufFrames.ir(bufnum));
-				var snd=BufRd.ar(ch,bufnum,pos,1);
-				snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
-				// snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
-                SendReply.kr(Impulse.kr(10),"/loopPosition",[id,pos/BufFrames.ir(bufnum)]);
-	            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
-	            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-	            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-	            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
-			}).add;
-		});
+        SynthDef("defLoop1",{
+            arg id,bufnum,t_trig,frames;
+            var pos=Phasor.ar(end:frames);
+            var snd=BufRd.ar(1,bufnum,pos,1);
+            var lfo_pan=SinOsc.kr(1/Rand(10,30)).range(-0.7,0.7);
+            var lfo_amp=SinOsc.kr(1/Rand(10,30)).range(0.2,0.8);
+            snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
+            snd=Pan2.ar(snd,lfo_pan,lfo_amp);
+            snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
+            SendReply.kr(Impulse.kr(10),"/loopPosition",[id,pos/frames]);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
+        }).add;
+        SynthDef("defLoop2",{
+            arg id,bufnum,t_trig,frames;
+            var pos=Phasor.ar(end:frames);
+            var snd=BufRd.ar(2,bufnum,pos,1);
+            var lfo_pan=SinOsc.kr(1/Rand(10,30)).range(-0.7,0.7);
+            var lfo_amp=SinOsc.kr(1/Rand(10,30)).range(0.2,0.8);
+            snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
+            snd=Balance2.ar(snd[0],snd[1],lfo_pan,lfo_amp);
+            snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
+            SendReply.kr(Impulse.kr(10),"/loopPosition",[id,pos/frames]);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
+        }).add;
 
         // <mx.synths>
 		SynthDef("synthy",{
@@ -812,7 +826,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             // tape slow
             snd = SelectX.ar(VarLag.kr(tape_slow>0,1,warp:\sine),[snd,PlayBuf.ar(2,tape_buf,Lag.kr(1/(tape_slow+1),1),startPos:tapePosRec-10,loop:1,trigger:Trig.kr(tape_slow>0))]);
 
-            Out.ar(outBus,snd);
+            Out.ar(outBus,snd*EnvGen.ar(Env.new([0,1],[1])));
         }).send(context.server);
 
         SynthDef(\pad0, {
@@ -1449,17 +1463,16 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
 
 
         // <ouroboro>
-
         this.addCommand("loop_record","iffi", { arg msg;
         	var id=msg[1];
         	var duration=msg[2];
         	var crossfade=msg[3];
         	var channel=msg[4];
-        	var key="ouroboro"++id;
+        	var key="ouroboro"++id.asInteger.asString;
         	ouroboro.stop(id);
         	ouroboro.record(id,duration,crossfade,channel,{
         		arg buf;
-        		["engine: ouroboro saving"+buf].postln;
+        		["engine: ouroboro init buffer"+buf].postln;
         		if (syns.at(key).notNil,{
         			if (syns.at(key).isRunning,{
         				syns.at(key).set(\t_trig,1);// free current
@@ -1469,22 +1482,35 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
         			bufs.at(key).free;
         		});
         		bufs.put(key,buf);
-                NetAddr("127.0.0.1", 10111).sendMsg("recordingDone",id,id);
-        	});
+        	},{
+                arg buf;
+                // hotswap with the right version
+        		["engine: ouroboro final buffer"+buf+buf.numFrames].postln;
+                syns.at(key).postln;
+        		bufs.put(key,buf);
+        		if (syns.at(key).notNil,{
+        			if (syns.at(key).isRunning,{
+                        ["ouroboro: hot swapping",id].postln;
+        				syns.at(key).set(\bufnum,buf,\frames,buf.numFrames);
+        			});
+        		});
+         });
         });
 
 
         this.addCommand("loop_start","i", { arg msg;
         	var id=msg[1];
-        	var key="ouroboro"++id;
+        	var key="ouroboro"++id.asString;
     		if (syns.at(key).notNil,{
     			if (syns.at(key).isRunning,{
     				syns.at(key).set(\t_trig,1);// free current
     			});
     		});
+            ["loop starting",key].postln;
             if (bufs.at(key).notNil,{
                 syns.put(key,Synth.new("defLoop"++bufs.at(key).numChannels,[
                     id:id,
+                    frames: bufs.at(key).numFrames,
                     bufnum: bufs.at(key),
                     out: buses.at("busCompressible"),
                     outsc: buses.at("busCompressing"),
@@ -1500,7 +1526,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
 
         this.addCommand("loop_stop","i", { arg msg;
         	var id=msg[1];
-        	var key="ouroboro"++id;
+        	var key="ouroboro"++id.asString;
     		if (syns.at(key).notNil,{
     			if (syns.at(key).isRunning,{
     				syns.at(key).set(\t_trig,1);// free current

@@ -208,27 +208,21 @@ function init2()
       local id=math.floor(tonumber(args[1]))
       local progress=tonumber(args[2])
       print("recordingProgress",id,progress)
-      tracks[id].loop.recording=true
-      tracks[id].loop.progress=progress
+      tracks[id].loop.pos_rec=progress
     end,
     loopPosition=function(args)
       local id=math.floor(tonumber(args[1]))
       local position=tonumber(args[2])
-      tracks[id].loop.playing=true
-      tracks[id].loop.position=position
-      debounce_fn[id.."looping"]={10,function()
+      tracks[id].loop.pos_play=position
+      debounce_fn[id.."looping"]={7,function()
         print("looping done")
-        tracks[id].loop.playing=false
-        tracks[id].loop.position=-1
+        tracks[id].loop.pos_play=-1
       end}
     end,
     recordingDone=function(args)
       local id=math.floor(tonumber(args[1]))
       print("recordingDone",id)
-      tracks[id].loop.recorded=true
-      tracks[id].loop.recording=false
-      tracks[id].loop.progress=100
-      tracks[id]:loop_toggle()
+      params:set(id.."mute",1)  
     end,
     progress=function(args)
       tracks[params:get("track")]:set_position(tonumber(args[1]))
@@ -304,9 +298,9 @@ function init2()
       end
       -- norns syncing
       if next(other_norns)~=nil then
-        if (clock_pulse-1)%24==0 then
-          print("beat",(clock_pulse-1)/24)
-        end
+        -- if (clock_pulse-1)%24==0 then
+        --   print("beat",(clock_pulse-1)/24)
+        -- end
         if debounce_fn["pulsesync"]==nil and (clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo() or clock_pulse==1) then
           current_tempo=clock.get_tempo()
           for _,addr in ipairs(other_norns) do
@@ -343,20 +337,36 @@ function init2()
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
 
+  crow.output[2].action="{to(0,0)}"
+  crow.output[4].action="{to(0,0)}"
 
+-- Am F
   tracks[1]:load_text([[
-chain a
-  
-pm
-  
-pattern a
-g5bb4 - - - d5 eb5 d5 f5
-g5bb4 y1 - - - d5 eb5 d5 f5
-     
-    ]])
-  params:set("1play",1)
-    
+a1 pm
+f1
+]])
 
+tracks[2]:load_text([[
+c4 pm
+a3
+  ]])
+
+  tracks[3]:load_text([[
+a1 pm
+f1
+        ]])
+
+tracks[4]:load_text([[
+e3 d2 pm
+c2
+    ]])
+                    
+for i=1,5 do
+    params:set(i.."track_type",7)
+    params:set(i.."crow_type",2)
+    tracks[i]:loop_record()
+  end
+  params:set("1play",1)
 end
 
 function rerun()
@@ -579,8 +589,8 @@ function params_audioin()
       end)
     end
   end
-  params:set("audioinpanR",0.1)
-  params:set("audioinpanL",-0.1)
+  params:set("audioinpanR",1)
+  params:set("audioinpanL",-1)
 end
 
 function params_reverb()
