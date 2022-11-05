@@ -205,13 +205,24 @@ function init2()
       keyboard.code(args[1],tonumber(args[2]))
     end,
     recordingProgress=function(args)
-      local id=tonumber(args[1])
+      local id=math.floor(tonumber(args[1]))
       local progress=tonumber(args[2])
       print("recordingProgress",id,progress)
+      tracks[id].loop.recording=true
+      tracks[id].loop.progress=progress
+    end,
+    loopPosition=function(args)
+      local id=math.floor(tonumber(args[1]))
+      local position=tonumber(args[2])
+      tracks[id].loop.position=position
     end,
     recordingDone=function(args)
-      local id=tonumber(args[1])
+      local id=math.floor(tonumber(args[1]))
       print("recordingDone",id)
+      tracks[id].loop.recorded=true
+      tracks[id].loop.recording=false
+      tracks[id].loop.progress=100
+      tracks[id]:loop_toggle()
     end,
     progress=function(args)
       tracks[params:get("track")]:set_position(tonumber(args[1]))

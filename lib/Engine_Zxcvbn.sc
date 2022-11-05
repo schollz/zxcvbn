@@ -29,7 +29,8 @@ Engine_Zxcvbn : CroneEngine {
         bufs.put("tape",Buffer.alloc(context.server, context.server.sampleRate * 18.0, 2));
         oscs.put("position",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("progress",msg[3],msg[3]); }, '/position'));
         oscs.put("audition",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("audition",msg[3],msg[3]); }, '/audition'));
-
+        oscs.put("loopPosition",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("loopPosition",msg[3],msg[4]); }, '/loopPosition'));
+    
         ouroboro=Ouroboro.new(context.server);
 
         context.server.sync;
@@ -40,8 +41,10 @@ Engine_Zxcvbn : CroneEngine {
 			var ch=n+1;
 			SynthDef("defLoop"++ch,{
 				arg id,bufnum,t_trig;
-				var snd=PlayBuf.ar(ch,bufnum,loop:1);
+                var pos=Phasor.ar(end:BufFrames.ir(bufnum));
+				var snd=BufRd.ar(ch,bufnum,pos,1);
 				snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
+                SendReply.kr(Impulse.kr(2),"/loopPosition",[id,pos/BufFrames.ir(bufnum)]);
 	            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
 	            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
 	            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
@@ -1469,7 +1472,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
         });
 
 
-        this.addCommand("loop_play","i", { arg msg;
+        this.addCommand("loop_start","i", { arg msg;
         	var id=msg[1];
         	var key="ouroboro"++id;
     		if (syns.at(key).notNil,{
@@ -1477,8 +1480,9 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
     				syns.at(key).set(\t_trig,1);// free current
     			});
     		});
-    		syns.put(key,Synth.new("defLoop"++buf.numChannels,[
-    			bufnum: buf,
+    		syns.put(key,Synth.new("defLoop"++bufs.at(key).numChannels,[
+                id:id,
+    			bufnum: bufs.at(key),
                 out: buses.at("busCompressible"),
                 outsc: buses.at("busCompressing"),
                 outnsc: buses.at("busNotCompressible"),
@@ -1518,6 +1522,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
         oscs.keysValuesDo({ arg buf, val;
             val.free;
         });
+        ouroboro.free;
         // ^ Zxcvbn specific
     }
 }

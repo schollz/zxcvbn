@@ -44,6 +44,8 @@ end
 function Track:init()
   self.lfos={}
 
+  self.loop={recorded=false,recording=false,playing=false,progress=0,position=-1}
+
   self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
@@ -714,6 +716,24 @@ function Track:load_sample(path)
   end
 end
 
+
+function Track:loop_record()
+  self.loop.recorded=false
+  self.loop.progress=0
+  engine.loop_record(self.id,3,0.2,2)
+end
+
+function Track:loop_toggle()
+  if not self.loop.recorded then 
+    do return end 
+  end
+  if self.loop.playing then 
+    engine.loop_stop(self.id)
+  else
+    engine.loop_start(self.id)
+  end
+end
+
 -- base functions
 
 function Track:keyboard(k,v)
@@ -734,6 +754,16 @@ function Track:keyboard(k,v)
         softcut.phase_quant(params:get(self.id.."sc"),0.1)
         softcut.phase_quant(params:get(self.id.."sc")+3,0.1)
       end
+    end
+    do return end
+  elseif k=="CTRL+L" then
+    if v==1 then
+      self:loop_toggle()
+    end
+    do return end
+  elseif k=="CTRL+R" then
+    if v==1 then
+      self:loop_record()
     end
     do return end
   elseif k=="CTRL+M" then
