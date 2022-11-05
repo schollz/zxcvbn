@@ -9,6 +9,7 @@ Engine_Zxcvbn : CroneEngine {
     var bufs; 
     var oscs;
     var mx;
+    var ouroboro;
     // Zxcvbn ^
 
     *new { arg context, doneCallback;
@@ -29,8 +30,24 @@ Engine_Zxcvbn : CroneEngine {
         oscs.put("position",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("progress",msg[3],msg[3]); }, '/position'));
         oscs.put("audition",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("audition",msg[3],msg[3]); }, '/audition'));
 
+        ouroboro=Ouroboro.new(context.server);
+
         context.server.sync;
 
+        // looper
+		2.do({
+			arg n;
+			var ch=n+1;
+			SynthDef("defLoop"++ch,{
+				arg id,bufnum,t_trig;
+				var snd=PlayBuf.ar(ch,bufnum,loop:1);
+				snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
+	            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
+	            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+	            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+	            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
+			}).add;
+		});
 
         // <mx.synths>
 		SynthDef("synthy",{
@@ -1426,6 +1443,65 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
 
         // ^ Zxcvbn specific
 
+
+        // <ouroboro>
+
+        this.addCommand("loop_record","iffi", { arg msg;
+        	var id=msg[1];
+        	var duration=msg[2];
+        	var crossfade=msg[3];
+        	var channel=msg[4];
+        	var key="ouroboro"++id;
+        	ouroboro.stop(id);
+        	ouroboro.record(id,duration,crossfade,channel,{
+        		arg buf;
+        		["engine: ouroboro saving"+buf].postln;
+        		if (syns.at(key).notNil,{
+        			if (syns.at(key).isRunning,{
+        				syns.at(key).set(\t_trig,1);// free current
+        			});
+        		});
+        		if (bufs.at(key).notNil,{
+        			bufs.at(key).free;
+        		});
+        		bufs.put(key,buf);
+        	});
+        });
+
+
+        this.addCommand("loop_play","i", { arg msg;
+        	var id=msg[1];
+        	var key="ouroboro"++id;
+    		if (syns.at(key).notNil,{
+    			if (syns.at(key).isRunning,{
+    				syns.at(key).set(\t_trig,1);// free current
+    			});
+    		});
+    		syns.put(key,Synth.new("defLoop"++buf.numChannels,[
+    			bufnum: buf,
+                out: buses.at("busCompressible"),
+                outsc: buses.at("busCompressing"),
+                outnsc: buses.at("busNotCompressible"),
+                outreverb: buses.at("busReverb"),
+            ],syns.at("reverb"),\addBefore).onFree({"freed"+key}));
+            NodeWatcher.register(syns.at(key));
+        });
+
+
+
+
+        this.addCommand("loop_stop","i", { arg msg;
+        	var id=msg[1];
+        	var key="ouroboro"++id;
+    		if (syns.at(key).notNil,{
+    			if (syns.at(key).isRunning,{
+    				syns.at(key).set(\t_trig,1);// free current
+    			});
+    		});
+        });
+
+
+        // </ouroboro>
     }
 
     free {

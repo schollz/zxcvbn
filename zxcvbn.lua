@@ -197,13 +197,21 @@ function init2()
     params:bang()
   end
 
-
   -- setup osc
   other_norns={}
   clock_pulse=0
   osc_fun={
     keyboard=function(args)
       keyboard.code(args[1],tonumber(args[2]))
+    end,
+    recordingProgress=function(args)
+      local id=tonumber(args[1])
+      local progress=tonumber(args[2])
+      print("recordingProgress",id,progress)
+    end,
+    recordingDone=function(args)
+      local id=tonumber(args[1])
+      print("recordingDone",id)
     end,
     progress=function(args)
       tracks[params:get("track")]:set_position(tonumber(args[1]))
