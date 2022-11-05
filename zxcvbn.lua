@@ -214,7 +214,13 @@ function init2()
     loopPosition=function(args)
       local id=math.floor(tonumber(args[1]))
       local position=tonumber(args[2])
+      tracks[id].loop.playing=true
       tracks[id].loop.position=position
+      debounce_fn[id.."looping"]={10,function()
+        print("looping done")
+        tracks[id].loop.playing=false
+        tracks[id].loop.position=-1
+      end}
     end,
     recordingDone=function(args)
       local id=math.floor(tonumber(args[1]))

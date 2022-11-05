@@ -471,19 +471,6 @@ function VTerm:redraw()
   screen.level(7)
   screen.rect(7,0,128,7)
   screen.fill()
-  if tracks[params:get("track")].loop.progress>0 then 
-    screen.move(7,8)
-    screen.line(util.linlin(0,1,7,128,tracks[params:get("track")].loop.progress),8)
-    screen.stroke()
-    screen.level(0)
-    local pos=tracks[params:get("track")].loop.position
-    if pos>-1 then 
-      pos=util.linlin(0,1,7,128,pos)
-      screen.move(pos-1,8)
-      screen.line(pos+1,8)
-      screen.stroke()
-    end
-  end
   screen.level(params:get(params:get("track").."mute")==1 and 3 or 0)
   screen.move(8,6)
   screen.text(tracks[params:get("track")]:description())
@@ -495,6 +482,22 @@ function VTerm:redraw()
       screen.move(128,15+(i-1)*8)
       screen.text_right(debounce_fn[k][2]())
     end  
+  end
+
+  if tracks[params:get("track")].loop.progress>0 then 
+    local pos=tracks[params:get("track")].loop.position
+    screen.level(7)
+    screen.move(7,8)
+    screen.line(util.linlin(0,1,7,128,tracks[params:get("track")].loop.progress),8)
+    screen.stroke()
+    screen.level(0)
+    if pos>-1 then 
+      screen.level(15)
+      pos=util.linlin(0,1,7,128,pos)
+      screen.move(7,8)
+      screen.line(pos,8)
+      screen.stroke()
+    end
   end
 
 end

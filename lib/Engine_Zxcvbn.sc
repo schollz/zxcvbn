@@ -44,7 +44,8 @@ Engine_Zxcvbn : CroneEngine {
                 var pos=Phasor.ar(end:BufFrames.ir(bufnum));
 				var snd=BufRd.ar(ch,bufnum,pos,1);
 				snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
-                SendReply.kr(Impulse.kr(2),"/loopPosition",[id,pos/BufFrames.ir(bufnum)]);
+				snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
+                SendReply.kr(Impulse.kr(10),"/loopPosition",[id,pos/BufFrames.ir(bufnum)]);
 	            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
 	            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
 	            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
