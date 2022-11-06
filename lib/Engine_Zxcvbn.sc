@@ -51,8 +51,8 @@ Engine_Zxcvbn : CroneEngine {
                 snd=Pan2.ar(snd,0);
                 snd=[snd[0],snd[1]];
                 snd=[
-                    LPF.ar(snd[0],LinExp.kr((pan2<0)*pan2.abs,0,1,4000,18000).poll),
-                    LPF.ar(snd[1],LinExp.kr((pan2>0)*pan2.abs,0,1,4000,18000).poll)
+                    LPF.ar(snd[0],LinExp.kr((pan2<0)*pan2.abs,0,1,6000,18000)),
+                    LPF.ar(snd[1],LinExp.kr((pan2>0)*pan2.abs,0,1,6000,18000))
                 ];
                 snd[0]=SelectX.ar(((pan>0)*pan.abs),[snd[0],DelayN.ar(snd[0],0.04,0.04)]);
                 snd[1]=SelectX.ar(((pan<0)*pan.abs),[snd[1],DelayN.ar(snd[1],0.04,0.04)]);
@@ -1522,9 +1522,6 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             });
         });
 
-
-
-
         this.addCommand("loop_stop","i", { arg msg;
         	var id=msg[1];
         	var key="ouroboro"++id.asString;
@@ -1534,6 +1531,33 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
     			});
     		});
         });
+
+       
+        this.addCommand("loop_save","is", { arg msg;
+        	var id=msg[1];
+        	var path=msg[2];
+        	var key="ouroboro"++id.asString;
+        	var filename=path++id.asString++".wav";
+            if (bufs.at(key).notNil,{
+            	bufs.at(key).write(filename,"wav");
+            });
+        });
+       
+        this.addCommand("loop_load","is", { arg msg;
+        	var id=msg[1];
+        	var path=msg[2];
+        	var key="ouroboro"++id.asString;
+        	var filename=path++id.asString++".wav";
+        	if (File.exists(filename),{
+        		["loading: ",filename].postln;
+        		Buffer.read(context.server,filename,action:{
+        			arg buf;
+        			bufs.put(key,buf);
+					NetAddr("127.0.0.1", 10111).sendMsg("recordingDone",id,id);
+        		});
+        	});
+        });
+
 
 
         // </ouroboro>

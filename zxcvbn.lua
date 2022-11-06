@@ -95,6 +95,7 @@ function init2()
   -- make the default pages
   os.execute("mkdir -p ".._path.data.."zxcvbn/meta")
   os.execute("mkdir -p ".._path.data.."zxcvbn/pages")
+  os.execute("mkdir -p ".._path.data.."zxcvbn/tapes")
   for i=1,10 do
     if not util.file_exists(_path.data.."zxcvbn/pages/"..i) then
       os.execute("touch ".._path.data.."zxcvbn/pages/"..i)
@@ -166,6 +167,20 @@ function init2()
   params_kick()
   params_midi()
 
+  local charset={} do -- [0-9a-zA-Z]
+    for c=48,57 do table.insert(charset,string.char(c)) end
+    for c=65,90 do table.insert(charset,string.char(c)) end
+    for c=97,122 do table.insert(charset,string.char(c)) end
+  end
+
+  random_string=function (length)
+    if not length or length<=0 then return '' end
+    math.randomseed(os.clock()^5)
+    return random_string(length-1)..charset[math.random(1,#charset)]
+  end
+  params:add_text("random_string","random_string",random_string(8))
+  params:hide("random_string")
+
   -- setup tracks
   params:add_number("track","track",1,9,1)
   params:set_action("track",function(x)
@@ -222,7 +237,8 @@ function init2()
     recordingDone=function(args)
       local id=math.floor(tonumber(args[1]))
       print("recordingDone",id)
-      params:set(id.."mute",1)  
+      tracks[id].loop.pos_rec=100
+      params:set(id.."mute",1)
     end,
     progress=function(args)
       tracks[params:get("track")]:set_position(tonumber(args[1]))
@@ -337,16 +353,13 @@ function init2()
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
 
-  crow.output[2].action="{to(0,0)}"
-  crow.output[4].action="{to(0,0)}"
-
--- Am F
+  -- Am F
   tracks[1]:load_text([[
-a1 pm
+a1 ph
 f1
 ]])
 
-tracks[2]:load_text([[
+  tracks[2]:load_text([[
 c4 pm
 a3
   ]])
@@ -356,16 +369,16 @@ a1 pm
 f1
         ]])
 
-tracks[4]:load_text([[
+  tracks[4]:load_text([[
 e3 d2 pm
 c2
     ]])
-                    
-for i=1,5 do
+
+  for i=1,5 do
     params:set(i.."track_type",7)
     params:set(i.."crow_type",2)
-    tracks[i]:loop_record()
   end
+  params:set("track",1)
   params:set("1play",1)
 end
 

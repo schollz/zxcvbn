@@ -534,6 +534,7 @@ function Track:dumps()
     end
   end
   data.state=self.state
+  engine.loop_save(self.id,_path.data.."zxcvbn/tapes/"..params:get("random_string").."_")
   return json.encode(data)
 end
 
@@ -550,6 +551,7 @@ function Track:loads(s)
       end
     end
   end
+  engine.loop_load(self.id,_path.data.."zxcvbn/tapes/"..params:get("random_string").."_")
   self.state=data.state
 end
 
@@ -628,21 +630,21 @@ function Track:emit(beat)
   if self.tli~=nil and self.track~=nil and self.tli.pulses>0 then
     local i=(beat-1)%self.tli.pulses+1
     if i==1 then
-      if self.loop.arm_play then 
-        self.loop.arm_play=false 
-        self:loop_toggle(true)   
+      if self.loop.arm_play then
+        self.loop.arm_play=false
+        self:loop_toggle(true)
       elseif self.loop.arm_rec then
         print("dearming rec")
         self.loop.arm_rec=false
-        if self.tli~=nil and self.tli.pulses~=nil then 
+        if self.tli~=nil and self.tli.pulses~=nil then
           local duration=self.tli.pulses/24.0*clock.get_beat_sec()
           local crossfade=duration>0.5 and 0.5 or duration/2
           print("recording "..self.tli.pulses.." pulses ".." for "..duration.." seconds")
           engine.loop_record(self.id,duration,crossfade,2)
           self.loop.arm_play=true
-        end     
+        end
       end
-    end  
+    end
     local t=self.track[i]
     if t==nil then
       do return end
@@ -737,12 +739,12 @@ function Track:loop_record()
 end
 
 function Track:loop_toggle(on)
-  if self.loop.pos_rec<0 then 
-    do return end 
+  if self.loop.pos_rec<0 then
+    do return end
   end
-  on=on or self.loop.pos_play<0 
+  on=on or self.loop.pos_play<0
   print(string.format("track %d: loop toggle %s",self.id,on and "on" or "off"))
-  if on then 
+  if on then
     engine.loop_start(self.id)
   else
     engine.loop_stop(self.id)
