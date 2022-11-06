@@ -36,36 +36,37 @@ Engine_Zxcvbn : CroneEngine {
         context.server.sync;
 
         // looper
-        SynthDef("defLoop1",{
-            arg id,bufnum,t_trig,frames;
-            var pos=Phasor.ar(end:frames);
-            var snd=BufRd.ar(1,bufnum,pos,1);
-            var lfo_pan=SinOsc.kr(1/Rand(10,30)).range(-0.7,0.7);
-            var lfo_amp=SinOsc.kr(1/Rand(10,30)).range(0.2,0.8);
-            snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
-            snd=Pan2.ar(snd,lfo_pan,lfo_amp);
-            snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
-            SendReply.kr(Impulse.kr(10),"/loopPosition",[id,pos/frames]);
-            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
-            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
-        }).add;
-        SynthDef("defLoop2",{
-            arg id,bufnum,t_trig,frames;
-            var pos=Phasor.ar(end:frames);
-            var snd=BufRd.ar(2,bufnum,pos,1);
-            var lfo_pan=SinOsc.kr(1/Rand(10,30)).range(-0.7,0.7);
-            var lfo_amp=SinOsc.kr(1/Rand(10,30)).range(0.2,0.8);
-            snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
-            snd=Balance2.ar(snd[0],snd[1],lfo_pan,lfo_amp);
-            snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
-            SendReply.kr(Impulse.kr(10),"/loopPosition",[id,pos/frames]);
-            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
-            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
-        }).add;
+        2.do({
+            arg n;
+            var ch=n+1;
+            SynthDef("defLoop"++ch,{
+                arg id,bufnum,t_trig,frames;
+                var pos=Phasor.ar(end:frames);
+                var snd=BufRd.ar(ch,bufnum,pos,1);
+                var pan=SinOsc.kr(1/Rand(5,40),Rand(0,6))/1.5;
+                var pan2=SinOsc.kr(1/Rand(5,40),Rand(0,6))/1.5;
+                var pan3=SinOsc.kr(1/Rand(5,40),Rand(0,6))/1.5;
+                var amp=SinOsc.kr(1/Rand(5,40),Rand(0,6)).range(0.25,0.75);
+                snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
+                snd=Pan2.ar(snd,0);
+                snd=[snd[0],snd[1]];
+                snd=[
+                    LPF.ar(snd[0],LinExp.kr((pan2<0)*pan2.abs,0,1,4000,18000).poll),
+                    LPF.ar(snd[1],LinExp.kr((pan2>0)*pan2.abs,0,1,4000,18000).poll)
+                ];
+                snd[0]=SelectX.ar(((pan>0)*pan.abs),[snd[0],DelayN.ar(snd[0],0.04,0.04)]);
+                snd[1]=SelectX.ar(((pan<0)*pan.abs),[snd[1],DelayN.ar(snd[1],0.04,0.04)]);
+                snd=Balance2.ar(snd[0],snd[1],pan3,amp);
+                snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
+                SendReply.kr(Impulse.kr(10),"/loopPosition",[id,pos/frames]);
+                Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
+                Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+                Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+                Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
+            }).add;
+
+            
+        });
 
         // <mx.synths>
 		SynthDef("synthy",{
