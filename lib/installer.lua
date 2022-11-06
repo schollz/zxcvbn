@@ -34,23 +34,40 @@ function Installer:is_installed()
   end
   foo=util.os_capture(audiowaveform.." --help")
   if not string.find(foo,"Options") then
+    print("INSTALL NEEDED: libavcaudiowaveformodec")
     do return false end
   end
 
   foo=util.os_capture("aubioonset --help")
   if not string.find(foo,"-minioi") then
+    print("INSTALL NEEDED: aubioonset")
+    do return false end
+  end
+
+  local foo=util.os_capture("/sbin/ldconfig -p | grep libavcodec")
+  if not string.find(foo,"libavcodec.so") then 
+    print("INSTALL NEEDED: libavcodec")
+    do return false end
+  end
+
+  local foo=util.os_capture("/sbin/ldconfig -p | grep libavformat")
+  if not string.find(foo,"libavformat.so") then 
+    print("INSTALL NEEDED: libavformat")
     do return false end
   end
 
   if not util.file_exists(_path.code.."zxcvbn/lib/aubiogo/aubiogo") then
+    print("INSTALL NEEDED: aubiogo")
     do return false end
   end
 
   if not util.file_exists(_path.code.."zxcvbn/lib/oscconnect/oscconnect") then
+    print("INSTALL NEEDED: oscconnect")
     do return false end
   end
 
   if not util.file_exists(_path.code.."zxcvbn/lib/oscnotify/oscnotify") then
+    print("INSTALL NEEDED: oscnotify")
     do return false end
   end
   self.ready_to_go=true
