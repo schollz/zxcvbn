@@ -1,9 +1,9 @@
 Ouroboro {
 	var server;
 	var synRecord;
-	var bufRecord;
-	var xfaRecord;
-	var actRecord;
+	var bu1Record;
+	var bu2Record;
+	var finRecord;
 	var fnXFader;
 	var oscRecordInfo;
 	var oscRecordDone;
@@ -37,10 +37,10 @@ Ouroboro {
 		bus=argBus;
 		syn=argSyn;
 
-		synRecord=Dictionary.new();
-		bufRecord=Dictionary.new();
-		xfaRecord=Dictionary.new();
-		actRecord=Dictionary.new();
+		synRecord=Array.newClear(11);
+		bu1Record=Array.newClear(11);
+		bu2Record=Array.newClear(11);
+		finRecord=Array.newClear(11);
 
 
 		SynthDef("defRecord0",{
@@ -53,7 +53,7 @@ Ouroboro {
 				end:28800000, // 10 minutes
 			);
 			BufWr.ar(
-				inputArray: LeakDC.ar(input)*EnvGen.ar(Env.new([0,1,1,0],[0.01,duration-0.02,0.02])),
+				inputArray: LeakDC.ar(input)*EnvGen.ar(Env.new([0,1,1,0],[0.005,duration-0.01,0.005])),
 				bufnum:bufnum,
 				phase:pos,
 			);
@@ -77,7 +77,6 @@ Ouroboro {
 			);
 			SendReply.kr(Impulse.kr(10),"/recordingProgress",[id,pos/duration/server.sampleRate]);
 			SendReply.kr(done,"/recordingProgress",[id,1.0]);
-			SendReply.kr(done,"/recordingDone",[id]);
 			FreeSelf.kr(done);
 		}).send(server);
 		SynthDef("defRecord2",{
@@ -96,7 +95,6 @@ Ouroboro {
 			);
 			SendReply.kr(Impulse.kr(10),"/recordingProgress",[id,pos/duration/server.sampleRate]);
 			SendReply.kr(done,"/recordingProgress",[id,1.0]);
-			SendReply.kr(done,"/recordingDone",[id]);
 			FreeSelf.kr(done);
 		}).send(server);
 
@@ -105,36 +103,7 @@ Ouroboro {
 			var progress=msg[4];
 			NetAddr("127.0.0.1", 10111).sendMsg("recordingProgress",id,progress);
 		}, '/recordingProgress');
-		oscRecordDone = OSCFunc({ |msg|
-			var id=msg[3].asInteger;
-			var buf1=id.asString++"_1";
-			var buf2=id.asString++"_2";
-			["ouroboro: recording done",id].postln;
-			if (bufRecord.at(buf1).notNil,{
-				bufRecord.at(buf1).write("/home/we/dust/buf1.aiff");
-				xfaRecord.at(id).postln;
-				if (xfaRecord.at(id)>0.0,{
-					var crossfadeFrames=(xfaRecord.at(id)*server.sampleRate).round.asInteger;
-					var frameOffset=0;
-					["ouroboro: ",id,"xfading :",crossfadeFrames/server.sampleRate,"seconds"].postln;
-					fnXFader.value(bufRecord.at(buf1),crossfadeFrames,-2,0,{ arg buf;
-						["ouroboro: xfaded",buf].postln;
-						if (bufRecord.at(buf2).notNil,{
-							bufRecord.at(buf2).free;
-						});
-						bufRecord.put(buf2,buf);
-						buf.write("/home/we/dust/buf2.aiff");
-						actRecord.at(id).(buf);
-					});
-				},{
-					actRecord.at(id).(bufRecord.at(id));
-				});
-				["osc: sending recordingDone",id].postln;
-				NetAddr("127.0.0.1", 10111).sendMsg("recordingDone",id,id);
-			},{
-				"id empty?".postln;
-			});
-		}, '/recordingDone');
+
 
 		// https://fredrikolofsson.com/f0blog/buffer-xfader/
 		fnXFader ={|inBuffer, frames= 2, curve= -2, rotation=0, action|
@@ -170,15 +139,12 @@ Ouroboro {
 
 	stop {
 		arg id;
-		var buf1=id.asString++"_1";
-		if (synRecord.at(id).notNil,{
-			if (synRecord.at(id).isRunning,{
-				synRecord.at(id).free;
+		finRecord[id]=true;
+		if (synRecord[id].notNil,{
+			if (synRecord[id].isRunning,{
+				synRecord[id].free;
 			});
-			synRecord.put(id,nil);
-		});
-		if (bufRecord.at(buf1).notNil,{
-			bufRecord.at(buf1).free;
+			synRecord[id]=nil;
 		});
 	}
 
@@ -189,40 +155,73 @@ Ouroboro {
 		// 1 = right (record type 0)
 		// 2 = stereo input (record type 1)
 		// 3 = stereo bus (record type 2)
-		var id=argID;
+		var id=argID.floor.asInteger;
 		var frames=(server.sampleRate*(argSeconds+argCrossfade)).round.asInteger.postln;
 		var defRecordType=(argChannel>1).asInteger;
 		var stereo=(argChannel>1).asInteger;
-		var buf1=id.asString++"_1";
-		if (bufRecord.at(buf1).notNil,{
-			bufRecord.at(buf1).free;
-		});
 		if (argChannel>2,{
 			defRecordType=2;
 		});
-		actRecord.put(id,action2);
-		xfaRecord.put(id,argCrossfade);
-		bufRecord.put(buf1,Buffer.new(server, frames, stereo+1));
-		server.sendBundle(nil,bufRecord.at(buf1).allocMsg);
-		["ouroboro: recording","defRecord"++defRecordType,bufRecord.at(buf1).duration,"seconds"].postln;
+		finRecord[id]=false;
+		if (bu1Record[id].notNil,{
+			bu1Record[id].free;
+		});
+		bu1Record[id]=Buffer.new(server, frames, stereo+1);
+		server.sendBundle(nil,bu1Record[id].allocMsg);
+		["ouroboro: recording",id,"defRecord"++defRecordType,argSeconds+argCrossfade,"seconds"].postln;
 		// start the recording
-		synRecord.put(id,Synth.new("defRecord"++defRecordType,
-			[\id,id,\bufnum,bufRecord.at(buf1),\duration,bufRecord.at(buf1).duration,\ch,argChannel,\busin,bus],
+		synRecord[id]=Synth.new("defRecord"++defRecordType,
+			[\id,id,\bufnum,bu1Record[id],\duration,argSeconds+argCrossfade,\ch,argChannel,\busin,bus],
 			syn,\addBefore,
-		));
-		NodeWatcher.register(synRecord.at(id));
-		action1.(bufRecord.at(buf1));
+		).onFree({
+			["ouroboro: recording done",id].postln;
+			if (finRecord[id],{},{
+				finRecord[id]=true;
+				if (bu1Record[id].notNil,{
+					["id found:",id].postln;
+					bu1Record[id].write("/home/we/dust/buf1.aiff");
+					if (argCrossfade>0,{
+						var crossfadeFrames=(argCrossfade*server.sampleRate).round.asInteger;
+						var frameOffset=0;
+						["ouroboro: ",id,"xfading :",crossfadeFrames/server.sampleRate,"seconds"].postln;
+						fnXFader.value(bu1Record[id],crossfadeFrames,-2,0,{ arg buf;
+							["ouroboro: xfaded",buf].postln;
+							if (bu2Record[id].notNil,{
+								bu2Record[id].free;
+								bu2Record[id]=nil;
+							});
+							bu2Record[id]=buf;
+							bu2Record[id].write("/home/we/dust/buf2.aiff");
+							action2.(buf);
+						});
+					},{
+						action2.(bu1Record[id]);
+					});
+					["osc: sending recordingDone",id].postln;
+					NetAddr("127.0.0.1", 10111).sendMsg("recordingDone",id,id);
+				},{
+					["id empty:",id].postln;
+				});
+			});
+		});
+		NodeWatcher.register(synRecord[id]);
+		action1.(bu1Record[id]);
 	}
 
 
 	free {
-		synRecord.keysValuesDo({ arg note, val;
-			val.free;
+		synRecord.do({ arg v,i;
+			v.free;
 		});
-		bufRecord.keysValuesDo({ arg note, val;
-			val.free;
+		bu1Record.do({ arg v,i;
+			v.free;
+		});
+		bu2Record.do({ arg v,i;
+			v.free;
 		});
 		oscRecordInfo.free;
 		oscRecordDone.free;
+		syn.free;
+		bus.free;
 	}
 }

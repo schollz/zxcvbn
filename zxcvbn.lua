@@ -101,7 +101,7 @@ function init2()
       os.execute("touch ".._path.data.."zxcvbn/pages/"..i)
     end
   end
-  os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
+  -- os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
   os.execute(_path.code.."zxcvbn/lib/oscconnect/run.sh &")
 
   -- choose audiowaveform binary
@@ -355,34 +355,44 @@ function init2()
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
 
-  -- Am F
-  tracks[1]:load_text([[
-0 1 2 3
-]])
+--   -- Am F
+--   tracks[1]:load_text([[
+-- 0 1 2 3
+-- ]])
 
-  tracks[2]:load_text([[
-c4 pm
-a3
-  ]])
+--   tracks[2]:load_text([[
+-- c4 pm
+-- a3
+--   ]])
 
-  tracks[3]:load_text([[
-a1 pm
-f1
-        ]])
+--   tracks[3]:load_text([[
+-- a1 pm
+-- f1
+--         ]])
 
-  tracks[4]:load_text([[
-e3 d2 pm
-c2
-    ]])
+--   tracks[4]:load_text([[
+-- e3 d2 pm
+-- c2
+--     ]])
 
-  params:set("1track_type",6)
-  -- params:set("1sample_file",_path.audio.."mx.samples/alto_sax_choir/52.1.1.1.0.wav")
-  -- for i=1,5 do
-  --   params:set(i.."track_type",7)
-  --   params:set(i.."crow_type",2)
-  -- end
-  -- params:set("track",1)
-  -- params:set("1play",1)
+--   params:set("1track_type",6)
+--   -- params:set("1sample_file",_path.audio.."mx.samples/alto_sax_choir/52.1.1.1.0.wav")
+--   -- for i=1,5 do
+--   --   params:set(i.."track_type",7)
+--   --   params:set(i.."crow_type",2)
+--   -- end
+--   params:set("track",1)
+--   params:set("1play",1)
+--   clock.run(function() 
+--     clock.sleep(0.5)
+--     params:set("1mute",0)
+--     clock.sleep(1)
+--     tracks[1]:loop_record()
+--     clock.sleep(8)
+--     params:set("1mute",0)
+--     clock.sleep(0.2)
+--     tracks[1]:loop_record()
+--   end)
 end
 
 function rerun()

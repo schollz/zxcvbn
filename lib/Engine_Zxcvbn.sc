@@ -1507,13 +1507,16 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                 arg buf;
                 // hotswap with the right version
                 ["engine: ouroboro final buffer"+buf+buf.numFrames].postln;
-                syns.at(key).postln;
                 bufs.put(key,buf);
                 if (syns.at(key).notNil,{
                     if (syns.at(key).isRunning,{
-                        ["ouroboro: hot swapping",id].postln;
+                        ["engine: hot swapping",id].postln;
                         syns.at(key).set(\bufnum,buf,\frames,buf.numFrames);
+                    },{
+                        ["engine: no running loop to hotswap",key].postln;
                     });
+                },{
+                    ["engine: no loop to hotswap",key].postln;
                 });
          });
         });
@@ -1527,8 +1530,8 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                     syns.at(key).set(\t_trig,1);// free current
                 });
             });
-            ["loop starting",key].postln;
             if (bufs.at(key).notNil,{
+                ["engine: loop starting",key].postln;
                 syns.put(key,Synth.new("defLoop"++bufs.at(key).numChannels,[
                     id:id,
                     frames: bufs.at(key).numFrames,
@@ -1539,6 +1542,8 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                     outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
                 ],syns.at("reverb"),\addBefore).onFree({"freed"+key}));
                 NodeWatcher.register(syns.at(key));
+            },{
+                ["engine: loop not started, no buf",key].postln;
             });
         });
 

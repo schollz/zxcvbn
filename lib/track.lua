@@ -633,17 +633,18 @@ function Track:emit(beat)
     local i=(beat-1)%self.tli.pulses+1
     if i==1 then
       if self.loop.arm_play then
+        print("track: disarming play")
         self.loop.arm_play=false
         engine.loop_start(self.id)
       elseif self.loop.arm_rec then
-        print("dearming rec")
+        print("track: disarming rec")
         self.loop.arm_rec=false
         if self.tli~=nil and self.tli.pulses~=nil then
           local duration=self.tli.pulses/24.0*clock.get_beat_sec()
-          local crossfade=duration>0.5 and 0.5 or duration/2
+          local crossfade=duration>0.1 and 0.1 or duration/2
           print("recording "..self.tli.pulses.." pulses ".." for "..duration.." seconds")
           engine.loop_record(self.id,duration,crossfade,params:get(self.id.."track_type")<TYPE_CROW and 3 or 2)
-          self:loop_toggle(true)
+          self.loop.arm_play=true
           self.loop.send_tape=1
         end
       end
