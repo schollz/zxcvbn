@@ -181,11 +181,6 @@ function Track:init()
       end
       self.loop.arm_play=self.loop.pos_rec>-1
     else
-      if params:get(self.id.."crow_type")==1 then
-        -- crow.output[2](false) -- TODO WTF
-      elseif params:get(self.id.."crow_type")==2 then
-        -- crow.output[4](false)
-      end
       self:loop_toggle(false)
     end
   end}
@@ -774,20 +769,6 @@ function Track:keyboard(k,v)
         softcut.phase_quant(params:get(self.id.."sc"),0.1)
         softcut.phase_quant(params:get(self.id.."sc")+3,0.1)
       end
-    end
-    do return end
-  elseif k=="CTRL+L" then
-    if v==1 then
-      if self.loop.pos_rec<0 then 
-        self:loop_record()
-      else
-        self:loop_toggle()
-      end
-    end
-    do return end
-  elseif k=="CTRL+R" then
-    if v==1 then
-      self:loop_record()
     end
     do return end
   elseif k=="CTRL+M" then
