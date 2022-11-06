@@ -101,7 +101,7 @@ function init2()
       os.execute("touch ".._path.data.."zxcvbn/pages/"..i)
     end
   end
-  -- os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
+  os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
   os.execute(_path.code.."zxcvbn/lib/oscconnect/run.sh &")
 
   -- choose audiowaveform binary
@@ -570,7 +570,8 @@ function params_kick()
 end
 
 function params_meta()
-  params:add_group("META",4)
+  params:add_group("META",5)
+  params:add_option("ambisonics","loop ambisonics",{"no","yes"},1)
   params:add_option("load_default","load default on startup",{"n/a","no","yes"},1)
   params:set_action("load_default",function(x)
     if x==2 then

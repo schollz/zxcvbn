@@ -38,7 +38,7 @@ Engine_Zxcvbn : CroneEngine {
         2.do({
             arg n;
             var ch=n+1;
-            SynthDef("defLoop"++ch,{
+            SynthDef("defLoop0"++ch,{
                 arg id,bufnum,t_trig,frames;
                 var pos=Phasor.ar(end:frames);
                 var snd=BufRd.ar(ch,bufnum,pos,1);
@@ -65,8 +65,38 @@ Engine_Zxcvbn : CroneEngine {
                 Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
                 Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
             }).add;
+        });
+        // "ambisonic" version
+        2.do({
+            arg n;
+            var ch=n+1;
+            SynthDef("defLoop1"++ch,{
+                arg id,bufnum,t_trig,frames;
+                var pos=Phasor.ar(end:frames);
+                var snd=BufRd.ar(ch,bufnum,pos,1);
+                var pan=SinOsc.kr(1/Rand(5,40),Rand(0,6))*0.8;
+                var pan2=SinOsc.kr(1/Rand(5,40),Rand(0,6))*0.8;
+                var pan3=SinOsc.kr(1/Rand(5,40),Rand(0,6))*0.8;
+                var amp=SinOsc.kr(1/Rand(5,40),Rand(0,6)).range(0.25,1.1);
+                snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
+                snd=Pan2.ar(snd,0);
+                snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
 
-            
+                snd=[snd[0],snd[1]];
+                snd=[
+                    LPF.ar(snd[0],LinExp.kr((pan2<0)*pan2.abs,0,1,6000,18000)),
+                    LPF.ar(snd[1],LinExp.kr((pan2>0)*pan2.abs,0,1,6000,18000))
+                ];
+                snd[0]=SelectX.ar(((pan>0)*pan.abs),[snd[0],DelayN.ar(snd[0],0.03,0.03)]);
+                snd[1]=SelectX.ar(((pan<0)*pan.abs),[snd[1],DelayN.ar(snd[1],0.03,0.03)]);
+                snd=Balance2.ar(snd[0],snd[1],pan3,amp);
+
+                SendReply.kr(Impulse.kr(10),"/loopPosition",[id,pos/frames]);
+                Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
+                Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+                Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+                Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            }).add;
         });
 
         // <mx.synths>
@@ -1522,8 +1552,9 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
         });
 
 
-        this.addCommand("loop_start","i", { arg msg;
+        this.addCommand("loop_start","if", { arg msg;
             var id=msg[1];
+            var ambisonics=(msg[2]>0).asInteger;
             var key="ouroboro"++id.asString;
             if (syns.at(key).notNil,{
                 if (syns.at(key).isRunning,{
@@ -1532,7 +1563,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             });
             if (bufs.at(key).notNil,{
                 ["engine: loop starting",key].postln;
-                syns.put(key,Synth.new("defLoop"++bufs.at(key).numChannels,[
+                syns.put(key,Synth.new("defLoop"++ambisonics++bufs.at(key).numChannels,[
                     id:id,
                     frames: bufs.at(key).numFrames,
                     bufnum: bufs.at(key),

@@ -635,7 +635,7 @@ function Track:emit(beat)
       if self.loop.arm_play then
         print("track: disarming play")
         self.loop.arm_play=false
-        engine.loop_start(self.id)
+        engine.loop_start(self.id,params:get("ambisonics")-1)
       elseif self.loop.arm_rec then
         print("track: disarming rec")
         self.loop.arm_rec=false
