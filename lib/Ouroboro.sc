@@ -7,6 +7,7 @@ Ouroboro {
 	var fnXFader;
 	var oscRecordInfo;
 	var oscRecordDone;
+	var bus;
 
 
 /*	(
@@ -25,13 +26,14 @@ Ouroboro {
 	)*/
 
 	*new {
-		arg argServer;
-		^super.new.init(argServer);
+		arg argServer,argBus;
+		^super.new.init(argServer,argBus);
 	}
 
 	init {
-		arg argServer;
+		arg argServer,argBus;
 		server=argServer;
+		bus=argBus;
 
 		synRecord=Dictionary.new();
 		bufRecord=Dictionary.new();
@@ -60,6 +62,25 @@ Ouroboro {
 		SynthDef("defRecord1",{
 			arg id, bufnum,duration;
 			var input=SoundIn.ar([0,1]);
+			var done=TDelay.kr(Impulse.kr(0),duration);
+			var pos=Phasor.ar(
+				rate:1,
+				start:0,
+				end:28800000, // 10 minutes
+			);
+			BufWr.ar(
+				inputArray: input*EnvGen.ar(Env.new([0,1,1,0],[0.005,duration-0.01,0.005])),
+				bufnum:bufnum,
+				phase:pos,
+			);
+			SendReply.kr(Impulse.kr(10),"/recordingProgress",[id,pos/duration/server.sampleRate]);
+			SendReply.kr(done,"/recordingProgress",[id,1.0]);
+			SendReply.kr(done,"/recordingDone",[id]);
+			FreeSelf.kr(done);
+		}).send(server);
+		SynthDef("defRecord2",{
+			arg id, bufnum,duration,busin;
+			var input=In.ar(busin,2);
 			var done=TDelay.kr(Impulse.kr(0),duration);
 			var pos=Phasor.ar(
 				rate:1,
@@ -160,12 +181,21 @@ Ouroboro {
 
 	record {
 		arg argID,argSeconds, argCrossfade, argChannel, action1, action2;
+		// argChannel 
+		// 0 = left (record type 0)
+		// 1 = right (record type 0)
+		// 2 = stereo input (record type 1)
+		// 3 = stereo bus (record type 2)
 		var id=argID;
 		var frames=(server.sampleRate*(argSeconds+argCrossfade)).round.asInteger.postln;
+		var defRecordType=(argChannel>1).asInteger;
 		var stereo=(argChannel>1).asInteger;
 		var buf1=id.asString++"_1";
 		if (bufRecord.at(buf1).notNil,{
 			bufRecord.at(buf1).free;
+		});
+		if (argChannel>2,{
+			defRecordType=2;
 		});
 		actRecord.put(id,action2);
 		xfaRecord.put(id,argCrossfade);
@@ -173,8 +203,8 @@ Ouroboro {
 		server.sendBundle(nil,bufRecord.at(buf1).allocMsg);
 		["ouroboro: buffer ready",bufRecord.at(buf1).duration,"seconds"].postln;
 		// start the recording
-		synRecord.put(id,Synth.new("defRecord"++stereo,
-			[\id,id,\bufnum,bufRecord.at(buf1),\duration,bufRecord.at(buf1).duration,\ch,argChannel]
+		synRecord.put(id,Synth.new("defRecord"++defRecordType,
+			[\id,id,\bufnum,bufRecord.at(buf1),\duration,bufRecord.at(buf1).duration,\ch,argChannel,\busin,bus]
 		));
 		NodeWatcher.register(synRecord.at(id));
 		action1.(bufRecord.at(buf1));
