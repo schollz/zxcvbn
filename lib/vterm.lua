@@ -312,7 +312,7 @@ function VTerm:keyboard(k,v)
     end
   elseif k=="CTRL+T" or k=="CTRL+L" then
     if v==1 then
-      if self.loop.pos_rec<0 then
+      if tracks[self.id].loop.pos_rec<0 then
         tracks[self.id]:loop_record()
       else
         tracks[self.id]:loop_toggle()
@@ -514,6 +514,11 @@ function VTerm:redraw()
     end
   elseif tracks[params:get("track")].loop.arm_rec then
     screen.level(self.cursor.blink%2==1 and 3 or 0)
+    screen.move(7,64)
+    screen.line(128,64)
+    screen.stroke()
+  elseif tracks[params:get("track")].loop.arm_play then
+    screen.level(self.cursor.blink%2==1 and 15 or 3)
     screen.move(7,64)
     screen.line(128,64)
     screen.stroke()

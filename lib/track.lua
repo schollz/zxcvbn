@@ -179,7 +179,7 @@ function Track:init()
       if play_count==1 then
         reset_clocks()
       end
-      self.loop.arm_play=self.loop.pos_rec>-1
+      self:loop_toggle(true)
     else
       self:loop_toggle(false)
     end
@@ -634,7 +634,7 @@ function Track:emit(beat)
     if i==1 then
       if self.loop.arm_play then
         self.loop.arm_play=false
-        self:loop_toggle(true)
+        engine.loop_start(self.id)
       elseif self.loop.arm_rec then
         print("dearming rec")
         self.loop.arm_rec=false
@@ -643,7 +643,7 @@ function Track:emit(beat)
           local crossfade=duration>0.5 and 0.5 or duration/2
           print("recording "..self.tli.pulses.." pulses ".." for "..duration.." seconds")
           engine.loop_record(self.id,duration,crossfade,params:get(self.id.."track_type")<TYPE_CROW and 3 or 2)
-          self.loop.arm_play=true
+          self:loop_toggle(true)
           self.loop.send_tape=1
         end
       end
@@ -748,7 +748,9 @@ function Track:loop_toggle(on)
   on=on or self.loop.pos_play<0
   print(string.format("track %d: loop toggle %s",self.id,on and "on" or "off"))
   if on then
-    engine.loop_start(self.id)
+    if self.loop.pos_rec>-1 then
+      self.loop.arm_play=true
+    end
   else
     engine.loop_stop(self.id)
   end
