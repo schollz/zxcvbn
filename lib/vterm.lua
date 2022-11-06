@@ -310,7 +310,7 @@ function VTerm:keyboard(k,v)
     if v>0 then
       self:move_cursor(-1,0)
     end
-  elseif k=="CTRL+T" then
+  elseif k=="CTRL+T" or k=="CTRL+L" then
     if v==1 then
       if self.loop.pos_rec<0 then
         tracks[self.id]:loop_record()

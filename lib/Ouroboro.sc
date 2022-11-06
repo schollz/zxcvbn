@@ -8,6 +8,7 @@ Ouroboro {
 	var oscRecordInfo;
 	var oscRecordDone;
 	var bus;
+	var syn;
 
 
 /*	(
@@ -26,14 +27,15 @@ Ouroboro {
 	)*/
 
 	*new {
-		arg argServer,argBus;
-		^super.new.init(argServer,argBus);
+		arg argServer,argBus,argSyn;
+		^super.new.init(argServer,argBus,argSyn);
 	}
 
 	init {
-		arg argServer,argBus;
+		arg argServer,argBus,argSyn;
 		server=argServer;
 		bus=argBus;
+		syn=argSyn;
 
 		synRecord=Dictionary.new();
 		bufRecord=Dictionary.new();
@@ -51,7 +53,7 @@ Ouroboro {
 				end:28800000, // 10 minutes
 			);
 			BufWr.ar(
-				inputArray: input*EnvGen.ar(Env.new([0,1,1,0],[0.01,duration-0.02,0.02])),
+				inputArray: LeakDC.ar(input)*EnvGen.ar(Env.new([0,1,1,0],[0.01,duration-0.02,0.02])),
 				bufnum:bufnum,
 				phase:pos,
 			);
@@ -69,7 +71,7 @@ Ouroboro {
 				end:28800000, // 10 minutes
 			);
 			BufWr.ar(
-				inputArray: input*EnvGen.ar(Env.new([0,1,1,0],[0.005,duration-0.01,0.005])),
+				inputArray: LeakDC.ar(input)*EnvGen.ar(Env.new([0,1,1,0],[0.005,duration-0.01,0.005])),
 				bufnum:bufnum,
 				phase:pos,
 			);
@@ -88,7 +90,7 @@ Ouroboro {
 				end:28800000, // 10 minutes
 			);
 			BufWr.ar(
-				inputArray: input*EnvGen.ar(Env.new([0,1,1,0],[0.005,duration-0.01,0.005])),
+				inputArray: LeakDC.ar(input)*EnvGen.ar(Env.new([0,1,1,0],[0.005,duration-0.01,0.005])),
 				bufnum:bufnum,
 				phase:pos,
 			);
@@ -127,10 +129,11 @@ Ouroboro {
 				},{
 					actRecord.at(id).(bufRecord.at(id));
 				});
+				["osc: sending recordingDone",id].postln;
+				NetAddr("127.0.0.1", 10111).sendMsg("recordingDone",id,id);
 			},{
 				"id empty?".postln;
 			});
-			NetAddr("127.0.0.1", 10111).sendMsg("recordingDone",id,id);
 		}, '/recordingDone');
 
 		// https://fredrikolofsson.com/f0blog/buffer-xfader/
@@ -201,10 +204,11 @@ Ouroboro {
 		xfaRecord.put(id,argCrossfade);
 		bufRecord.put(buf1,Buffer.new(server, frames, stereo+1));
 		server.sendBundle(nil,bufRecord.at(buf1).allocMsg);
-		["ouroboro: buffer ready",bufRecord.at(buf1).duration,"seconds"].postln;
+		["ouroboro: recording","defRecord"++defRecordType,bufRecord.at(buf1).duration,"seconds"].postln;
 		// start the recording
 		synRecord.put(id,Synth.new("defRecord"++defRecordType,
-			[\id,id,\bufnum,bufRecord.at(buf1),\duration,bufRecord.at(buf1).duration,\ch,argChannel,\busin,bus]
+			[\id,id,\bufnum,bufRecord.at(buf1),\duration,bufRecord.at(buf1).duration,\ch,argChannel,\busin,bus],
+			syn,\addBefore,
 		));
 		NodeWatcher.register(synRecord.at(id));
 		action1.(bufRecord.at(buf1));

@@ -180,6 +180,7 @@ function init2()
   end
   params:add_text("random_string","random_string",random_string(8))
   params:hide("random_string")
+  print("RANDOM STRING",params:string("random_string"))
 
   -- setup tracks
   params:add_number("track","track",1,9,1)
@@ -238,6 +239,7 @@ function init2()
       local id=math.floor(tonumber(args[1]))
       print("recordingDone",id)
       tracks[id].loop.pos_rec=100
+      tracks[id].loop.send_tape=0
       params:set(id.."mute",1)
     end,
     progress=function(args)
@@ -355,8 +357,7 @@ function init2()
 
   -- Am F
   tracks[1]:load_text([[
-a1 ph
-f1
+0 1 2 3
 ]])
 
   tracks[2]:load_text([[
@@ -374,12 +375,14 @@ e3 d2 pm
 c2
     ]])
 
-  for i=1,5 do
-    params:set(i.."track_type",7)
-    params:set(i.."crow_type",2)
-  end
-  params:set("track",1)
-  params:set("1play",1)
+  params:set("1track_type",6)
+  -- params:set("1sample_file",_path.audio.."mx.samples/alto_sax_choir/52.1.1.1.0.wav")
+  -- for i=1,5 do
+  --   params:set(i.."track_type",7)
+  --   params:set(i.."crow_type",2)
+  -- end
+  -- params:set("track",1)
+  -- params:set("1play",1)
 end
 
 function rerun()

@@ -44,7 +44,7 @@ end
 function Track:init()
   self.lfos={}
 
-  self.loop={pos_play=-1,pos_rec=-1,arm_play=false,arm_rec=false}
+  self.loop={pos_play=-1,pos_rec=-1,arm_play=false,arm_rec=false,send_tape=0}
 
   self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
@@ -305,6 +305,7 @@ self.play_fn[TYPE_DRUM]={
       retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
       pitch=params:get(self.id.."pitch"),
       gate=params:get(self.id.."gate")/100,
+      send_tape=self.loop.send_tape,
     }
   end,
 }
@@ -324,6 +325,7 @@ self.play_fn[TYPE_MELODIC]={
       retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
       watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
       gate=params:get(self.id.."gate")/100,
+      send_tape=self.loop.send_tape,
     }
   end,
 }
@@ -350,7 +352,7 @@ self.play_fn[TYPE_MXSAMPLES]={
     local sendCompressible=0
     local sendCompressing=0
     local sendReverb=params:get(self.id.."send_reverb")
-    engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
+    engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,self.loop.send_tape)
   end,
 }
 -- mx.synths
@@ -365,7 +367,7 @@ self.play_fn[TYPE_MXSYNTHS]={
     local duration=d.duration_scaled
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
-    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id)
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape)
   end,
 }
 -- infinite pad
@@ -378,7 +380,7 @@ self.play_fn[TYPE_INFINITEPAD]={
       params:get(self.id.."release")/1000,
       d.duration_scaled,
       params:get(self.id.."swell"),params:get(self.id.."send_reverb"),
-    params:get(self.id.."pan"),params:get(self.id.."filter"))
+    params:get(self.id.."pan"),params:get(self.id.."filter"),self.loop.send_tape)
   end,
 }
 -- softsample
@@ -640,8 +642,9 @@ function Track:emit(beat)
           local duration=self.tli.pulses/24.0*clock.get_beat_sec()
           local crossfade=duration>0.5 and 0.5 or duration/2
           print("recording "..self.tli.pulses.." pulses ".." for "..duration.." seconds")
-          engine.loop_record(self.id,duration,crossfade,2)
+          engine.loop_record(self.id,duration,crossfade,params:get(self.id.."track_type")<TYPE_CROW and 3 or 2)
           self.loop.arm_play=true
+          self.loop.send_tape=1
         end
       end
     end

@@ -680,9 +680,9 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             sampleStart=sampleStart-(xfade/2);
             sampleInit=Select.kr(sampleStart<0,[sampleStart,sampleStart+sampleEnd]);
             sampleStart=Select.kr(sampleStart<0,[sampleStart,0]);
-            sampleEnd=sampleEnd.poll+(xfade/2);
+            sampleEnd=sampleEnd+(xfade/2);
             sampleEnd=Select.kr(sampleEnd>duration,[sampleEnd,duration]);
-            sampleDuration=(sampleEnd.poll-sampleStart.poll).poll/rate.abs;
+            sampleDuration=(sampleEnd-sampleStart)/rate.abs;
 
             pos=Phasor.ar(
                 trig:Impulse.kr(0),
@@ -703,7 +703,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             // envelopes
             // snd=snd*EnvGen.ar(Env.perc(attack,release),doneAction:2);
 
-            SendReply.kr(Impulse.kr(10),'/audition',[A2K.kr(pos)]);                      
+            SendReply.kr(Impulse.kr(15),'/audition',[A2K.kr(pos)]);                      
 
             Out.ar(0,snd);
         }).add; 
@@ -1005,6 +1005,8 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             in: buses.at("busReverb"), gate: 0], syns.at("main"), \addBefore));
         NodeWatcher.register(syns.at("reverb"));
         context.server.sync;
+        ouroboro=Ouroboro.new(context.server,buses.at("busTape"),syns.at("main"));
+        context.server.sync;
 
         syns.put("audioInL",Synth.new("defAudioIn",[ch:0,
             out: buses.at("busCompressible"),
@@ -1062,7 +1064,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             });
         });
 
-        this.addCommand("slice_on","ssfffffffffffffffffffff",{ arg msg;
+        this.addCommand("slice_on","ssffffffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -1086,6 +1088,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var attack=msg[21];
             var release=msg[22];
             var stretch=msg[23];
+            var sendTape=msg[24];
             var db_first=db+db_add;
             var do_stretch=0;
             if (stretch>0,{
@@ -1122,6 +1125,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                     drive: drive,
                     compression: compression,
                     send_pos: send_pos,
+                    sendtape: sendTape,
                 ], syns.at("reverb"), \addBefore));
                 if (retrig>0,{
                     Routine {
@@ -1148,6 +1152,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                                 drive: drive,
                                 compression: compression,
                                 send_pos: send_pos,
+                                sendtape: sendTape,
                             ], syns.at("reverb"), \addBefore));
                         };
                         NodeWatcher.register(syns.at(id));
@@ -1169,7 +1174,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             });            
         });
 
-        this.addCommand("melodic_on","ssffffffffffffffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssfffffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -1192,6 +1197,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var release=msg[20];
             var monophonic_release=msg[21];
             var drive=msg[22];
+            var sendTape=msg[23];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
@@ -1229,6 +1235,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                     attack: attack,
                     release: release,
                     drive: drive,
+                    sendtape: sendTape,
                 ], syns.at("reverb"), \addBefore));
                 if (retrig>0,{
                     if ((duration/ (retrig+1))>0.01, {
@@ -1257,6 +1264,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                                     attack: attack,
                                     release: release,
                                     drive: drive,
+                                    sendtape: sendTape,
                                 ], syns.at("reverb"), \addBefore));
                             };
                             NodeWatcher.register(syns.at(id));
@@ -1269,7 +1277,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
         });
 
 
-        this.addCommand("kick","ffffffffffff",{arg msg;
+        this.addCommand("kick","fffffffffffff",{arg msg;
             var basefreq=msg[1];
             var ratio=msg[2];
             var sweeptime=msg[3];
@@ -1282,6 +1290,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var compressing=msg[10];
             var compressible=msg[11];
             var send_reverb=msg[12];
+            var sendTape=msg[13];
             Synth.new("kick",[
                 basefreq: basefreq,
                 ratio: ratio,
@@ -1299,11 +1308,12 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                 compressible: compressible,
                 compressing: compressing,
                 sendreverb: send_reverb,
-            ],syns.at("main"),\addBefore).onFree({"freed!"});
+                sendtape: sendTape,
+            ],syns.at("reverb"),\addBefore).onFree({"freed!"});
         });
 
 
-        this.addCommand("note_on","fffffffff",{ arg msg;
+        this.addCommand("note_on","ffffffffff",{ arg msg;
             var note=msg[1];
             var amp=msg[2].dbamp;
             var attack=msg[3];
@@ -1313,6 +1323,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var sendreverb=msg[7];
             var pan=msg[8];
             var lpf=msg[9].midicps;
+            var sendTape=msg[10];
             1.do{ arg i;
                 var id=note.asString++"_"++i;
                 if (syns.at(id).notNil,{
@@ -1332,6 +1343,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                     sendreverb: sendreverb,
                     pan: pan,
                     lpf: lpf,
+                    sendtape: sendTape,
                 ],
                 syns.at("reverb"),\addBefore));
                 NodeWatcher.register(syns.at(id));
@@ -1391,7 +1403,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             });
         });
 
-        this.addCommand("mx","sffffffffff", { arg msg;
+        this.addCommand("mx","sfffffffffff", { arg msg;
             var folder=msg[1].asString;
             var note=msg[2];
             var velocity=msg[3];
@@ -1403,10 +1415,11 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var sendCompressible=msg[9];
             var sendCompressing=msg[10];
             var sendReverb=msg[11];
-            mx.note(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb);
+            var sendTape=msg[12];
+            mx.note(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape);
         });
 
-        this.addCommand("mx_synths","sffffffffffffffffs", { arg msg;
+        this.addCommand("mx_synths","sffffffffffffffffsf", { arg msg;
             var synth=msg[1].asString;
             var note=msg[2];
             var amp=msg[3].dbamp;
@@ -1425,6 +1438,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var lpf=msg[16].midicps;
             var monophonic_release=msg[17];
             var id=msg[18];
+            var sendTape=msg[19];
             var syn;
             if (monophonic_release>0,{
                 if (syns.at(id).notNil,{
@@ -1454,6 +1468,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                 compressing: sendCompressing,
                 sendreverb: sendReverb,
                 lpf: lpf,
+                sendtape: sendTape,
             ],syns.at("reverb"),\addBefore).onFree({"freed!"});
             if (monophonic_release>0,{
                 NodeWatcher.register(syn);
@@ -1552,10 +1567,10 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var key="ouroboro"++id.asString;
             var filename=path++id.asString++".wav";
             if (File.exists(filename),{
-                ["loading: ",filename].postln;
                 Buffer.read(context.server,filename,action:{
                     arg buf;
                     bufs.put(key,buf);
+                    ["loaded tape:",filename].postln;
                     NetAddr("127.0.0.1", 10111).sendMsg("recordingDone",id,id);
                 });
             });
