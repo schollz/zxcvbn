@@ -1172,13 +1172,17 @@
     }
 
     function keydown(event) {
-        event.preventDefault();
-        keyevent(event, true);
+        if (isElementInViewport(document.getElementById('norns_screen'))) {
+            event.preventDefault();
+            keyevent(event, true);
+        }
     }
 
     function keyup(event) {
-        event.preventDefault();
-        keyevent(event, false);
+        if (isElementInViewport(document.getElementById('norns_screen'))) {
+            event.preventDefault();
+            keyevent(event, false);
+        }
     }
     // </keyboard>
 
