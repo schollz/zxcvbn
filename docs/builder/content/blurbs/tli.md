@@ -12,7 +12,7 @@ Its best learned through examples.
 <h2 class="h2under">Example 1 (quarter notes)</h2>
 <p class="shiny">c4 d4 e4 g4</p>
 
-In this example there are four notes so each is given 1/4 of the time allotted to the line. If the line is given one measure, then each note will be a quarter note.
+You can type this out into the norns and then press *ctrl*+*s* to parse it/save it. Then to play it just do *ctrl*+*p*. In this example there are four notes so each is given 1/4 of the time allotted to the line. If the line is given one measure, then each note will be a quarter note.
 
 
 <h2 class="h2under">Example 2 (triplets)</h2>
