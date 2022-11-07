@@ -9,22 +9,24 @@ MxSamplesZ {
 	var busNotCompressible;
 	var busCompressing;
 	var busReverb;
+	var busTape;
 
 	var garbageCollector;
 
 	*new {
-		arg serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb;
-		^super.new.init(serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb);
+		arg serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape;
+		^super.new.init(serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape);
 	}
 
 	init {
-		arg serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb;
+		arg serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape;
 		server=serverName;
 		maxSamples=numberMaxSamples;
 		busCompressible=argBusCompressible;
 		busNotCompressible=argBusNotCompressible;
 		busCompressing=argBusCompressing;
 		busReverb=argBusReverb;
+		busTape=argBusTape;
 
 		ins=Dictionary.new();
 
@@ -51,11 +53,11 @@ MxSamplesZ {
 	}
 
 	note {
-		arg folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb;
+		arg folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape;
 		if (ins.at(folder).isNil,{
-			ins.put(folder,MxSamplesZInstrument(server,folder,maxSamples,busCompressible,busNotCompressible,busCompressing,busReverb));
+			ins.put(folder,MxSamplesZInstrument(server,folder,maxSamples,busCompressible,busNotCompressible,busCompressing,busReverb,busTape));
 		});
-		ins.at(folder).noteOn(note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb);
+		ins.at(folder).noteOn(note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape);
 	}
 
 	free {

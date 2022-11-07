@@ -55,7 +55,7 @@ function Archive:init()
   os.execute("mkdir -p ".._path.data.."zxcvbn/archives")
   params:add_file("load_archive","load archive",_path.data.."zxcvbn/archives/")
   params:set_action("load_archive",function(x)
-    if string.find(x,".zip") then 
+    if string.find(x,".zip") then
       _,fname,_=self.path_split(x)
       self:load_archive(fname)
       params:set("archive_info","loaded "..fname)
@@ -63,11 +63,11 @@ function Archive:init()
   end)
   params:add{type="binary",name="make archive",id="make_archive",behavior="toggle",action=function(v)
     print("make_archive",v)
-    if v==1 then 
+    if v==1 then
       params:set("archive_info","")
       params:set("load_archive",_path.data.."zxcvbn/archives/",true)
       local fname=self:make_archive()
-      if fname~=nil then 
+      if fname~=nil then
         params:set("archive_info","saved "..fname)
         params:set("make_archive",0,true)
       end
@@ -115,6 +115,8 @@ function Archive:dump(fname,pset)
     end
   end
 
+  self:package_tapes(fname)
+
   os.execute("mv "..path.." ".._path.data.."zxcvbn/archives")
 end
 
@@ -140,6 +142,16 @@ function Archive:package_psets(fname,pset)
     os.execute(string.format("cd %s && zip %s -u %s",_path.data.."zxcvbn",fname,v))
   end
   return pset_lines
+end
+
+function Archive:package_tapes(fname)
+  local cmd=string.format("cd %s && find * -name '%s*' -type f",_path.data.."zxcvbn/tapes",params:get("random_string"))
+  print(cmd)
+  local s=util.os_capture(cmd)
+  local files=self.fields(s)
+  for _,v in ipairs(files) do
+    os.execute(string.format("cd %s && zip %s -u tapes/%s",_path.data.."zxcvbn",fname,v))
+  end
 end
 
 function Archive:get_lines(fname)

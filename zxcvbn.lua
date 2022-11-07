@@ -1,4 +1,4 @@
--- zxcvbn v1.1.0
+-- zxcvbn v1.2.0
 --
 --
 -- zxcvbn.norns.online
@@ -95,6 +95,7 @@ function init2()
   -- make the default pages
   os.execute("mkdir -p ".._path.data.."zxcvbn/meta")
   os.execute("mkdir -p ".._path.data.."zxcvbn/pages")
+  os.execute("mkdir -p ".._path.data.."zxcvbn/tapes")
   for i=1,10 do
     if not util.file_exists(_path.data.."zxcvbn/pages/"..i) then
       os.execute("touch ".._path.data.."zxcvbn/pages/"..i)
@@ -166,6 +167,21 @@ function init2()
   params_kick()
   params_midi()
 
+  local charset={} do -- [0-9a-zA-Z]
+    for c=48,57 do table.insert(charset,string.char(c)) end
+    for c=65,90 do table.insert(charset,string.char(c)) end
+    for c=97,122 do table.insert(charset,string.char(c)) end
+  end
+
+  random_string=function (length)
+    if not length or length<=0 then return '' end
+    math.randomseed(os.clock()^5)
+    return random_string(length-1)..charset[math.random(1,#charset)]
+  end
+  params:add_text("random_string","random_string",random_string(8))
+  params:hide("random_string")
+  print("RANDOM STRING",params:string("random_string"))
+
   -- setup tracks
   params:add_number("track","track",1,9,1)
   params:set_action("track",function(x)
@@ -197,13 +213,34 @@ function init2()
     params:bang()
   end
 
-
   -- setup osc
   other_norns={}
   clock_pulse=0
   osc_fun={
     keyboard=function(args)
       keyboard.code(args[1],tonumber(args[2]))
+    end,
+    recordingProgress=function(args)
+      local id=math.floor(tonumber(args[1]))
+      local progress=tonumber(args[2])
+      print("recordingProgress",id,progress)
+      tracks[id].loop.pos_rec=progress
+    end,
+    loopPosition=function(args)
+      local id=math.floor(tonumber(args[1]))
+      local position=tonumber(args[2])
+      tracks[id].loop.pos_play=position
+      debounce_fn[id.."looping"]={7,function()
+        print("looping done")
+        tracks[id].loop.pos_play=-1
+      end}
+    end,
+    recordingDone=function(args)
+      local id=math.floor(tonumber(args[1]))
+      print("recordingDone",id)
+      tracks[id].loop.pos_rec=100
+      tracks[id].loop.send_tape=0
+      params:set(id.."mute",1)
     end,
     progress=function(args)
       tracks[params:get("track")]:set_position(tonumber(args[1]))
@@ -279,9 +316,9 @@ function init2()
       end
       -- norns syncing
       if next(other_norns)~=nil then
-        if (clock_pulse-1)%24==0 then
-          print("beat",(clock_pulse-1)/24)
-        end
+        -- if (clock_pulse-1)%24==0 then
+        --   print("beat",(clock_pulse-1)/24)
+        -- end
         if debounce_fn["pulsesync"]==nil and (clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo() or clock_pulse==1) then
           current_tempo=clock.get_tempo()
           for _,addr in ipairs(other_norns) do
@@ -318,6 +355,44 @@ function init2()
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
 
+--   -- Am F
+--   tracks[1]:load_text([[
+-- 0 1 2 3
+-- ]])
+
+--   tracks[2]:load_text([[
+-- c4 pm
+-- a3
+--   ]])
+
+--   tracks[3]:load_text([[
+-- a1 pm
+-- f1
+--         ]])
+
+--   tracks[4]:load_text([[
+-- e3 d2 pm
+-- c2
+--     ]])
+
+--   params:set("1track_type",6)
+--   -- params:set("1sample_file",_path.audio.."mx.samples/alto_sax_choir/52.1.1.1.0.wav")
+--   -- for i=1,5 do
+--   --   params:set(i.."track_type",7)
+--   --   params:set(i.."crow_type",2)
+--   -- end
+--   params:set("track",1)
+--   params:set("1play",1)
+--   clock.run(function() 
+--     clock.sleep(0.5)
+--     params:set("1mute",0)
+--     clock.sleep(1)
+--     tracks[1]:loop_record()
+--     clock.sleep(8)
+--     params:set("1mute",0)
+--     clock.sleep(0.2)
+--     tracks[1]:loop_record()
+--   end)
 end
 
 function rerun()
@@ -495,7 +570,8 @@ function params_kick()
 end
 
 function params_meta()
-  params:add_group("META",4)
+  params:add_group("META",5)
+  params:add_option("ambisonics","loop ambisonics",{"no","yes"},1)
   params:add_option("load_default","load default on startup",{"n/a","no","yes"},1)
   params:set_action("load_default",function(x)
     if x==2 then
@@ -540,8 +616,8 @@ function params_audioin()
       end)
     end
   end
-  params:set("audioinpanR",0.1)
-  params:set("audioinpanL",-0.1)
+  params:set("audioinpanR",1)
+  params:set("audioinpanL",-1)
 end
 
 function params_reverb()

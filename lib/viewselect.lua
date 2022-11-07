@@ -101,7 +101,7 @@ function ViewSelect:split(inputstr,sep)
 end
 
 function ViewSelect:list_folders(path)
-  local folder_string=util.os_capture("find "..path.." -maxdepth 1 -type d | tail -n +2 | sort")
+  local folder_string=util.os_capture("find "..path.." -maxdepth 1 -not -empty -type d | tail -n +2 | sort")
   local cur_path=self:split(path,"/")
   local folders={}
   for s in folder_string:gmatch("%S+") do
@@ -251,13 +251,13 @@ function ViewSelect:get_render()
     self.height=16
     local path_to_rendered=string.format("%s%s_%d_%d.png",self.path_to_pngs,self.filename,self.width,self.height)
 
+    self.ch,self.samples,self.sample_rate=audio.file_info(self.path)
+    if self.samples<10 or self.samples==nil then
+      print("ERROR PROCESSING FILE: "..path)
+      do return end
+    end
+    self.duration=self.samples/self.sample_rate
     if not util.file_exists(path_to_rendered) then
-      self.ch,self.samples,self.sample_rate=audio.file_info(self.path)
-      if self.samples<10 or self.samples==nil then
-        print("ERROR PROCESSING FILE: "..path)
-        do return end
-      end
-      self.duration=self.samples/self.sample_rate
       local view={0,self.duration}
       local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0 &",audiowaveform,self.path_to_dat,path_to_rendered,view[1],view[2],self.width,self.height)
       print(cmd)
@@ -332,13 +332,15 @@ function ViewSelect:redraw()
     if self.show==0 then
       self.is_playing=false
     end
-    local pos=util.linlin(0,self.duration,7,128,self.show_pos)
-    screen.aa(1)
-    screen.level(self.show*2+1)
-    screen.move(pos,64-self.height+1)
-    screen.line(pos,64)
-    screen.stroke()
-    screen.aa(0)
+    if self.show_pos~=nil and self.duration~=nil then
+      local pos=util.linlin(0,self.duration,7,128,self.show_pos)
+      screen.aa(1)
+      screen.level(self.show*2+1)
+      screen.move(pos,64-self.height+1)
+      screen.line(pos,64)
+      screen.stroke()
+      screen.aa(0)
+    end
   end
 
   screen.level(5)

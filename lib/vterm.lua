@@ -310,11 +310,25 @@ function VTerm:keyboard(k,v)
     if v>0 then
       self:move_cursor(-1,0)
     end
+  elseif k=="CTRL+T" or k=="CTRL+L" then
+    if v==1 then
+      if tracks[self.id].loop.pos_rec<0 then
+        tracks[self.id]:loop_record()
+      else
+        tracks[self.id]:loop_toggle()
+      end
+    end
+    do return end
+  elseif k=="CTRL+R" then
+    if v==1 then
+      tracks[self.id]:loop_record()
+    end
+    do return end
   elseif k=="CTRL+P" then
     if v==1 then
       params:set(self.id.."play",1-params:get(self.id.."play"))
     end
-  elseif k=="CTRL+R" then
+  elseif k=="CTRL+Q" then
     if v==1 then
       self:blank()
     end
@@ -411,9 +425,9 @@ function VTerm:keyboard(k,v)
 end
 
 function VTerm:enc(k,d)
-  if k==1 then   
+  if k==1 then
     params:delta(self.id.."db",d)
-    debounce_fn["1"]={15,function() return "vol: "..params:string(self.id.."db")  end}
+    debounce_fn["1"]={15,function() return "vol: "..params:string(self.id.."db") end}
   elseif k==2 then
     params:delta(self.id.."filter",d)
     debounce_fn["2"]={15,function() return "lpf: "..math.floor(musicutil.note_num_to_freq(params:get(self.id.."filter"))) end}
@@ -424,16 +438,16 @@ function VTerm:enc(k,d)
 end
 
 function VTerm:key(k,z)
-  if k==1 then 
+  if k==1 then
     self.k1=z==1
-  elseif k==2 and z==1 then 
-    if self.k1 then 
+  elseif k==2 and z==1 then
+    if self.k1 then
       params:set(self.id.."mute",1-params:get(self.id.."mute"))
     else
       params:delta("track",-1)
     end
-  elseif k==3 and z==1 then 
-    if self.k1 then 
+  elseif k==3 and z==1 then
+    if self.k1 then
       params:set(self.id.."play",1-params:get(self.id.."play"))
     else
       params:delta("track",1)
@@ -444,7 +458,7 @@ end
 function VTerm:redraw()
   screen.level(15)
   local x_offset=7
-  local y_offset=7
+  local y_offset=6
   for i,line in ipairs(self.lines) do
     if i>=self.view.row then
       screen.level(15)
@@ -475,14 +489,41 @@ function VTerm:redraw()
   screen.move(8,6)
   screen.text(tracks[params:get("track")]:description())
 
-  for i=1,3 do 
+  for i=1,3 do
     local k=""..i
     if debounce_fn[k]~=nil then
       screen.level(debounce_fn[k][1])
       screen.move(128,15+(i-1)*8)
       screen.text_right(debounce_fn[k][2]())
-    end  
+    end
   end
+
+  if tracks[params:get("track")].loop.pos_rec>0 then
+    local pos=tracks[params:get("track")].loop.pos_play
+    screen.level(3)
+    screen.move(7,64)
+    screen.line(util.linlin(0,1,7,128,tracks[params:get("track")].loop.pos_rec),64)
+    screen.stroke()
+    screen.level(0)
+    if pos>-1 then
+      screen.level(debounce_fn[params:get("track").."looping"][1]+1)
+      pos=util.linlin(0,1,7,128,pos)
+      screen.move(7,64)
+      screen.line(pos,64)
+      screen.stroke()
+    end
+  elseif tracks[params:get("track")].loop.arm_rec then
+    screen.level(self.cursor.blink%2==1 and 3 or 0)
+    screen.move(7,64)
+    screen.line(128,64)
+    screen.stroke()
+  elseif tracks[params:get("track")].loop.arm_play then
+    screen.level(self.cursor.blink%2==1 and 15 or 3)
+    screen.move(7,64)
+    screen.line(128,64)
+    screen.stroke()
+  end
+
 end
 
 return VTerm

@@ -44,6 +44,8 @@ end
 function Track:init()
   self.lfos={}
 
+  self.loop={pos_play=-1,pos_rec=-1,arm_play=false,arm_rec=false,send_tape=0}
+
   self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
@@ -177,12 +179,9 @@ function Track:init()
       if play_count==1 then
         reset_clocks()
       end
+      self:loop_toggle(true)
     else
-      if params:get(self.id.."crow_type")==1 then
-        crow.output[2](false)
-      elseif params:get(self.id.."crow_type")==2 then
-        crow.output[4](false)
-      end
+      self:loop_toggle(false)
     end
   end}
   params:add{type="binary",name="mute",id=self.id.."mute",behavior="toggle",action=function(v)
@@ -228,7 +227,7 @@ m=function(x) self:setup_lfo(x) end,
 n=function(x,v) if v==nil then self.lfos["n"]:stop() end;params:set(self.id.."pitch",x) end,
 u=function(x,v) if v==nil then self.lfos["u"]:stop() end;params:set(self.id.."rate",x/100);params:set(self.id.."sc_rate",x/100) end,
 z=function(x,v) if v==nil then self.lfos["z"]:stop() end;params:set(self.id.."send_reverb",x/100) end,
-y=function(x,v) if v==nil then self.lfos["y"]:stop() end;params:set(self.id.."stretch",x/100) end,
+y=function(x,v) print("y",x) end,
 }
 -- setup lfos
 self.lfos={}
@@ -306,6 +305,7 @@ self.play_fn[TYPE_DRUM]={
       retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
       pitch=params:get(self.id.."pitch"),
       gate=params:get(self.id.."gate")/100,
+      send_tape=self.loop.send_tape,
     }
   end,
 }
@@ -325,6 +325,7 @@ self.play_fn[TYPE_MELODIC]={
       retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
       watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
       gate=params:get(self.id.."gate")/100,
+      send_tape=self.loop.send_tape,
     }
   end,
 }
@@ -351,7 +352,7 @@ self.play_fn[TYPE_MXSAMPLES]={
     local sendCompressible=0
     local sendCompressing=0
     local sendReverb=params:get(self.id.."send_reverb")
-    engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb)
+    engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,self.loop.send_tape)
   end,
 }
 -- mx.synths
@@ -366,7 +367,7 @@ self.play_fn[TYPE_MXSYNTHS]={
     local duration=d.duration_scaled
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
-    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id)
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape)
   end,
 }
 -- infinite pad
@@ -379,7 +380,7 @@ self.play_fn[TYPE_INFINITEPAD]={
       params:get(self.id.."release")/1000,
       d.duration_scaled,
       params:get(self.id.."swell"),params:get(self.id.."send_reverb"),
-    params:get(self.id.."pan"),params:get(self.id.."filter"))
+    params:get(self.id.."pan"),params:get(self.id.."filter"),self.loop.send_tape)
   end,
 }
 -- softsample
@@ -535,6 +536,7 @@ function Track:dumps()
     end
   end
   data.state=self.state
+  engine.loop_save(self.id,_path.data.."zxcvbn/tapes/"..params:get("random_string").."_")
   return json.encode(data)
 end
 
@@ -551,6 +553,7 @@ function Track:loads(s)
       end
     end
   end
+  engine.loop_load(self.id,_path.data.."zxcvbn/tapes/"..params:get("random_string").."_")
   self.state=data.state
 end
 
@@ -628,6 +631,24 @@ function Track:emit(beat)
   end
   if self.tli~=nil and self.track~=nil and self.tli.pulses>0 then
     local i=(beat-1)%self.tli.pulses+1
+    if i==1 then
+      if self.loop.arm_play then
+        print("track: disarming play")
+        self.loop.arm_play=false
+        engine.loop_start(self.id,params:get("ambisonics")-1)
+      elseif self.loop.arm_rec then
+        print("track: disarming rec")
+        self.loop.arm_rec=false
+        if self.tli~=nil and self.tli.pulses~=nil then
+          local duration=self.tli.pulses/24.0*clock.get_beat_sec()
+          local crossfade=duration>0.1 and 0.1 or duration/2
+          print("recording "..self.tli.pulses.." pulses ".." for "..duration.." seconds")
+          engine.loop_record(self.id,duration,crossfade,params:get(self.id.."track_type")<TYPE_CROW and 3 or 2)
+          self.loop.arm_play=true
+          self.loop.send_tape=1
+        end
+      end
+    end
     local t=self.track[i]
     if t==nil then
       do return end
@@ -711,6 +732,28 @@ function Track:load_sample(path)
     self.states[STATE_SOFTSAMPLE]:load_sample(path,true)
   else
     self.states[STATE_SAMPLE]:load_sample(path,params:get(self.id.."track_type")==TYPE_MELODIC,params:get(self.id.."slices"))
+  end
+end
+
+function Track:loop_record()
+  print(string.format("track %d: recording armed",self.id))
+  self.loop.pos_rec=-1
+  self.loop.pos_play=-1
+  self.loop.arm_rec=true
+end
+
+function Track:loop_toggle(on)
+  if self.loop.pos_rec<0 then
+    do return end
+  end
+  on=on or self.loop.pos_play<0
+  print(string.format("track %d: loop toggle %s",self.id,on and "on" or "off"))
+  if on then
+    if self.loop.pos_rec>-1 then
+      self.loop.arm_play=true
+    end
+  else
+    engine.loop_stop(self.id)
   end
 end
 
