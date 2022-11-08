@@ -77,7 +77,7 @@ Engine_Zxcvbn : CroneEngine {
                 var pan=SinOsc.kr(1/Rand(5,40),Rand(0,6))*0.8;
                 var pan2=SinOsc.kr(1/Rand(5,40),Rand(0,6))*0.8;
                 var pan3=SinOsc.kr(1/Rand(5,40),Rand(0,6))*0.8;
-                var amp=SinOsc.kr(1/Rand(5,40),Rand(0,6)).range(0.25,1.1);
+                var amp=SinOsc.kr(1/Rand(5,40),Rand(0,6)).range(0.6,1.2);
                 snd=snd*EnvGen.ar(Env.new([1,0],[1]),t_trig,doneAction:2);
                 snd=Pan2.ar(snd,0);
                 snd=snd*EnvGen.ar(Env.new([0,1],[1]),1);
