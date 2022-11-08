@@ -71,7 +71,7 @@ Ouroboro {
 				end:28800000, // 10 minutes
 			);
 			BufWr.ar(
-				inputArray: LeakDC.ar(input)*EnvGen.ar(Env.new([0,1,1,0],[0.005,duration-0.01,0.005])),
+				inputArray: LeakDC.ar(input*2)*EnvGen.ar(Env.new([0,1,1,0],[0.005,duration-0.01,0.005])),
 				bufnum:bufnum,
 				phase:pos,
 			);
