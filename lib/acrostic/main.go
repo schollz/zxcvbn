@@ -135,7 +135,7 @@ func main() {
 	// load matrices
 	// TODO: make all have the same number of columns
 	var a = make([][]float64, 10)
-	a[0] = []float64{0, 4, 9, 12, 16, 7 - 12}
+	a[0] = []float64{0, 4, 7, 12, 16, 7 - 12}
 	a[1] = []float64{4, 7, 11, 4 + 12, 7 + 12, 11 - 12}
 	a[2] = []float64{9, 0, 4, 9 - 12, 12, 4 + 12}
 	a[3] = []float64{5, 9, 0, 5 + 12, 9 - 12, 0 + 12}
