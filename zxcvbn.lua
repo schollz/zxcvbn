@@ -405,6 +405,7 @@ end
 
 function reset_clocks()
   clock_pulse=0
+  tli:reset()
 end
 
 function keyboard.code(k,v)

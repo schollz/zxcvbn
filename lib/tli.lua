@@ -8,7 +8,12 @@ function TLI:new(o)
   return o
 end
 
+function TLI:reset()
+  self.numdashcom_it={}
+end
+
 function TLI:init()
+  self:reset()
 
   self.round=function(num,numDecimalPlaces)
     local mult=10^(numDecimalPlaces or 0)
@@ -66,7 +71,9 @@ function TLI:init()
     if num1~=nil then
       t={num1}
     else
-      for _,v in ipairs(self.string_split(s,",")) do
+      local foo=self.string_split(s,",")
+      foo=foo or self.string_split(s,".")
+      for _,v in ipairs(foo) do
         local num=nil
         for i,v2 in ipairs(self.string_split(v,":")) do
           local n=tonumber(v2)
@@ -92,7 +99,12 @@ function TLI:init()
   self.numdashcomr=function(s)
     local t=self.numdashcom(s)
     if t~=nil and next(t)~=nil then
-      return t[math.random(1,#t)]
+      if string.find(s,".") then -- ordered list uses "."
+        self.numdashcom_it[s]=(self.numdashcom_it[s] or 0)%#t+1
+        return t[self.numdashcom_it[name]]
+      else -- random list uses ","
+        return t[math.random(1,#t)]
+      end
     end
   end
 
