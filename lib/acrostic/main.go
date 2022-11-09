@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"math"
 	"math/rand"
+	"path"
 	"regexp"
 	"sort"
 	"strings"
@@ -13,6 +15,17 @@ import (
 
 	log "github.com/schollz/logger"
 )
+
+var flagInput, flagOutput string
+var flagTopNumber int
+var flagHost, flagAddress string
+var flagPort, flagID int
+var flagRM bool
+
+func init() {
+	flag.StringVar(&flagInput, "in", "", "json dump of tli")
+	flag.StringVar(&flagOutput, "", ".", "folder with pages")
+}
 
 type Data struct {
 	Track        []Track            `json:"track"`
@@ -108,13 +121,16 @@ func printMatrix(m [][]float64) {
 	}
 }
 
-func printMatrixS(m [][]string) {
+func printMatrixS(m [][]string) (s string) {
+	var sb strings.Builder
 	for row := range m {
 		for col := range m[row] {
-			fmt.Printf("%s\t", m[row][col])
+			sb.WriteString(fmt.Sprintf("%s\t", m[row][col]))
 		}
-		fmt.Print("\n")
+		sb.WriteString("\n")
 	}
+	s = sb.String()
+	return
 }
 
 func numToNote(num float64) string {
@@ -163,13 +179,12 @@ func rearrangeMatrix(m [][]float64) ([][]float64, [][]float64) {
 	return results[0].matrix, results[len(results)-1].matrix
 }
 
-func assignNotes(m [][]float64) (m2 [][]string) {
+func assignNotes(m [][]float64, octaves []int) (m2 [][]string) {
 	m2 = make([][]string, len(m))
-	octaves := []int{0, 1, 2, 3, 4, 5}
 	for row := range m {
 		m2[row] = make([]string, len(m[row]))
 		for col := range m[row] {
-			m2[row][col] = fmt.Sprintf("%s%d", numToNote(m[row][col]), octaves[col]) //+rand.Intn(2))
+			m2[row][col] = fmt.Sprintf("%s%d", numToNote(m[row][col]), octaves[col%len(octaves)]) //+rand.Intn(2))
 		}
 	}
 	return
@@ -195,7 +210,7 @@ func loadTLI(fname string) (err error) {
 	if err != nil {
 		return
 	}
-	fmt.Println(data.FullText)
+	log.Tracef("fulltext:\n---\n%s\n----\n", data.FullText)
 
 	// lets determine the key
 	re := regexp.MustCompile("[^a-zA-Z#]")
@@ -207,18 +222,33 @@ func loadTLI(fname string) (err error) {
 			}
 		}
 	}
-	fmt.Println("Key:", Key(notes))
+	log.Trace("Key:", Key(notes))
 
 	text := data.FullText
+	texts := make([]string, 10)
+	for i := 0; i < 10; i++ {
+		texts[i] = text
+	}
 	for _, patternName := range data.PatternChain {
-		text, err = processPattern(text, data.Patterns[patternName])
+		texts, err = processPattern(texts, data.Patterns[patternName])
+	}
+
+	for i, newText := range texts {
+		if text != newText {
+			log.Tracef("text %d:\n---\n%s\n----\n", i, newText)
+			err = ioutil.WriteFile(path.Join(flagOutput, fmt.Sprint(i+1)), []byte(strings.TrimSpace(newText)+"\n\n"), 0644)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		}
 	}
 
 	return
 }
 
-func processPattern(text string, pattern Pattern) (text2 string, err error) {
-	text2 = text
+func processPattern(texts []string, pattern Pattern) (texts2 []string, err error) {
+	texts2 = texts
 	// find chords and add them to a matrix
 	m := make([][]float64, 100)
 	i := 0
@@ -246,22 +276,41 @@ func processPattern(text string, pattern Pattern) (text2 string, err error) {
 	}
 
 	mMinNum, mMaxNum := rearrangeMatrix(m)
-	fmt.Println(text)
-	fmt.Println(els)
-	mMin := assignNotes(mMinNum)
-	mMax := assignNotes(mMaxNum)
-	fmt.Println(mMin)
-	fmt.Println("min")
-	printMatrixS(mMin)
-	fmt.Println("max")
+	mMin := assignNotes(mMinNum, []int{0, 1, 2})
+	mMax := assignNotes(mMaxNum, []int{2, 3, 3})
+	log.Tracef("els: %+v", els)
+	log.Tracef("mMin:\n%s", printMatrixS(mMin))
 	printMatrixS(mMax)
+	log.Tracef("mMax:\n%s", printMatrixS(mMax))
 
+	for i, el := range els {
+		for j := 0; j < len(mMin[i]); j++ {
+			log.Tracef("replacing '%s' w/ '%s' in text %d", el, mMin[i][j], j)
+			texts2[j] = strings.Replace(texts2[j], el, mMin[i][j], 1)
+		}
+	}
+
+	for i, el := range els {
+		for j := 0; j < len(mMax[i]); j++ {
+			log.Tracef("replacing '%s' w/ '%s' in text %d", el, mMax[i][j], j+len(mMin[0]))
+			texts2[j+len(mMin[0])] = strings.Replace(texts2[j+len(mMin[0])], el, mMax[i][j], 1)
+		}
+	}
 	return
 }
 
 func main() {
-	err := loadTLI("../out.json")
-	fmt.Println(err)
+	flag.Parse()
+	log.SetLevel("info")
+	var err error
+	if flagInput == "" {
+		err = fmt.Errorf("need input json, --in data.json")
+	} else {
+		err = loadTLI("out.json")
+	}
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 var majorKey = []float64{6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88}
