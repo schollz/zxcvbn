@@ -1113,6 +1113,11 @@ function TLI:parse_tli_(text,use_hex)
     table.insert(pattern_chain,"a")
   end
   for _,line in ipairs(lines) do
+    -- remove comments at end
+    line=self.string_split(line,"#")
+    if #line>1 then 
+      line=line[1]
+    end
     local fi=self.fields(line)
     if line=="" then
     elseif string.sub(line,1,1)=="#" then
