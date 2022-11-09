@@ -233,17 +233,34 @@ func loadTLI(fname string) (err error) {
 		texts, err = processPattern(texts, data.Patterns[patternName])
 	}
 
-	for i, newText := range texts {
+	pagesToWrite := findPagesToWrite()
+	i:=0
+	for _, newText := range texts {
 		if text != newText {
 			log.Tracef("text %d:\n---\n%s\n----\n", i, newText)
-			err = ioutil.WriteFile(path.Join(flagOutput, fmt.Sprint(i+1)), []byte(strings.TrimSpace(newText)+"\n\n"), 0644)
+			err = ioutil.WriteFile(pagesToWrite[i], []byte(strings.TrimSpace(newText)+"\n#acrostic generated\n\n"), 0644)
 			if err != nil {
 				log.Error(err)
 				return
 			}
+			i++
+			if i==len(pagesToWrite) {
+				break
+			}
 		}
 	}
 
+	return
+}
+
+func findPagesToWrite() (paths []string) {
+	for i:=1;i<=10;i++ {
+		pathToPage := path.Join(flagOutput,fmt.Sprint(i))
+		b, _ := ioutil.ReadFile(pathToPage)
+		if strings.TrimSpace(string(b))=="" || strings.Contains(string(b),"acrostic") {
+			paths = append(paths,pathToPage)
+		}
+	}
 	return
 }
 
