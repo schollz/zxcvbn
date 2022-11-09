@@ -3,6 +3,7 @@ docs/build/index.html
 builder
 luac.out
 lib/audiowaveform
+lib/acrostic/acrostic
 lib/aubiogo/aubiogo
 # luarocks build files
 *.src.rock

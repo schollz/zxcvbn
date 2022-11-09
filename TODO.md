@@ -1,6 +1,7 @@
 # To Do Now (Critical)
 
-- [ ] y = transpose?
+- [ ] v,y should behave ordered when given choices (so you can do things like 9 v5,0,0,5,0,0,5,0 pe)
+- [ ] y = transpose (its like note, but isn't affected by retriggers)
 - [ ] Add scale locking
 - [ ] Ctl+0 doesn't work?
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)

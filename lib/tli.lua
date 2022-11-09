@@ -863,19 +863,19 @@ function TLI:parse_positions(lines,default_pulses)
       pulse_index=pulse_index+1
       if p then
         if elast~=nil and ele[ei+1].e~="-" then
-          table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index,mods=elast.mods})
+          table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index,mods=elast.mods,line=elast.line})
           mods=nil
           elast=nil
         end
         if ele[ei+1].e~="-" then
-          elast={el=ele[ei+1].e,start=pulse_index,mods=ele[ei+1].mods}
+          elast={el=ele[ei+1].e,start=pulse_index,mods=ele[ei+1].mods,line=i}
         end
         ei=ei+1
       end
     end
   end
   if elast~=nil then
-    table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index+1,mods=elast.mods})
+    table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index+1,mods=elast.mods,line=elast.line})
     elast=nil
   end
 
@@ -1090,6 +1090,7 @@ function TLI:parse_tli(text,use_hex)
       data=self:parse_tli_(text,use_hex)
     end
   )
+  data.fulltext=text
   return data,err
 end
 
@@ -1162,6 +1163,7 @@ function TLI:parse_tli_(text,use_hex)
   end
 
   -- default to a chain of how the patterns are defined
+  data.pattern_chain=pattern_chain
   if next(data.chain)==nil then
     data.chain=pattern_chain
   end

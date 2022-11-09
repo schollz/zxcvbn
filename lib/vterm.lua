@@ -310,6 +310,17 @@ function VTerm:keyboard(k,v)
     if v>0 then
       self:move_cursor(-1,0)
     end
+  elseif k=="CTRL+E" then 
+    if v==1 then 
+      -- do explode
+      if tracks[self.id].tli~=nil then 
+        local f=io.open("/tmp/tli.json","w")
+        io.output(f)
+        io.write(json.encode(tracks[self.id].tli))
+        io.close(f)
+        os.execute(_path.code.."zxcvbn/lib/acrostic/acrostic --in /tmp/tli.json --out ".._path.data.."zxcvbn/pages/" &")  
+      end
+    end
   elseif k=="CTRL+T" or k=="CTRL+L" then
     if v==1 then
       if tracks[self.id].loop.pos_rec<0 then
