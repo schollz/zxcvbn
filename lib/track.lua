@@ -163,6 +163,23 @@ function Track:init()
     }
   end
 
+  self.note_cache={}
+  self.scale_notes={}
+  for i=1,127 do 
+    table.insert(self.scale_notes,127)
+  end
+  self.scale_names={}
+  for i = 1, #musicutil.SCALES do
+    table.insert(scale_names, string.lower(musicutil.SCALES[i].name))
+  end
+  params:add{type = "option", id = self.id.."scale_mode", name = "scale mode",
+  options = scale_names, default = 5,
+  action = function() self:scale_build() end}
+params:add{type = "number", id = self.id.."root_note", name = "root note",
+  min = 0, max = 127, default = 60, formatter = function(param) return musicutil.note_num_to_name(param:get(), true) end,
+  action = function() self:scale_build() end}
+
+
   params:add{type="binary",name="find onsets",id=self.id.."get_onsets",behavior="momentary",action=function(v)
     if v==1 and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
       self.states[STATE_SOFTSAMPLE]:get_onsets()
@@ -289,14 +306,14 @@ self.play_fn={}
 -- spliced sample
 self.play_fn[TYPE_DRUM]={
   note_on=function(d,mods)
-    if d.m==nil then
+    if d.note_to_emit==nil then
       do return end
     end
-    local id=self.id.."_"..d.m
+    local id=self.id.."_"..d.note_to_emit
     self.states[STATE_SAMPLE]:play{
       on=true,
       id=id,
-      ci=(d.m-1)%16+1,
+      ci=(d.note_to_emit-1)%16+1,
       db=mods.v or 0,
       pan=params:get(self.id.."pan"),
       duration=d.duration_scaled,
@@ -312,15 +329,15 @@ self.play_fn[TYPE_DRUM]={
 -- melodic sample
 self.play_fn[TYPE_MELODIC]={
   note_on=function(d,mods)
-    if d.m==nil then
+    if d.note_to_emit==nil then
       do return end
     end
-    local id=self.id.."_"..d.m
+    local id=self.id.."_"..d.note_to_emit
     self.states[STATE_SAMPLE]:play{
       on=true,
       id=id,
       db=mods.v or 0,
-      pitch=d.m-params:get(self.id.."source_note")+params:get(self.id.."pitch"),
+      pitch=d.note_to_emit-params:get(self.id.."source_note")+params:get(self.id.."pitch"),
       duration=d.duration_scaled,
       retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
       watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
@@ -336,7 +353,7 @@ self.play_fn[TYPE_MXSAMPLES]={
       do return end
     end
     local folder=_path.audio.."mx.samples/"..params:string(self.id.."mx_sample") -- TODO: choose from option
-    local note=d.m+params:get(self.id.."pitch")
+    local note=d.note_to_emit+params:get(self.id.."pitch")
     print("mods.v",mods.v)
     local velocity=util.clamp(util.linlin(-48,12,0,127,params:get(self.id.."db")+(mods.v or 0)),1,127)
     local amp=util.dbamp(params:get(self.id.."db")+(mods.v or 0))
@@ -359,7 +376,7 @@ self.play_fn[TYPE_MXSAMPLES]={
 self.play_fn[TYPE_MXSYNTHS]={
   note_on=function(d,mods)
     local synth=params:string(self.id.."mx_synths")
-    local note=d.m+params:get(self.id.."pitch")
+    local note=d.note_to_emit+params:get(self.id.."pitch")
     local db=params:get(self.id.."db")+(mods.v or 0)
     local pan=params:get(self.id.."pan")
     local attack=params:get(self.id.."attack")/1000
@@ -373,7 +390,7 @@ self.play_fn[TYPE_MXSYNTHS]={
 -- infinite pad
 self.play_fn[TYPE_INFINITEPAD]={
   note_on=function(d,mods)
-    local note=d.m+params:get(self.id.."pitch")
+    local note=d.note_to_emit+params:get(self.id.."pitch")
     engine.note_on(note,
       params:get(self.id.."db")+util.clamp((mods.v or 0)/10,0,10),
       params:get(self.id.."attack")/1000,
@@ -386,15 +403,15 @@ self.play_fn[TYPE_INFINITEPAD]={
 -- softsample
 self.play_fn[TYPE_SOFTSAMPLE]={
   note_on=function(d,mods)
-    if d.m==nil then
+    if d.note_to_emit==nil then
       do return end
     end
-    local id=self.id.."_"..d.m
+    local id=self.id.."_"..d.note_to_emit
     mods.x=mods.x or 1
     self.states[STATE_SOFTSAMPLE]:play{
       on=true,
       id=id,
-      ci=(d.m-1)%16+1,
+      ci=(d.note_to_emit-1)%16+1,
       db=mods.v or 0,
       pan=params:get(self.id.."pan"),
       duration=d.duration_scaled,
@@ -411,7 +428,7 @@ self.play_fn[TYPE_CROW]={
   note_on=function(d,mods)
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
-    local note=d.m+params:get(self.id.."pitch")
+    local note=d.note_to_emit+params:get(self.id.."pitch")
     if level>0 then
       -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
       local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,params:get(self.id.."crow_sustain"),d.duration_scaled,params:get(self.id.."release")/1000)
@@ -427,7 +444,7 @@ self.play_fn[TYPE_CROW]={
           clock.sleep(d.duration_scaled/mods.x)
           crow.output[i+1](false)
           level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0)*(i+1))
-          note=d.m+params:get(self.id.."pitch")*(i+1)
+          note=d.note_to_emit+params:get(self.id.."pitch")*(i+1)
           if level>0 then
             crow.output[i].volts=(note-24)/12
             crow.output[i+1]()
@@ -444,7 +461,7 @@ self.play_fn[TYPE_MIDI]={
       do return end
     end
     local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(mods.v or 0))
-    local note=d.m+params:get(self.id.."pitch")
+    local note=d.note_to_emit+params:get(self.id.."pitch")
     local trigs=mods.x or 1
     if vel>0 then
       -- print(note,vel,params:get(self.id.."midi_ch"))
@@ -458,10 +475,10 @@ self.play_fn[TYPE_MIDI]={
           clock.sleep(d.duration_scaled/trigs)
           midi_device[params:get(self.id.."midi_dev")].note_off(note,0,params:get(self.id.."midi_ch"))
           vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(mods.v or 0)*(i+1))
-          note=d.m+params:get(self.id.."pitch")*(i+1)
+          note=d.note_to_emit+params:get(self.id.."pitch")*(i+1)
           if vel>0 then
-            -- print(d.m,vel,params:get(self.id.."midi_ch"))
-            midi_device[params:get(self.id.."midi_dev")].note_on(d.m,vel,params:get(self.id.."midi_ch"))
+            -- print(d.note_to_emit,vel,params:get(self.id.."midi_ch"))
+            midi_device[params:get(self.id.."midi_dev")].note_on(d.note_to_emit,vel,params:get(self.id.."midi_ch"))
             self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=util.round(d.duration/trigs)}
           end
         end
@@ -470,6 +487,22 @@ self.play_fn[TYPE_MIDI]={
   end,
 }
 
+end
+
+
+function Track:scale_build()
+  self.scale_notes = MusicUtil.generate_scale_of_length(params:get(self.id.."root_note")%12, params:get(self.id.."scale_mode"), 127)
+end
+
+function Track:note_in_scale(note)
+  local key=string.format("%d_%d_%d",params:get(self.id.."scale_mode"),params:get(self.id.."root_note"),note)
+  if self.note_cache[key]==nil then 
+    if note > self.scale_notes[#self.scale_notes] then 
+      note = note % #self.scale_notes
+    end
+    self.note_cache[key]=musicutil.snap_note_to_array(note,self.scale_notes)
+  end
+  return self.note_cache[key]
 end
 
 function Track:description()
@@ -676,13 +709,17 @@ function Track:emit(beat)
       end
       d.duration_scaled=d.duration*(clock.get_beat_sec()/24)
       --print("d.duration_scaled",d.duration_scaled,"d.duration",d.duration)
-      if d.m~=nil then
-        self:scroll_add((params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE) and d.m or string.lower(musicutil.note_num_to_name(d.m)))
+      local note_to_emit=d.m
+      if note_to_emit~=nil then
+        -- TODO: add transposition to note before getting scale
+        note_to_emit=self:note_in_scale(note_to_emit)        
+        self:scroll_add((params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE) and note_to_emit or string.lower(musicutil.note_num_to_name(note_to_emit)))
       end
-      if d.m==nil or params:get(self.id.."mute")==1 then
+      if note_to_emit==nil or params:get(self.id.."mute")==1 then
         do return end
       end
       if math.random(0,100)<=params:get(self.id.."probability") then
+        d.note_to_emit=note_to_emit
         self.play_fn[params:get(self.id.."track_type")].note_on(d,mods)
       end
     end
