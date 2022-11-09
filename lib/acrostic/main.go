@@ -1,13 +1,56 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"math/rand"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
+
+	log "github.com/schollz/logger"
 )
+
+type Data struct {
+	Track        []Track            `json:"track"`
+	Chain        []string           `json:"chain"`
+	Pulses       int                `json:"pulses"`
+	Patterns     map[string]Pattern `json:"patterns"`
+	Meta         []string           `json:"meta"`
+	PatternChain []string           `json:"pattern_chain"`
+	FullText     string             `json:"fulltext"`
+}
+type Track struct {
+	Mods     []string `json:"mods,omitempty"`
+	Duration int      `json:"duration"`
+	Start    int      `json:"start"`
+	M        int      `json:"m"`
+}
+type Parsed struct {
+	Track     []Track    `json:"track,omitempty"`
+	Positions []Position `json:"positions,omitempty"`
+	Pulses    int        `json:pulses,omitempty"`
+}
+type ParsedNote struct {
+	M int    `json:"m,omitempty"`
+	N string `json:"n,omitempty"`
+}
+type Position struct {
+	El          string       `json:"el"`
+	Start       int          `json:"start"`
+	ParsedNotes []ParsedNote `json:"parsed"`
+	Mods        []string     `json:"mods"`
+	Stop        int          `json:"stop"`
+	Line        int          `json:"line"`
+}
+type Pattern struct {
+	Parsed  Parsed `json:"parsed"`
+	Pattern string `json:"pattern"`
+	Text    string `json:"text"`
+}
 
 var notes = []string{"c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"}
 
@@ -33,8 +76,8 @@ func rotate(nums []float64, k int) []float64 {
 
 func noteDiff(num1, num2 float64) (diff float64) {
 	diff = 1000000.0
-	for _, add1 := range []float64{0} {
-		for _, add2 := range []float64{0} {
+	for _, add1 := range []float64{-12, 0, 12} {
+		for _, add2 := range []float64{-12, 0, 12} {
 			d := math.Abs((num1 + add1) - (num2 + add2))
 			if d < diff {
 				diff = d
@@ -88,7 +131,16 @@ func numTo12(num float64) int {
 	return int(math.Mod(num, 12))
 }
 
-func rearrangeMatrix(m [][]float64) [][]float64 {
+func copyMatrix(m [][]float64) (m2 [][]float64) {
+	m2 = make([][]float64, len(m))
+	for i := range m {
+		m2[i] = make([]float64, len(m[i]))
+		copy(m2[i], m[i])
+	}
+	return
+}
+
+func rearrangeMatrix(m [][]float64) ([][]float64, [][]float64) {
 	type Result struct {
 		matrix  [][]float64
 		rowDiff float64
@@ -100,13 +152,15 @@ func rearrangeMatrix(m [][]float64) [][]float64 {
 		for j, v := range m {
 			m[j] = rotate(v, rand.Intn(len(v)))
 		}
-		results[i] = Result{m, sumRowDiffs(m)}
+		results[i] = Result{copyMatrix(m), sumRowDiffs(m)}
 	}
 
 	sort.Slice(results, func(i, j int) bool {
-		return results[i].rowDiff > results[j].rowDiff
+		return results[i].rowDiff < results[j].rowDiff
 	})
-	return results[0].matrix
+	log.Tracef("results[0]: %+v", results[0])
+	log.Tracef("results[end]: %+v", results[len(results)-1])
+	return results[0].matrix, results[len(results)-1].matrix
 }
 
 func assignNotes(m [][]float64) (m2 [][]string) {
@@ -131,32 +185,83 @@ func countNotes(m [][]float64) (counts []int) {
 	return
 }
 
-func main() {
-	// load matrices
-	// TODO: make all have the same number of columns
-	var a = make([][]float64, 10)
-	a[0] = []float64{0, 4, 7, 12, 16, 7 - 12}
-	a[1] = []float64{4, 7, 11, 4 + 12, 7 + 12, 11 - 12}
-	a[2] = []float64{9, 0, 4, 9 - 12, 12, 4 + 12}
-	a[3] = []float64{5, 9, 0, 5 + 12, 9 - 12, 0 + 12}
-	for i, v := range a {
-		if len(v) == 0 {
-			a = a[:i]
-			break
+func loadTLI(fname string) (err error) {
+	b, err := ioutil.ReadFile(fname)
+	if err != nil {
+		return
+	}
+	var data Data
+	err = json.Unmarshal(b, &data)
+	if err != nil {
+		return
+	}
+	fmt.Println(data.FullText)
+
+	// lets determine the key
+	re := regexp.MustCompile("[^a-zA-Z#]")
+	notes := []string{}
+	for pattern := range data.Patterns {
+		for _, pos := range data.Patterns[pattern].Parsed.Positions {
+			for _, note := range pos.ParsedNotes {
+				notes = append(notes, re.ReplaceAllString(note.N, ""))
+			}
 		}
 	}
-	m2 := assignNotes(rearrangeMatrix(a))
-	printMatrixS(m2)
-	notes := make([]string, len(a)*len(a[0]))
+	fmt.Println("Key:", Key(notes))
+
+	text := data.FullText
+	for _, patternName := range data.PatternChain {
+		text, err = processPattern(text, data.Patterns[patternName])
+	}
+
+	return
+}
+
+func processPattern(text string, pattern Pattern) (text2 string, err error) {
+	text2 = text
+	// find chords and add them to a matrix
+	m := make([][]float64, 100)
 	i := 0
-	for _, b := range a {
-		for _, v := range b {
-			notes[i] = strings.ToUpper(numToNote(v))
+	els := []string{}
+	for _, pos := range pattern.Parsed.Positions {
+		if len(pos.ParsedNotes) > 1 {
+			els = append(els, pos.El)
+			v := []float64{}
+			for _, note := range pos.ParsedNotes {
+				v = append(v, float64(math.Mod(float64(note.M), 12)))
+			}
+			m[i] = v
 			i++
 		}
 	}
-	fmt.Println(notes)
-	fmt.Println(Key(notes))
+
+	for i, v := range m {
+		if len(v) == 0 {
+			if i == 0 {
+				return
+			}
+			m = m[:i]
+			break
+		}
+	}
+
+	mMinNum, mMaxNum := rearrangeMatrix(m)
+	fmt.Println(text)
+	fmt.Println(els)
+	mMin := assignNotes(mMinNum)
+	mMax := assignNotes(mMaxNum)
+	fmt.Println(mMin)
+	fmt.Println("min")
+	printMatrixS(mMin)
+	fmt.Println("max")
+	printMatrixS(mMax)
+
+	return
+}
+
+func main() {
+	err := loadTLI("../out.json")
+	fmt.Println(err)
 }
 
 var majorKey = []float64{6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88}

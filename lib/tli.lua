@@ -1090,6 +1090,7 @@ function TLI:parse_tli(text,use_hex)
       data=self:parse_tli_(text,use_hex)
     end
   )
+  data.fulltext=text
   return data,err
 end
 
@@ -1157,6 +1158,7 @@ function TLI:parse_tli_(text,use_hex)
   end
 
   -- default to a chain of how the patterns are defined
+  data.pattern_chain=pattern_chain
   if next(data.chain)==nil then
     data.chain=pattern_chain
   end
