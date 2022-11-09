@@ -1,5 +1,7 @@
 # To Do Now (Critical)
 
+- [ ] y = transpose?
+- [ ] Add scale locking
 - [ ] Ctl+0 doesn't work?
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
