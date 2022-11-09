@@ -1,11 +1,12 @@
 release: build
-	tar -czvf release.tar.gz aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect
+	tar -czvf release.tar.gz aubiogo/aubiogo oscnotify/oscnotify oscconnect/oscconnect acrostic/acrostic
 
 build:
 	# build things
 	cd aubiogo && go build -v
 	cd oscconnect && go build -v
 	cd oscnotify && go build -v
+	cd acrostic && go build -v 
 
 audiowaveform:
 	git clone https://github.com/bbc/audiowaveform.git a1 && \
