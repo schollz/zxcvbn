@@ -1,5 +1,6 @@
 # To Do Now (Critical)
 
+- [ ] v,y should behave ordered when given choices (so you can do things like 9 v5,0,0,5,0,0,5,0 pe)
 - [ ] y = transpose (its like note, but isn't affected by retriggers)
 - [ ] Add scale locking
 - [ ] Ctl+0 doesn't work?
