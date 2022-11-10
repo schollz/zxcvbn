@@ -166,20 +166,19 @@ function Track:init()
 
   self.note_cache={}
   self.scale_notes={}
-  for i=1,127 do 
+  for i=1,127 do
     table.insert(self.scale_notes,127)
   end
-  self.scale_names={}
-  for i = 1, #musicutil.SCALES do
-    table.insert(scale_names, string.lower(musicutil.SCALES[i].name))
+  self.scale_names={"chromatic"}
+  for i=1,#musicutil.SCALES do
+    table.insert(self.scale_names,string.lower(musicutil.SCALES[i].name))
   end
-  params:add{type = "option", id = self.id.."scale_mode", name = "scale mode",
-  options = scale_names, default = 5,
-  action = function() self:scale_build() end}
-params:add{type = "number", id = self.id.."root_note", name = "root note",
-  min = 0, max = 127, default = 60, formatter = function(param) return musicutil.note_num_to_name(param:get(), true) end,
-  action = function() self:scale_build() end}
-
+  params:add{type="option",id=self.id.."scale_mode",name="scale mode",
+    options=self.scale_names,default=1,
+  action=function() self:scale_build() end}
+  params:add{type="number",id=self.id.."root_note",name="root note",
+    min=0,max=127,default=60,formatter=function(param) return musicutil.note_num_to_name(param:get(),true) end,
+  action=function() self:scale_build() end}
 
   params:add{type="binary",name="find onsets",id=self.id.."get_onsets",behavior="momentary",action=function(v)
     if v==1 and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
@@ -490,16 +489,23 @@ self.play_fn[TYPE_MIDI]={
 
 end
 
-
 function Track:scale_build()
-  self.scale_notes = MusicUtil.generate_scale_of_length(params:get(self.id.."root_note")%12, params:get(self.id.."scale_mode"), 127)
+  if params:get(self.id.."scale_mode")==1 then
+    local notes={}
+    for i=1,127 do
+      table.insert(notes,i)
+    end
+    self.scale_notes=notes
+  else
+    self.scale_notes=musicutil.generate_scale_of_length(params:get(self.id.."root_note")%12,params:get(self.id.."scale_mode")-1,127)
+  end
 end
 
 function Track:note_in_scale(note)
   local key=string.format("%d_%d_%d",params:get(self.id.."scale_mode"),params:get(self.id.."root_note"),note)
-  if self.note_cache[key]==nil then 
-    if note > self.scale_notes[#self.scale_notes] then 
-      note = note % #self.scale_notes
+  if self.note_cache[key]==nil then
+    if note>self.scale_notes[#self.scale_notes] then
+      note=note%#self.scale_notes
     end
     self.note_cache[key]=musicutil.snap_note_to_array(note,self.scale_notes)
   end
@@ -605,6 +611,7 @@ function Track:got_onsets(data)
 end
 
 function Track:parse_tli()
+  print("parsing",self.id)
   local text=self.states[STATE_VTERM]:get_text()
   local tli_parsed=nil
   local is_hex=false
@@ -713,7 +720,7 @@ function Track:emit(beat)
       local note_to_emit=d.m
       if note_to_emit~=nil then
         -- add transposition to note before getting scale
-        note_to_emit=self:note_in_scale(note_to_emit+params:get(self.id.."transpose"))        
+        note_to_emit=self:note_in_scale(note_to_emit+params:get(self.id.."transpose"))
         self:scroll_add((params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE) and note_to_emit or string.lower(musicutil.note_num_to_name(note_to_emit)))
       end
       if note_to_emit==nil or params:get(self.id.."mute")==1 then

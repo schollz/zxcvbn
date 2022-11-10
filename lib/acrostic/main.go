@@ -13,18 +13,20 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hypebeast/go-osc/osc"
 	log "github.com/schollz/logger"
 )
 
 var flagInput, flagOutput string
-var flagTopNumber int
-var flagHost, flagAddress string
-var flagPort, flagID int
-var flagRM bool
+var flagRecvHost, flagRecvAddress, flagHost, flagAddress, flagPath string
+var flagPort int
 
 func init() {
+	flag.StringVar(&flagHost, "host", "localhost", "osc host")
+	flag.IntVar(&flagPort, "port", 10111, "port to use")
+	flag.StringVar(&flagAddress, "addr", "/oscload", "osc address")
 	flag.StringVar(&flagInput, "in", "", "json dump of tli")
-	flag.StringVar(&flagOutput, "", ".", "folder with pages")
+	flag.StringVar(&flagOutput, "out", ".", "folder with pages")
 }
 
 type Data struct {
@@ -32,15 +34,13 @@ type Data struct {
 	Chain        []string           `json:"chain"`
 	Pulses       int                `json:"pulses"`
 	Patterns     map[string]Pattern `json:"patterns"`
-	Meta         []string           `json:"meta"`
 	PatternChain []string           `json:"pattern_chain"`
 	FullText     string             `json:"fulltext"`
 }
 type Track struct {
-	Mods     []string `json:"mods,omitempty"`
-	Duration int      `json:"duration"`
-	Start    int      `json:"start"`
-	M        int      `json:"m"`
+	Duration int `json:"duration"`
+	Start    int `json:"start"`
+	M        int `json:"m"`
 }
 type Parsed struct {
 	Track     []Track    `json:"track,omitempty"`
@@ -55,7 +55,6 @@ type Position struct {
 	El          string       `json:"el"`
 	Start       int          `json:"start"`
 	ParsedNotes []ParsedNote `json:"parsed"`
-	Mods        []string     `json:"mods"`
 	Stop        int          `json:"stop"`
 	Line        int          `json:"line"`
 }
@@ -234,17 +233,26 @@ func loadTLI(fname string) (err error) {
 	}
 
 	pagesToWrite := findPagesToWrite()
-	i:=0
+	i := 0
+	client := osc.NewClient(flagHost, flagPort)
 	for _, newText := range texts {
 		if text != newText {
+			newText = strings.TrimSpace(newText) + "\n#acrostic generated\n\n"
 			log.Tracef("text %d:\n---\n%s\n----\n", i, newText)
-			err = ioutil.WriteFile(pagesToWrite[i], []byte(strings.TrimSpace(newText)+"\n#acrostic generated\n\n"), 0644)
+			msg := osc.NewMessage(flagAddress)
+			msg.Append(int32(pagesToWrite[i]))
+			msg.Append(newText)
+			err = client.Send(msg)
 			if err != nil {
 				log.Error(err)
-				return
 			}
+			// err = ioutil.WriteFile(pagesToWrite[i], []byte(strings.TrimSpace(newText)+"\n#acrostic generated\n\n"), 0644)
+			// if err != nil {
+			// 	log.Error(err)
+			// 	return
+			// }
 			i++
-			if i==len(pagesToWrite) {
+			if i == len(pagesToWrite) {
 				break
 			}
 		}
@@ -253,12 +261,12 @@ func loadTLI(fname string) (err error) {
 	return
 }
 
-func findPagesToWrite() (paths []string) {
-	for i:=1;i<=10;i++ {
-		pathToPage := path.Join(flagOutput,fmt.Sprint(i))
+func findPagesToWrite() (pagesToWrite []int) {
+	for i := 1; i <= 10; i++ {
+		pathToPage := path.Join(flagOutput, fmt.Sprint(i))
 		b, _ := ioutil.ReadFile(pathToPage)
-		if strings.TrimSpace(string(b))=="" || strings.Contains(string(b),"acrostic") {
-			paths = append(paths,pathToPage)
+		if strings.TrimSpace(string(b)) == "" || strings.Contains(string(b), "acrostic") {
+			pagesToWrite = append(pagesToWrite, i)
 		}
 	}
 	return
@@ -318,13 +326,13 @@ func processPattern(texts []string, pattern Pattern) (texts2 []string, err error
 
 func main() {
 	flag.Parse()
-	log.SetLevel("info")
+	log.SetLevel("trace")
 	start := time.Now()
 	var err error
 	if flagInput == "" {
 		err = fmt.Errorf("need input json, --in data.json")
 	} else {
-		err = loadTLI("out.json")
+		err = loadTLI(flagInput)
 	}
 	if err != nil {
 		log.Error(err)

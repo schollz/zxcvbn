@@ -10,10 +10,18 @@ tli=tli_:new()
 -- print(json.encode(tli.numdashcomr("3-100")))
 -- print(json.encode(tli.numdashcomr("3-100")))
 local data,err=tli:parse_tli([[
-C;4 b4 d4
+chain b b b a
+ 
+pattern b
+C;4 b4 Em/B
 Em
+ 
 Am;3
 F
+ 
+pattern a
+F 
+C
  
   ]],false)
 
@@ -23,8 +31,8 @@ F
 --   print(json.encode(data))
 -- end
 
+print(json.encode(data))
 for name,pattern in pairs(data.patterns) do
-  print(name)
   local lines={}
   for _,position in ipairs(pattern.parsed.positions) do
     -- print(json.encode(position))
@@ -37,5 +45,4 @@ for name,pattern in pairs(data.patterns) do
       table.insert(lines[position.line],note.m%12)
     end
   end
-  print(json.encode(lines))
 end

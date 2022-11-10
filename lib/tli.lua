@@ -72,7 +72,9 @@ function TLI:init()
       t={num1}
     else
       local foo=self.string_split(s,",")
-      foo=foo or self.string_split(s,".")
+      if string.find(s,"%.") then
+        foo=self.string_split(s,".")
+      end
       for _,v in ipairs(foo) do
         local num=nil
         for i,v2 in ipairs(self.string_split(v,":")) do
@@ -98,14 +100,16 @@ function TLI:init()
 
   self.numdashcomr=function(s)
     local t=self.numdashcom(s)
+    local ret=nil
     if t~=nil and next(t)~=nil then
-      if string.find(s,".") then -- ordered list uses "."
+      if string.find(s,"%.") then -- ordered list uses "."
         self.numdashcom_it[s]=(self.numdashcom_it[s] or 0)%#t+1
-        return t[self.numdashcom_it[name]]
+        ret=t[self.numdashcom_it[s]]
       else -- random list uses ","
-        return t[math.random(1,#t)]
+        ret=t[math.random(1,#t)]
       end
     end
+    return ret
   end
 
   self.find_max_prefix=function(a,b)
@@ -1128,7 +1132,7 @@ function TLI:parse_tli_(text,use_hex)
   for _,line in ipairs(lines) do
     -- remove comments at end
     local parts=self.string_split(line,"#")
-    if #parts>1 then 
+    if #parts>1 then
       line=parts[1]
     end
     local fi=self.fields(line)
