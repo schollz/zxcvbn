@@ -122,15 +122,16 @@ end
 
 function Archive:package_audio(fname,path)
   local pathname,filename,ext=self.path_split(path)
-  pathname=self.trim(pathname)
-  local s=util.os_capture(string.format("cd %s && find * -name '%s*' -type f",_path.data.."zxcvbn",filename))
-  local audio_files=self.fields(s)
-  for _,v in ipairs(audio_files) do
-    if pathname~="/home/we/dust/data/zxcvbn/samples/" then
-      os.execute(string.format("cp %s /home/we/dust/data/zxcvbn/samples/",path))
-    end
-    os.execute(string.format("cd %s && zip %s -u %s",_path.data.."zxcvbn",fname,v))
-  end
+  os.execute(string.format("cd %s && zip %s -u samples/%s",_path.data.."zxcvbn",fname,filename))
+  -- pathname=self.trim(pathname)
+  -- local s=util.os_capture(string.format("cd %s && find * -name '%s*' -type f",_path.data.."zxcvbn",filename))
+  -- local audio_files=self.fields(s)
+  -- for _,v in ipairs(audio_files) do
+  --   if pathname~="/home/we/dust/data/zxcvbn/samples/" then
+  --     os.execute(string.format("cp %s /home/we/dust/data/zxcvbn/samples/",path))
+  --   end
+  --   os.execute(string.format("cd %s && zip %s -u %s",_path.data.."zxcvbn",fname,v))
+  -- end
 end
 
 function Archive:package_psets(fname,pset)
@@ -197,6 +198,8 @@ function Archive:remake_pset(fname)
       local foo=self.string_split(v,":")
       local _,old_fname,_=self.path_split(foo[2])
       lines[i]=string.format("%s: /home/we/dust/data/zxcvbn/samples/%s",foo[1],old_fname)
+      -- copy over the sample to the samples folder
+      os.execute(string.format("cp %s /home/we/dust/data/zxcvbn/samples/%s",foo[2],old_fname)
     end
   end
 
