@@ -199,7 +199,7 @@ function Archive:remake_pset(fname)
       local _,old_fname,_=self.path_split(foo[2])
       lines[i]=string.format("%s: /home/we/dust/data/zxcvbn/samples/%s",foo[1],old_fname)
       -- copy over the sample to the samples folder
-      os.execute(string.format("cp %s /home/we/dust/data/zxcvbn/samples/%s",foo[2],old_fname)
+      os.execute(string.format("cp %s /home/we/dust/data/zxcvbn/samples/%s",foo[2],old_fname))
     end
   end
 
