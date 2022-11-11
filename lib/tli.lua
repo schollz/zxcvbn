@@ -8,7 +8,12 @@ function TLI:new(o)
   return o
 end
 
+function TLI:reset()
+  self.numdashcom_it={}
+end
+
 function TLI:init()
+  self:reset()
 
   self.round=function(num,numDecimalPlaces)
     local mult=10^(numDecimalPlaces or 0)
@@ -66,7 +71,11 @@ function TLI:init()
     if num1~=nil then
       t={num1}
     else
-      for _,v in ipairs(self.string_split(s,",")) do
+      local foo=self.string_split(s,",")
+      if string.find(s,"%.") then
+        foo=self.string_split(s,".")
+      end
+      for _,v in ipairs(foo) do
         local num=nil
         for i,v2 in ipairs(self.string_split(v,":")) do
           local n=tonumber(v2)
@@ -91,9 +100,16 @@ function TLI:init()
 
   self.numdashcomr=function(s)
     local t=self.numdashcom(s)
+    local ret=nil
     if t~=nil and next(t)~=nil then
-      return t[math.random(1,#t)]
+      if string.find(s,"%.") then -- ordered list uses "."
+        self.numdashcom_it[s]=(self.numdashcom_it[s] or 0)%#t+1
+        ret=t[self.numdashcom_it[s]]
+      else -- random list uses ","
+        ret=t[math.random(1,#t)]
+      end
     end
+    return ret
   end
 
   self.find_max_prefix=function(a,b)
@@ -863,19 +879,19 @@ function TLI:parse_positions(lines,default_pulses)
       pulse_index=pulse_index+1
       if p then
         if elast~=nil and ele[ei+1].e~="-" then
-          table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index,mods=elast.mods})
+          table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index,mods=elast.mods,line=elast.line})
           mods=nil
           elast=nil
         end
         if ele[ei+1].e~="-" then
-          elast={el=ele[ei+1].e,start=pulse_index,mods=ele[ei+1].mods}
+          elast={el=ele[ei+1].e,start=pulse_index,mods=ele[ei+1].mods,line=i}
         end
         ei=ei+1
       end
     end
   end
   if elast~=nil then
-    table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index+1,mods=elast.mods})
+    table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index+1,mods=elast.mods,line=elast.line})
     elast=nil
   end
 
@@ -1090,6 +1106,7 @@ function TLI:parse_tli(text,use_hex)
       data=self:parse_tli_(text,use_hex)
     end
   )
+  data.fulltext=text
   return data,err
 end
 
@@ -1115,7 +1132,7 @@ function TLI:parse_tli_(text,use_hex)
   for _,line in ipairs(lines) do
     -- remove comments at end
     local parts=self.string_split(line,"#")
-    if #parts>1 then 
+    if #parts>1 then
       line=parts[1]
     end
     local fi=self.fields(line)
@@ -1162,6 +1179,7 @@ function TLI:parse_tli_(text,use_hex)
   end
 
   -- default to a chain of how the patterns are defined
+  data.pattern_chain=pattern_chain
   if next(data.chain)==nil then
     data.chain=pattern_chain
   end

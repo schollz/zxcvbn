@@ -61,6 +61,11 @@ function Installer:is_installed()
     do return false end
   end
 
+  if not util.file_exists(_path.code.."zxcvbn/lib/acrostic/acrostic") then
+    print("INSTALL NEEDED: acrostic")
+    do return false end
+  end
+
   if not util.file_exists(_path.code.."zxcvbn/lib/oscconnect/oscconnect") then
     print("INSTALL NEEDED: oscconnect")
     do return false end

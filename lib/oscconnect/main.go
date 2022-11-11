@@ -10,6 +10,7 @@ import (
 	log "github.com/schollz/logger"
 	"github.com/schollz/peerdiscovery"
 )
+
 var mu sync.Mutex
 
 var flagRecvHost, flagRecvAddress, flagHost, flagAddress, flagPath string
@@ -41,9 +42,9 @@ func main() {
 				return
 			}
 			// got new address
-mu.Lock()
-discovered[d.Address]=struct{}{}
-mu.Unlock()
+			mu.Lock()
+			discovered[d.Address] = struct{}{}
+			mu.Unlock()
 			log.Debugf("norns discovered: %s", d)
 			client := osc.NewClient(flagHost, flagPort)
 			msg := osc.NewMessage(flagAddress)

@@ -216,6 +216,17 @@ function VTerm:load_text(text)
   end
 end
 
+function VTerm:change_octave_in_line(str,octave_change)
+  for i=2,#str do
+    local c1=str:sub(i,i)
+    local c0=str:sub(i-1,i-1)
+    if tonumber(c1)~=nil and (c0==";" or (string.byte(c0)>=string.byte("a") and string.byte(c0)<=string.byte("g")) or c0=="#") then
+      str=str:sub(1,i-1)..(tonumber(c1)+octave_change)..str:sub(i+1)
+    end
+  end
+  return str
+end
+
 function VTerm:move_cursor(row,col)
   if next(self.lines)==nil then
     do return end
@@ -298,6 +309,20 @@ function VTerm:keyboard(k,v)
     self.shift_updown(v)
   elseif k=="SHIFT+DOWN" then
     self.shift_updown(v*-1)
+  elseif k=="CTRL+LEFT" then
+    if v==1 then
+      params:delta("track",-1)
+      do return end
+    end
+  elseif k=="CTRL+RIGHT" then
+    if v==1 then
+      params:delta("track",1)
+      do return end
+    end
+  elseif k=="CTRL+UP" then
+    self.lines[self.cursor.row]=self:change_octave_in_line(self.lines[self.cursor.row],v)
+  elseif k=="CTRL+DOWN" then
+    self.lines[self.cursor.row]=self:change_octave_in_line(self.lines[self.cursor.row],-1*v)
   elseif k=="RIGHT" then
     if v>0 then
       self:move_cursor(0,1)
@@ -309,6 +334,17 @@ function VTerm:keyboard(k,v)
   elseif k=="UP" then
     if v>0 then
       self:move_cursor(-1,0)
+    end
+  elseif k=="CTRL+E" then
+    if v==1 then
+      -- do explode
+      if tracks[self.id].tli~=nil then
+        local f=io.open(_path.data.."zxcvbn/tli.json","w")
+        io.output(f)
+        io.write(json.encode(tracks[self.id].tli))
+        io.close(f)
+        os.execute(_path.code.."zxcvbn/lib/acrostic/acrostic --in ".._path.data.."zxcvbn/tli.json --out ".._path.data.."zxcvbn/pages/")
+      end
     end
   elseif k=="CTRL+T" or k=="CTRL+L" then
     if v==1 then

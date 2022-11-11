@@ -1,4 +1,4 @@
--- zxcvbn v1.2.0
+-- zxcvbn v1.3.0
 --
 --
 -- zxcvbn.norns.online
@@ -97,9 +97,7 @@ function init2()
   os.execute("mkdir -p ".._path.data.."zxcvbn/pages")
   os.execute("mkdir -p ".._path.data.."zxcvbn/tapes")
   for i=1,10 do
-    if not util.file_exists(_path.data.."zxcvbn/pages/"..i) then
-      os.execute("touch ".._path.data.."zxcvbn/pages/"..i)
-    end
+    os.execute("truncate -s 0 ".._path.data.."zxcvbn/pages/"..i)
   end
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
   os.execute(_path.code.."zxcvbn/lib/oscconnect/run.sh &")
@@ -183,7 +181,7 @@ function init2()
   print("RANDOM STRING",params:string("random_string"))
 
   -- setup tracks
-  params:add_number("track","track",1,9,1)
+  params:add_number("track","track",1,10,1)
   params:set_action("track",function(x)
     for i,track in ipairs(tracks) do
       track:select(i==x)
@@ -248,6 +246,14 @@ function init2()
     progressbar=function(args)
       show_message(args[1])
       show_progress(tonumber(args[2]))
+    end,
+    oscload=function(args)
+      print("args[1]",args[1])
+      print("args[2]",args[2])
+      local track=tonumber(args[1])
+      if track>=1 and track<=10 then
+        tracks[track]:load_text(args[2])
+      end
     end,
     oscnotify=function(args)
       print("file edited ok!")
@@ -355,44 +361,44 @@ function init2()
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
 
---   -- Am F
---   tracks[1]:load_text([[
--- 0 1 2 3
--- ]])
+  --   -- Am F
+  tracks[1]:load_text([[
+c4 pq v6.-6
+]])
 
---   tracks[2]:load_text([[
--- c4 pm
--- a3
---   ]])
+  --   tracks[2]:load_text([[
+  -- c4 pm
+  -- a3
+  --   ]])
 
---   tracks[3]:load_text([[
--- a1 pm
--- f1
---         ]])
+  --   tracks[3]:load_text([[
+  -- a1 pm
+  -- f1
+  --         ]])
 
---   tracks[4]:load_text([[
--- e3 d2 pm
--- c2
---     ]])
+  --   tracks[4]:load_text([[
+  -- e3 d2 pm
+  -- c2
+  --     ]])
 
---   params:set("1track_type",6)
---   -- params:set("1sample_file",_path.audio.."mx.samples/alto_sax_choir/52.1.1.1.0.wav")
---   -- for i=1,5 do
---   --   params:set(i.."track_type",7)
---   --   params:set(i.."crow_type",2)
---   -- end
---   params:set("track",1)
---   params:set("1play",1)
---   clock.run(function() 
---     clock.sleep(0.5)
---     params:set("1mute",0)
---     clock.sleep(1)
---     tracks[1]:loop_record()
---     clock.sleep(8)
---     params:set("1mute",0)
---     clock.sleep(0.2)
---     tracks[1]:loop_record()
---   end)
+  --   params:set("1track_type",6)
+  --   -- params:set("1sample_file",_path.audio.."mx.samples/alto_sax_choir/52.1.1.1.0.wav")
+  --   -- for i=1,5 do
+  --   --   params:set(i.."track_type",7)
+  --   --   params:set(i.."crow_type",2)
+  --   -- end
+  --   params:set("track",1)
+  --   params:set("1play",1)
+  --   clock.run(function()
+  --     clock.sleep(0.5)
+  --     params:set("1mute",0)
+  --     clock.sleep(1)
+  --     tracks[1]:loop_record()
+  --     clock.sleep(8)
+  --     params:set("1mute",0)
+  --     clock.sleep(0.2)
+  --     tracks[1]:loop_record()
+  --   end)
 end
 
 function rerun()
@@ -405,6 +411,7 @@ end
 
 function reset_clocks()
   clock_pulse=0
+  tli:reset()
 end
 
 function keyboard.code(k,v)
