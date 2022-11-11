@@ -362,9 +362,9 @@ function init2()
   end
 
   --   -- Am F
-  tracks[1]:load_text([[
-c4 pq v6.-6
-]])
+--   tracks[1]:load_text([[
+-- c4 pq v6.-6
+-- ]])
 
   --   tracks[2]:load_text([[
   -- c4 pm
