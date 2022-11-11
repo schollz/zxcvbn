@@ -177,7 +177,7 @@ function Track:init()
     options=self.scale_names,default=1,
   action=function() self:scale_build() end}
   params:add{type="number",id=self.id.."root_note",name="root note",
-    min=0,max=127,default=60,formatter=function(param) return musicutil.note_num_to_name(param:get(),true) end,
+    min=0,max=127,default=0,formatter=function(param) return musicutil.note_num_to_name(param:get(),false) end,
   action=function() self:scale_build() end}
 
   params:add{type="binary",name="find onsets",id=self.id.."get_onsets",behavior="momentary",action=function(v)
