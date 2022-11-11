@@ -7,7 +7,7 @@ Each track has its own tape that can be used to record. Currently the tape only 
 
 <img src="/static/tape1.png" class="fr">
 
-To use this feature, simply hit *ctrl* + *r*. This will "arm" a recording. You should see a blinking bar at the bottom. The recording will initiate when it starts at the beginning of the chain and will continue until the end of the chain. You should see a growing gray bar at the bottom.
+The tape can be recorded at any time by invoking *ctrl* + *r* on the keyboard. This will "arm" a recording which will start recording the next time the chain starts at the beginning of the first beat. The bottom bar blinks while it is armed, and then turns solid when it begins to record. The bar will grow from the left to the right to indicate the position of the recording. The recording duration is set by the total time for the entire chain.
 
 <img src="/static/tape2.png" class="fr">
 

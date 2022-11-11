@@ -184,6 +184,7 @@ func ParseEntry(fname string) (e Entry, err error) {
 
 	// get metadata
 	metaData := meta.Get(context)
+	log.Tracef("metaData: %+v", metaData)
 	if _, ok := metaData["title"]; ok {
 		e.Title = metaData["title"].(string)
 	}

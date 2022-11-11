@@ -3,22 +3,26 @@ title: TLI
 weight: 2.0
 ---
 
-TLI means "**text-limited interface**". It is the basis of *zxcvbn*, as the primary control of this script is through a text editor that receives input from a keyboard. This script is used by entering commands, or collections of commands (called a "[pattern](#pattern)"), or collections of patterns (called a "[chain](#chain)"). The commands are often notes, but they can also be modifiers that augment the way that a note is played.
+The best place to get started with *zxcvbn* is to learn about the basic syntax, TLI.
+
+TLI means "**text-limited interface**". It is the syntax used to enter commands, or add collections of commands (called a "[pattern](#pattern)"), or collections of patterns (called a "[chain](#chain)"). The commands are often notes, but they can also be modifiers that augment the way that a note is played.
 
 TLI also means "**too little information**". It is a style of syntax developed for producing oblique rhythms without music theory. TLI at its core is a single line of letters or numbers separated by spaces. The tracker allocates time to each line, and subdivides the time equally among each entity on the line.
 
-Its best learned through examples.
+Lets start with some simple examples.
 
 <h2 class="h2under">Example 1 (quarter notes)</h2>
-<p class="shiny">c4 d4 e4 g4</p>
+<p class="shiny">c d e f</p>
 
 You can type this out into the norns and then press *ctrl*+*s* to parse it/save it. Then to play it just do *ctrl*+*p*. In this example there are four notes so each is given 1/4 of the time allotted to the line. If the line is given one measure, then each note will be a quarter note.
 
+Notice that the notes are supplied without octave information. In this case *zxcvbn* will try to guess the octave (using the last known octave or defaulting to octave 4).
+
 
 <h2 class="h2under">Example 2 (triplets)</h2>
-<p class="shiny">c4 d4 e4 c4 d4 e4 c4 d4 e4 c4 d4 e4</p>
+<p class="shiny">c4 e g c4 e g c4 e g c4 e g</p>
 
-In this example there are twelve notes so each is given 1/12 of the time allocated to the line. If the line is given one measure, then this will sound as four triplets.
+In this example there are twelve notes so each is given 1/12 of the time allocated to the line. If the line is given one measure, then this will sound as four triplets. In this example, the octave is specified to the "C" note. The octave is simply supplied as a number after the note.
 
 
 <h2 class="h2under">Example 3 (rests)</h2>
