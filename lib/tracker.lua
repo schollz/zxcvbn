@@ -93,13 +93,16 @@ function Tracker:keyboard(k,v)
   k=self.shift_on and "SHIFT+"..k or k
   k=self.ctrl_on and "CTRL+"..k or k
   k=self.alt_on and "ALT+"..k or k
-  for i,_ in ipairs(tracks) do
-    if k=="CTRL+"..(i>0 and i or 10) then
-      params:set("track",i)
+  if k:sub(1,5)=="CTRL+" and tonumber(k:sub(6))~=nil then
+    if v==1 then
+      local track=tonumber(k:sub(6))
+      if track==0 then
+        track=10
+      end
+      params:set("track",track)
       do return end
     end
-  end
-  if k=="CTRL+P" then
+  elseif k=="CTRL+P" then
     if v==1 then
       params:set(params:get("track").."play",1-params:get(params:get("track").."play"))
       show_message((params:get(params:get("track").."play")==0 and "stopped" or "playing").." track "..params:get("track"))
@@ -123,7 +126,7 @@ function Tracker:redraw()
   screen.rect(0,8,6,66)
   screen.fill()
   screen.level(params:get(params:get("track").."play")==0 and 5 or 12)
-  screen.rect(0,0,6 ,7)
+  screen.rect(0,0,6,7)
   screen.fill()
   screen.level(params:get(params:get("track").."play")==0 and 1 or 0)
   screen.move(3,6)

@@ -298,6 +298,16 @@ function VTerm:keyboard(k,v)
     self.shift_updown(v)
   elseif k=="SHIFT+DOWN" then
     self.shift_updown(v*-1)
+  elseif k=="CTRL+LEFT" then
+    if v==1 then
+      params:delta("track",-1)
+      do return end
+    end
+  elseif k=="CTRL+RIGHT" then
+    if v==1 then
+      params:delta("track",1)
+      do return end
+    end
   elseif k=="RIGHT" then
     if v>0 then
       self:move_cursor(0,1)
