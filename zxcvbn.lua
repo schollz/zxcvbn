@@ -198,8 +198,10 @@ function init2()
 
   -- add lookups
   params.id_to_name={}
+  params.name_to_id={}
   for _,p in ipairs(params.params) do
     params.id_to_name[p.id]=p.name
+    params.name_to_id[p.name]=p.id
   end
 
   -- bang params

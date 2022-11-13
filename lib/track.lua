@@ -643,6 +643,15 @@ function Track:parse_tli()
           show_message("error setting "..k)
         end
       end
+      if params.name_to_id[k]~=nil and params.lookup[self.id..params.name_to_id[k]]~=nil then
+        local ok,err=pcall(function()
+          print("setting "..params.name_to_id[k].." = "..v)
+          params:set(self.id..params.name_to_id[k],v)
+        end)
+        if not ok then
+          show_message("error setting "..params.name_to_id[k])
+        end
+      end
     end
     show_message("parsed track "..self.id,1)
   end
