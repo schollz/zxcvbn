@@ -1176,10 +1176,10 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                                 attack: attack,
                                 release: release,
                                 amp: (db+(db_add*(i+1))).dbamp,
-                                filter: filter,
                                 rate: rate*((pitch.sign)*(i+1)+pitch).midiratio/(1+stretch),
-                                pos: pos,
                                 duration: duration_slice * gate / (retrig + 1),
+                                filter: filter,
+                                pos: pos,
                                 decimate: decimate,
                                 drive: drive,
                                 compression: compression,
@@ -1284,6 +1284,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                                     compressing: compressing,
                                     buf: buf,
                                     amp: (db+(db_add*(i+1))).dbamp,
+                                    duration: (duration * gate / (retrig + 1)),
                                     pan: pan,
                                     filter: filter,
                                     pitch: pitch,
@@ -1291,7 +1292,6 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                                     sampleIn: sampleIn,
                                     sampleOut: sampleOut,
                                     sampleEnd: sampleEnd,
-                                    duration: (duration * gate / (retrig + 1)),
                                     watch: watch,
                                     attack: attack,
                                     release: release,
@@ -1451,11 +1451,11 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             mx.note(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape);
         });
 
-        this.addCommand("mx_synths","sffffffffffffffffsf", { arg msg;
+        this.addCommand("mx_synths","sffffffffffffffffsfff", { arg msg;
             var synth=msg[1].asString;
             var note=msg[2];
-            var amp=msg[3].dbamp;
-            var sub=msg[4].dbamp;
+            var db=msg[3];
+            var sub=msg[4];
             var pan=msg[5];
             var attack=msg[6];
             var release=msg[7];
@@ -1471,6 +1471,8 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             var monophonic_release=msg[17];
             var id=msg[18];
             var sendTape=msg[19];
+            var retrig=msg[20];
+            var db_add=msg[21];
             var syn;
             if (monophonic_release>0,{
                 if (syns.at(id).notNil,{
@@ -1482,8 +1484,8 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             });
             syn=Synth.new(synth,[
                 hz: note.midicps,
-                amp: amp,
-                sub: sub,
+                amp: (db+db_add).dbamp,
+                sub: (sub+db_add).dbamp,
                 pan: pan,
                 attack: attack,
                 release: release,
@@ -1491,7 +1493,7 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                 mod2: mod2,
                 mod3: mod3,
                 mod4: mod4,
-                duration: duration,
+                duration: (duration / (retrig + 1)),
                 out: buses.at("busCompressible"),
                 outsc: buses.at("busCompressing"),
                 outnsc: buses.at("busNotCompressible"),
@@ -1502,6 +1504,39 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
                 lpf: lpf,
                 sendtape: sendTape,
             ],syns.at("reverb"),\addBefore).onFree({"freed!"});
+            if (retrig>0,{
+                if ((duration/ (retrig+1))>0.01, {
+                    Routine {
+                        (retrig).do{ arg i;
+                            (duration/ (retrig+1) ).wait;
+                            syn.set("gate_release",monophonic_release+0.05);
+                            syn.set("gate_done",1);
+                            syn=Synth.new(synth, [
+                                hz: note.midicps,
+                                amp: (db+(db_add*(i+1))).dbamp,
+                                sub: (sub+(db_add*(i+1))).dbamp,
+                                pan: pan,
+                                attack: attack,
+                                release: release,
+                                mod1: mod1,
+                                mod2: mod2,
+                                mod3: mod3,
+                                mod4: mod4,
+                                duration: (duration / (retrig + 1)),
+                                out: buses.at("busCompressible"),
+                                outsc: buses.at("busCompressing"),
+                                outnsc: buses.at("busNotCompressible"),
+                                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+                                compressible: sendCompressible,
+                                compressing: sendCompressing,
+                                sendreverb: sendReverb,
+                                lpf: lpf,
+                                sendtape: sendTape,
+                            ], syns.at("reverb"), \addBefore);
+                        };
+                    }.play;
+                });
+            });
             if (monophonic_release>0,{
                 NodeWatcher.register(syn);
                 syns.put(id,syn);
