@@ -139,6 +139,19 @@ function VTerm:save()
   io.output(f)
   io.write(self.text)
   io.close(f)
+
+  -- save all
+  debounce_fn["save_all"]={3,function() 
+    local s=(tracks[1].states[1].text or "")
+    for i=2,10 do 
+      s=string.format("%s\n\n###\n\n%s",s,(tracks[i].states[1].text or ""))
+    end
+    local f=io.open(_path.data.."zxcvbn/pages/all","w")
+    io.output(f)
+    io.write(s)
+    io.close(f)      
+  end}
+
 end
 
 function VTerm:undo()
