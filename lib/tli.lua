@@ -1131,9 +1131,11 @@ function TLI:parse_tli_(text,use_hex)
   end
   for _,line in ipairs(lines) do
     -- remove comments at end
-    local parts=self.string_split(line,"#")
-    if #parts>1 then
-      line=parts[1]
+    if not string.sub(line,1,1)=="#" then 
+      local parts=self.string_split(line," #")
+      if #parts>1 then
+        line=parts[1]
+      end
     end
     local fi=self.fields(line)
     if line=="" then
