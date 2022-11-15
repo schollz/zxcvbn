@@ -377,14 +377,16 @@ self.play_fn[TYPE_MXSYNTHS]={
   note_on=function(d,mods)
     local synth=params:string(self.id.."mx_synths")
     local note=d.note_to_emit+params:get(self.id.."pitch")
-    local db=params:get(self.id.."db")+(mods.v or 0)
+    local db=params:get(self.id.."db")
+    local db_add=(mods.v or 0)
     local pan=params:get(self.id.."pan")
     local attack=params:get(self.id.."attack")/1000
     local release=params:get(self.id.."release")/1000
     local duration=d.duration_scaled
+    local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
-    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape)
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,db_add)
   end,
 }
 -- infinite pad
@@ -641,6 +643,15 @@ function Track:parse_tli()
         end)
         if not ok then
           show_message("error setting "..k)
+        end
+      end
+      if params.name_to_id[k]~=nil and params.lookup[self.id..params.name_to_id[k]]~=nil then
+        local ok,err=pcall(function()
+          print("setting "..params.name_to_id[k].." = "..v)
+          params:set(self.id..params.name_to_id[k],v)
+        end)
+        if not ok then
+          show_message("error setting "..params.name_to_id[k])
         end
       end
     end

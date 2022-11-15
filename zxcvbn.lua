@@ -1,4 +1,4 @@
--- zxcvbn v1.3.0
+-- zxcvbn v1.4.0
 --
 --
 -- zxcvbn.norns.online
@@ -198,8 +198,10 @@ function init2()
 
   -- add lookups
   params.id_to_name={}
+  params.name_to_id={}
   for _,p in ipairs(params.params) do
     params.id_to_name[p.id]=p.name
+    params.name_to_id[p.name]=p.id
   end
 
   -- bang params
@@ -283,13 +285,24 @@ function init2()
     oscpage=function(args)
       local path=args[1]
       if debounce_fn["ignore_page"]==nil and path~=nil then
-        local id=tonumber(string.sub(path,#path))
+        print("oscpage")
+        tab.print(args)
+        local name=string.sub(path,#path)
+        local id=tonumber(name)
         if id~=nil then
           local f=io.open(path,"rb") -- r read mode and b binary mode
           if not f then return nil end
           local content=f:read("*a") -- *a or *all reads the whole file
           f:close()
           tracks[id]:load_text(content)
+        elseif path==_path.data.."zxcvbn/pages/all" then 
+          local f=io.open(path,"rb") -- r read mode and b binary mode
+          if not f then return nil end
+          local content=f:read("*a") -- *a or *all reads the whole file
+          f:close()
+          for i,text in ipairs(tli.string_split(content,"###")) do 
+            tracks[i]:load_text(tli.trim(text))
+          end
         end
       end
     end,
