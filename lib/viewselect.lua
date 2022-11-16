@@ -117,7 +117,7 @@ function ViewSelect:list_folders(path)
 end
 
 function ViewSelect:list_files(path)
-  local folder_string=util.os_capture("find "..path.." -maxdepth 1 -type f -name '*.wav' -o -name '*.flac' | sort")
+  local folder_string=util.os_capture("find "..path.." -maxdepth 1 -type f -name '*.wav' -o -name '*.flac' -o -name '*.aif' | sort")
   local files={}
   for s in folder_string:gmatch("%S+") do
     -- trim string
@@ -239,9 +239,21 @@ function ViewSelect:get_render()
     self.pathname,self.filename,self.ext=string.match(self.path,"(.-)([^\\/]-%.?([^%.\\/]*))$")
     self.path_to_dat=_path.data.."zxcvbn/dats/"..self.filename..".dat"
     if not util.file_exists(self.path_to_dat) then
-      local cmd=string.format("%s -q -i %s -o %s -z %d -b 8 &",audiowaveform,self.path,self.path_to_dat,2)
+	    local delete_temp=false
+	    local filename=self.path
+	    if string.find(filename,"aif") then 
+		    print(util.os_capture(string.format("sox %s %s",filename,filename..".wav")))
+		    filename=filename..".wav"
+		    delete_temp=true
+	    end
+      local cmd=string.format("%s -q -i %s -o %s -z %d -b 8 &",audiowaveform,filename,self.path_to_dat,2)
       print(cmd)
       os.execute(cmd)
+      if delete_temp then 
+	      debounce_fn["rm_"..filename]={45,function() 
+	      os.execute("rm "..filename)
+      end}
+      end
     end
   elseif self.attempting_render[self.path]==true and util.file_exists(self.path_to_dat) and self.attempting_render2[self.path]==nil then
     self.attempting_render[self.path]=nil
