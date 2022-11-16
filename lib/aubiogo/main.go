@@ -372,10 +372,11 @@ func DecodeOPStarts(fname string) (starts []float64, err error) {
 	}
 	starts = make([]float64, len(patch.Start))
 
-	lastV := 0
+	lastV := -1
 	i := 0
+	sort.Ints(patch.Start)
 	for _, v := range patch.Start {
-		if v < lastV {
+		if v <= lastV {
 			break
 		}
 		starts[i] = float64(v) / 4096 / 44100
