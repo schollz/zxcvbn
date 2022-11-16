@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"os"
 	"os/exec"
@@ -38,7 +39,7 @@ func init() {
 	flag.StringVar(&flagHost, "host", "localhost", "osc host")
 	flag.IntVar(&flagPort, "port", 10111, "port to use")
 	flag.StringVar(&flagAddress, "addr", "/progressbar", "osc address")
-	flag.BoolVar(&flagRM,"rm",false,"remove file after using")
+	flag.BoolVar(&flagRM, "rm", false, "remove file after using")
 }
 
 func main() {
@@ -77,7 +78,10 @@ func run() (top16 []float64, err error) {
 			err = errors.New(fmt.Sprint(newErr))
 		}
 	}()
-
+	top16, err = DecodeOPStarts(flagFilename)
+	if err == nil {
+		return
+	}
 	onsets, err := getOnsets()
 	if err != nil {
 		return
@@ -318,4 +322,66 @@ func round(num float64) int {
 func toFixed(num float64, precision int) float64 {
 	output := math.Pow(10, float64(precision))
 	return float64(round(num*output)) / output
+}
+
+type PatchOP struct {
+	DrumVersion int    `json:"drum_version,omitempty"`
+	DynaEnv     []int  `json:"dyna_env,omitempty"`
+	End         []int  `json:"end,omitempty"`
+	FxActive    bool   `json:"fx_active,omitempty"`
+	FxParams    []int  `json:"fx_params,omitempty"`
+	FxType      string `json:"fx_type,omitempty"`
+	LfoActive   bool   `json:"lfo_active,omitempty"`
+	LfoParams   []int  `json:"lfo_params,omitempty"`
+	LfoType     string `json:"lfo_type,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Octave      int    `json:"octave,omitempty"`
+	Pitch       []int  `json:"pitch,omitempty"`
+	Playmode    []int  `json:"playmode,omitempty"`
+	Reverse     []int  `json:"reverse,omitempty"`
+	Start       []int  `json:"start,omitempty"`
+	Type        string `json:"type,omitempty"`
+	Volume      []int  `json:"volume,omitempty"`
+}
+
+func DecodeOP(fname string) (patch PatchOP, err error) {
+	b, err := ioutil.ReadFile(fname)
+	if err != nil {
+		return
+	}
+
+	index1 := bytes.Index(b, []byte("op-1"))
+	if index1 < 0 {
+		err = fmt.Errorf("could not find header in '%s'", fname)
+		return
+	}
+	index2 := bytes.Index(b[index1:], []byte("}"))
+	if index2 < 0 {
+		err = fmt.Errorf("could not find JSON end in '%s'", fname)
+		return
+	}
+
+	err = json.Unmarshal(b[index1+4:index2+index1+1], &patch)
+	return
+}
+
+func DecodeOPStarts(fname string) (starts []float64, err error) {
+	patch, err := DecodeOP(fname)
+	if err != nil {
+		return
+	}
+	starts = make([]float64, len(patch.Start))
+
+	lastV := 0
+	i := 0
+	for _, v := range patch.Start {
+		if v < lastV {
+			break
+		}
+		starts[i] = float64(v) / 4096 / 44100
+		lastV = v
+		i++
+	}
+	starts = starts[:i]
+	return
 }
