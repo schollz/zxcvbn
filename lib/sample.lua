@@ -58,8 +58,19 @@ function Sample:load_sample(path,is_melodic,slices)
   -- create dat file
   self.path_to_dat=_path.data.."zxcvbn/dats/"..self.filename..".dat"
   if not util.file_exists(self.path_to_dat) then
-    local cmd=string.format("%s -q -i %s -o %s -z %d -b 8",audiowaveform,self.path,self.path_to_dat,2)
+    local delete_temp=false
+    local filename=self.path
+    if self.ext=="aif" then 
+      print(util.os_capture(string.format("sox %s %s",filename,filename..".wav")))
+      filename=filename..".wav"
+      delete_temp=true
+    end
+    local cmd=string.format("%s -q -i %s -o %s -z %d -b 8 &",audiowaveform,filename,self.path_to_dat,2)
+    print(cmd)
     os.execute(cmd)
+    if delete_temp then 
+      debounce_fn["rm_"..filename]={45,function() os.execute("rm "..filename) end}
+    end
   end
 
   self.is_melodic=is_melodic

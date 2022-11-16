@@ -241,7 +241,7 @@ function ViewSelect:get_render()
     if not util.file_exists(self.path_to_dat) then
 	    local delete_temp=false
 	    local filename=self.path
-	    if string.find(filename,"aif") then 
+	    if self.ext=="aif" then 
 		    print(util.os_capture(string.format("sox %s %s",filename,filename..".wav")))
 		    filename=filename..".wav"
 		    delete_temp=true
@@ -250,9 +250,7 @@ function ViewSelect:get_render()
       print(cmd)
       os.execute(cmd)
       if delete_temp then 
-	      debounce_fn["rm_"..filename]={45,function() 
-	      os.execute("rm "..filename)
-      end}
+	      debounce_fn["rm_"..filename]={45,function() os.execute("rm "..filename) end}
       end
     end
   elseif self.attempting_render[self.path]==true and util.file_exists(self.path_to_dat) and self.attempting_render2[self.path]==nil then
