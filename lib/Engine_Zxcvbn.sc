@@ -858,6 +858,9 @@ env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0))
             // tape slow
             snd = SelectX.ar(VarLag.kr(tape_slow>0,1,warp:\sine),[snd,PlayBuf.ar(2,tape_buf,Lag.kr(1/(tape_slow+1),1),startPos:tapePosRec-10,loop:1,trigger:Trig.kr(tape_slow>0))]);
 
+            // reduce stereo spread in the bass
+            snd = BHiPass.ar(snd,200)+Pan2.ar(BLowPass.ar(snd[0]+snd[1],200));
+
             Out.ar(outBus,snd*EnvGen.ar(Env.new([0,1],[1])));
         }).send(context.server);
 
