@@ -102,6 +102,20 @@ function Tracker:keyboard(k,v)
       params:set("track",track)
       do return end
     end
+  elseif k=="CTRL+I" then
+    if v==1 then
+      for i,k in ipairs({"pitch_in_l","pitch_in_l"}) do
+        if pitch_poll_on then
+          print("stopping poll")
+          pitch_polls[i]:stop()
+        else
+          print("starting poll")
+          pitch_polls[i]:start()
+        end
+      end
+      pitch_poll_on=not pitch_poll_on
+    end
+    do return end
   elseif k=="CTRL+P" then
     if v==1 then
       params:set(params:get("track").."play",1-params:get(params:get("track").."play"))

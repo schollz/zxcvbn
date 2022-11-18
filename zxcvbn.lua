@@ -295,12 +295,12 @@ function init2()
           local content=f:read("*a") -- *a or *all reads the whole file
           f:close()
           tracks[id]:load_text(content)
-        elseif path==_path.data.."zxcvbn/pages/all" then 
+        elseif path==_path.data.."zxcvbn/pages/all" then
           local f=io.open(path,"rb") -- r read mode and b binary mode
           if not f then return nil end
           local content=f:read("*a") -- *a or *all reads the whole file
           f:close()
-          for i,text in ipairs(tli.string_split(content,"###")) do 
+          for i,text in ipairs(tli.string_split(content,"###")) do
             tracks[i]:load_text(tli.trim(text))
           end
         end
@@ -368,6 +368,24 @@ function init2()
   end)
   softcut.poll_start_phase()
 
+  -- setup polls
+  pitch_polls={}
+  pitch_poll_on=false
+  for i,v in ipairs({"pitch_in_l","pitch_in_r"}) do
+    pitch_polls[i]=poll.set(v)
+    pitch_polls[i].callback=function(val)
+      if val>10 then
+        if debounce_fn[v]==nil then
+          debounce_fn[v]={1,function() return val end}
+        else
+          debounce_fn[v]={debounce_fn[v][1]>=15 and 15 or (debounce_fn[v][1]+1),function() return val end}
+        end
+      end
+    end
+    pitch_polls[i].time=0.05
+    pitch_polls[i]:stop()
+  end
+
   if util.file_exists(_path.data.."zxcvbn/first") then
     params:set("clock_tempo",150)
     params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
@@ -375,9 +393,9 @@ function init2()
   end
 
   --   -- Am F
---   tracks[1]:load_text([[
--- c4 pq v6.-6
--- ]])
+  --   tracks[1]:load_text([[
+  -- c4 pq v6.-6
+  -- ]])
 
   --   tracks[2]:load_text([[
   -- c4 pm
@@ -519,6 +537,18 @@ function redraw()
   screen.clear()
   screens[screen_ind]:redraw()
   draw_message()
+
+  if debounce_fn["pitch_in_l"]~=nil and debounce_fn["pitch_in_r"]~=nil then
+    screen.level(util.round((debounce_fn["pitch_in_l"][1]+debounce_fn["pitch_in_r"][1])/2))
+    screen.move(128,15)
+    screen.text_right(string.format("%2.2f | %2.2f Hz",debounce_fn["pitch_in_l"][2](),debounce_fn["pitch_in_r"][2]()))
+    screen.move(128,15+8)
+    local note_nums={musicutil.freq_to_note_num(debounce_fn["pitch_in_l"][2]()),musicutil.freq_to_note_num(debounce_fn["pitch_in_r"][2]())}
+    screen.text_right(string.format("%2.2f | %2.2f Hz",musicutil.note_num_to_freq(note_nums[1]),musicutil.note_num_to_freq(note_nums[2])))
+    screen.move(128,15+16)
+    screen.text_right(string.format("%s | %s",musicutil.note_num_to_name(note_nums[1],true),musicutil.note_num_to_name(note_nums[2],true)))
+  end
+
   screen.update()
 end
 
