@@ -647,7 +647,13 @@ end
 function params_audioin()
   local params_menu={
     {id="amp",name="amp",min=0,max=2,exp=false,div=0.01,default=1.0},
+    {id="preamp",name="preamp",min=0,max=10,exp=false,div=0.1,default=1.0},
+    {id="limit",name="distortion limit",min=0.01,max=1,exp=false,div=0.02,default=1.0},
     {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=-1,response=1},
+    {id="lpf",name="lpf cutoff",min=10,max=18000,exp=true,div=10,default=18000,unit="Hz"},
+    {id="lpfqr",name="lpf qr",min=0.1,max=1.0,exp=false,div=0.01,default=1.0},
+    {id="hpf",name="hpf cutoff",min=10,max=600,exp=true,div=10,default=20,unit="Hz"},
+    {id="hpfqr",name="lpf qr",min=0.1,max=1.0,exp=false,div=0.01,default=1.0},
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
   }
@@ -664,16 +670,18 @@ function params_audioin()
         formatter=pram.formatter,
       }
       params:set_action("audioin"..pram.id..lr,function(v)
-        engine.audionin_set(lr,pram.id,v)
-        if params:get("audioin_linked")==2 then
-          if pram.id~="pan" then
-            params:set("audioin"..pram.id..lrs[3-lri],v,true)
-            engine.audionin_set(lrs[3-lri],pram.id,v)
-          else
-            params:set("audioin"..pram.id..lrs[3-lri],-v,true)
-            engine.audionin_set(lrs[3-lri],pram.id,-1*v)
-          end
-        end
+        debounce_fn["audio_in"..pram.id]={15,function()
+          engine.audionin_set(lr,pram.id,v)
+          if params:get("audioin_linked")==2 then
+            if pram.id~="pan" then
+              params:set("audioin"..pram.id..lrs[3-lri],v,true)
+              engine.audionin_set(lrs[3-lri],pram.id,v)
+            else
+              params:set("audioin"..pram.id..lrs[3-lri],-v,true)
+              engine.audionin_set(lrs[3-lri],pram.id,-1*v)
+            end
+          end          
+        end}
       end)
     end
   end

@@ -743,12 +743,15 @@ Engine_Zxcvbn : CroneEngine {
 
 
         SynthDef("defAudioIn",{
-            arg ch=0,lpf=20000,lpfqr=0.707,hpf=20,hpfqr=0.909,pan=0,amp=1.0;
+            arg ch=0,lpf=20000,lpfqr=0.707,hpf=20,hpfqr=0.909,pan=0,amp=1.0
+            preamp=1,limit=1;
             var snd;
             snd=SoundIn.ar(ch);
-            snd=Pan2.ar(snd,pan,amp);
-            // snd=RHPF.ar(snd,hpf,hpfqr);
-            // snd=RLPF.ar(snd,lpf,lpfqr);
+            snd=Pan2.ar(snd,pan);
+            snd=SineShaper.ar(snd*preamp,limit);
+            snd=BLowPass.ar(snd,lpf,lpfqr);
+            snd=BHiPass.ar(snd,hpf,hpfqr);
+            snd=snd*amp;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
