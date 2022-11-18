@@ -762,7 +762,7 @@ Engine_Zxcvbn : CroneEngine {
         (1..2).do({arg ch;
         SynthDef("playerInOut"++ch,{
             arg out=0, buf, id=0,amp=1.0, pan=0, filter=18000, rate=1.0,pitch=0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.1,
-            duration=10000,attack=0.001,decay=0.3,sustain=1.0,release=2.0,drive=0;
+            duration=10000,attack=0.001,decay=0.3,sustain=1.0,release=2.0,drive=0,overdrive=1;
             
             // vars
             var snd,snd2,pos,trigger,sampleDuration,sampleDurationInOut,imp,aOrB,posA,sndA,posB,sndB,trigA,trigB;
@@ -807,6 +807,7 @@ Engine_Zxcvbn : CroneEngine {
             snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, -10), 3000, 1, -10);
             snd2 = (snd2 * 10.dbamp).tanh * -10.dbamp;
             snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, 10), 3000, 1, 10);
+            snd2 = snd2 * SineShaper.ar(snd2*overdrive);
             snd2 = snd2 * -10.dbamp;
             snd = SelectX.ar(drive,[snd,snd2]);
 
@@ -939,7 +940,7 @@ Engine_Zxcvbn : CroneEngine {
 
         (1..2).do({arg ch;
         SynthDef("slice0"++ch,{
-            arg amp=0, buf=0, rate=1, pos=0, drive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
+            arg amp=0, buf=0, rate=1, pos=0, drive=1, overdrive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
             var snd,snd2;
             var snd_pos = Phasor.ar(
                 trig: Impulse.kr(0),
@@ -962,6 +963,7 @@ Engine_Zxcvbn : CroneEngine {
             snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, -10), 3000, 1, -10);
             snd2 = (snd2 * 10.dbamp).tanh * -10.dbamp;
             snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, 10), 3000, 1, 10);
+            snd2 = snd2 * SineShaper.ar(snd2*overdrive);
             snd2 = snd2 * -10.dbamp;
 
             snd = SelectX.ar(drive,[snd,snd2]);
@@ -980,7 +982,7 @@ Engine_Zxcvbn : CroneEngine {
 
         (1..2).do({arg ch;
         SynthDef("slice1"++ch,{
-            arg amp=0, buf=0, rate=1, pos=0, drive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
+            arg amp=0, buf=0, rate=1, pos=0, drive=1, overdrive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
             var snd,snd2;
             var snd_pos = Phasor.ar(
                 trig: Impulse.kr(0),
@@ -1003,6 +1005,7 @@ Engine_Zxcvbn : CroneEngine {
             snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, -10), 3000, 1, -10);
             snd2 = (snd2 * 10.dbamp).tanh * -10.dbamp;
             snd2 = BHiShelf.ar(BLowShelf.ar(snd2, 500, 1, 10), 3000, 1, 10);
+            snd2 = snd2 * SineShaper.ar(snd2*overdrive);
             snd2 = snd2 * -10.dbamp;
 
             snd = SelectX.ar(drive,[snd,snd2]);
@@ -1212,7 +1215,7 @@ Engine_Zxcvbn : CroneEngine {
             });            
         });
 
-        this.addCommand("melodic_on","ssfffffffffffffffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssffffffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -1236,6 +1239,7 @@ Engine_Zxcvbn : CroneEngine {
             var monophonic_release=msg[21];
             var drive=msg[22];
             var sendTape=msg[23];
+            var overdrive=msg[24];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
@@ -1273,6 +1277,7 @@ Engine_Zxcvbn : CroneEngine {
                     attack: attack,
                     release: release,
                     drive: drive,
+                    overdrive: overdrive,
                     sendtape: sendTape,
                 ], syns.at("reverb"), \addBefore));
                 if (retrig>0,{
@@ -1302,6 +1307,7 @@ Engine_Zxcvbn : CroneEngine {
                                     attack: attack,
                                     release: release,
                                     drive: drive,
+                                    overdrive: overdrive,
                                     sendtape: sendTape,
                                 ], syns.at("reverb"), \addBefore));
                             };

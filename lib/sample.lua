@@ -217,6 +217,7 @@ function Sample:play(d)
   d.release=d.release or params:get(self.id.."release")/1000
   d.reverb=d.reverb or params:get(self.id.."send_reverb")
   d.drive=d.drive or params:get(self.id.."drive")
+  d.overdrive=d.overdrive or params:get(self.id.."overdrive")
   d.compression=d.compression or params:get(self.id.."compression")
   d.stretch=d.stretch or params:get(self.id.."stretch")
   d.monophonic_release=d.monophonic_release or params:get(self.id.."monophonic_release")/1000
@@ -287,7 +288,7 @@ function Sample:play(d)
         d.compressible,
         d.compressing,
         d.reverb,d.drive,d.compression,
-      d.watch,d.attack,d.release,d.stretch,d.send_tape)
+      d.watch,d.attack,d.release,d.stretch,d.send_tape,d.overdrive)
       if self.kick[d.ci]>-48 then
         engine.kick(
           musicutil.note_num_to_freq(params:get("kick_basenote")),

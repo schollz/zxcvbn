@@ -145,6 +145,7 @@ function Track:init()
     {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="decimate",name="decimate (m)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="overdrive",name="overdrive",min=0,max=10,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="compression",name="compression",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="pitch",name="note (n)",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
     {id="rate",name="rate (u)",min=-2,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()*100) end},
@@ -206,7 +207,7 @@ function Track:init()
   params:add_number(self.id.."mute_group","mute group",1,10,self.id)
 
   self.params={shared={"track_type","play","db","probability","pitch","mute","mute_group","transpose","scale_mode","root_note"}}
-  self.params["drum"]={"sample_file","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
+  self.params["drum"]={"sample_file","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","overdrive","drive","pan","compressing","compressible","attack","release","send_reverb"}
   self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","compressible"}
   self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","send_reverb"}
   self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","send_reverb"}
