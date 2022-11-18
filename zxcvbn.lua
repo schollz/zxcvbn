@@ -538,15 +538,26 @@ function redraw()
   screens[screen_ind]:redraw()
   draw_message()
 
-  if debounce_fn["pitch_in_l"]~=nil and debounce_fn["pitch_in_r"]~=nil then
-    screen.level(util.round((debounce_fn["pitch_in_l"][1]+debounce_fn["pitch_in_r"][1])/2))
-    screen.move(128,15)
-    screen.text_right(string.format("%2.2f | %2.2f Hz",debounce_fn["pitch_in_l"][2](),debounce_fn["pitch_in_r"][2]()))
-    screen.move(128,15+8)
-    local note_nums={musicutil.freq_to_note_num(debounce_fn["pitch_in_l"][2]()),musicutil.freq_to_note_num(debounce_fn["pitch_in_r"][2]())}
-    screen.text_right(string.format("%2.2f | %2.2f Hz",musicutil.note_num_to_freq(note_nums[1]),musicutil.note_num_to_freq(note_nums[2])))
-    screen.move(128,15+16)
-    screen.text_right(string.format("%s | %s",musicutil.note_num_to_name(note_nums[1],true),musicutil.note_num_to_name(note_nums[2],true)))
+  if debounce_fn["pitch_in_r"]~=nil then
+    screen.level(debounce_fn["pitch_in_r"][1])
+    screen.move(128,62-16)
+    screen.text_right(string.format("%2.2f Hz",debounce_fn["pitch_in_r"][2]()))
+    screen.move(128,62-8)
+    local note_num=musicutil.freq_to_note_num(debounce_fn["pitch_in_r"][2]())
+    screen.text_right(string.format("%2.2f Hz",musicutil.note_num_to_freq(note_num)))
+    screen.move(128,62)
+    screen.text_right(string.format("%s",musicutil.note_num_to_name(note_num,true)))
+  end
+
+  if debounce_fn["pitch_in_l"]~=nil then
+    screen.level(debounce_fn["pitch_in_l"][1])
+    screen.move(8,62-16)
+    screen.text(string.format("%2.2f Hz",debounce_fn["pitch_in_l"][2]()))
+    screen.move(8,62-8)
+    local note_num=musicutil.freq_to_note_num(debounce_fn["pitch_in_l"][2]())
+    screen.text(string.format("%2.2f Hz",musicutil.note_num_to_freq(note_num)))
+    screen.move(8,62)
+    screen.text(string.format("%s",musicutil.note_num_to_name(note_num,true)))
   end
 
   screen.update()
