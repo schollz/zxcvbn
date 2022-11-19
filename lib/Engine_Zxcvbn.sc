@@ -743,7 +743,7 @@ Engine_Zxcvbn : CroneEngine {
 
 
         SynthDef("defAudioIn",{
-            arg ch=0,lpf=20000,lpfqr=0.707,hpf=20,hpfqr=0.909,pan=0,amp=1.0
+            arg ch=0,lpf=20000,lpfqr=0.707,hpf=20,hpfqr=0.909,pan=0,amp=1.0,
             preamp=1,limit=1;
             var snd;
             snd=SoundIn.ar(ch);
