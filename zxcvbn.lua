@@ -200,8 +200,11 @@ function init2()
   params.id_to_name={}
   params.name_to_id={}
   for _,p in ipairs(params.params) do
-    params.id_to_name[p.id]=p.name
-    params.name_to_id[p.name]=p.id
+    -- matrix_depth_1_cell  nil
+    if p.name~=nil then
+      params.id_to_name[p.id]=p.name
+      params.name_to_id[p.name]=p.id
+    end
   end
 
   -- bang params
