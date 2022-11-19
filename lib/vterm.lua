@@ -482,7 +482,9 @@ function VTerm:enc(k,d)
     debounce_fn["2"]={15,function() return "lpf: "..math.floor(musicutil.note_num_to_freq(params:get(self.id.."filter"))) end}
   elseif k==3 then
     params:delta(self.id..self.enc3(),d)
-    debounce_fn["3"]={15,function() return params.id_to_name[self.id..self.enc3()]..": "..params:string(self.id..self.enc3()) end}
+    if params.id_to_name[self.id..self.enc3()]~=nil then 
+      debounce_fn["3"]={15,function() return params.id_to_name[self.id..self.enc3()]..": "..params:string(self.id..self.enc3()) end}
+    end
   end
 end
 

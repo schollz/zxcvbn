@@ -17,6 +17,7 @@ rm audiowaveform.tar.gz
 
 ## install aubio
 wget https://github.com/schollz/zxcvbn/releases/download/assets/aubio.tar.gz
+tar -xvzf aubio.tar.gz
 sudo cp aubio/libaubio.a /usr/local/lib/
 sudo cp aubio/libaubio.so /usr/local/lib/
 sudo ln -s /usr/local/lib/libaubio.so /usr/local/lib/libaubio.so.5
