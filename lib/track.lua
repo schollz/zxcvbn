@@ -14,7 +14,7 @@ TYPE_DRUM=6
 TYPE_CROW=7
 TYPE_MIDI=8
 TYPE_JF=9
-TYPE_WSYN = 10
+TYPE_WSYN=10
 
 function string.split(pString,pPattern)
   local Table={} -- NOTE: use {n = 0} in Lua-5.0
@@ -48,22 +48,22 @@ function Track:init()
 
   self.loop={pos_play=-1,pos_rec=-1,arm_play=false,arm_rec=false,send_tape=0}
 
-  self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf", "wsyn"}
+  self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
-  
+
   params:set_action(self.id.."track_type",function(x)
-    local chosenclade = self.track_type_options[x]
-    
+    local chosenclade=self.track_type_options[x]
+
     -- if JF is chosen, init JF
     if chosenclade=="jf" then
       crow.ii.jf.mode(1)
     end
-    
+
     -- if Wsyn is chosen, init wsyn
-     if chosenclade=="wsyn" then
+    if chosenclade=="wsyn" then
       crow.ii.wsyn.ar_mode(1)
     end
-    
+
     -- rerun show/hiding
     self:select(self.selected)
   end)
@@ -78,15 +78,15 @@ function Track:init()
   params:add_option(self.id.."mx_sample","instrument",mx_sample_options,1)
   -- crow
   params:add_option(self.id.."crow_type","outputs",{"1+2","3+4"},1)
-  
+
   -- jf
   params:add_option(self.id.."jf_type","jf",{""},1)
   -- jf params to come
-  
+
   -- wsyn
   params:add_option(self.id.."wsyn_type","wsyn",{""},1)
   -- wsyn params to come
-  
+
   -- sliced sample
   params:add_number(self.id.."slices","slices",1,16,16)
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
@@ -504,9 +504,6 @@ self.play_fn[TYPE_JF]={
     if level>0 then
       crow.ii.jf.play_note(note/12,level)
     end
-      
-    --end
-    -- TODO use debounce_fn
   end,
 }
 
@@ -518,9 +515,6 @@ self.play_fn[TYPE_WSYN]={
     if level>0 then
       crow.ii.wsyn.play_note(note/12,level)
     end
-      
-    --end
-    -- TODO use debounce_fn
   end,
 }
 
@@ -767,7 +761,7 @@ function Track:emit(beat)
           local duration=self.tli.pulses/24.0*clock.get_beat_sec()
           local crossfade=duration>0.1 and 0.1 or duration/2
           print("recording "..self.tli.pulses.." pulses ".." for "..duration.." seconds")
-          engine.loop_record(self.id,duration,crossfade,params:get(self.id.."track_type")<TYPE_CROW and 3 or 2) 
+          engine.loop_record(self.id,duration,crossfade,params:get(self.id.."track_type")<TYPE_CROW and 3 or 2)
           -- something with jf / wsyn here?
           self.loop.arm_play=true
           self.loop.send_tape=1

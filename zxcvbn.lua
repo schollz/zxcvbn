@@ -438,11 +438,10 @@ function init2()
   --     tracks[1]:loop_record()
   --   end)
 
-
-  -- DEBUG DEBUG 
-  params:set("1track_type",7)
-  params:set("audioinpanL",0)
-  params:set("1scale_mode",2)
+  -- DEBUG DEBUG
+  -- params:set("1track_type",7)
+  -- params:set("audioinpanL",0)
+  -- params:set("1scale_mode",2)
 end
 
 function rerun()
