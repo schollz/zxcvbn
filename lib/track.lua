@@ -701,20 +701,31 @@ function Track:parse_tli()
   end
   -- update the meta
   if self.tli.meta~=nil then
+    print(json.encode(self.tli.meta))
     for k,v in pairs(self.tli.meta) do
-      if params.lookup[self.id..k]~=nil then
+      print(params.id_to_name[k])
+      print(params.id_to_name[self.id..k])
+      print(params.name_to_id[k])
+      if params.id_to_name[k]~=nil then
         local ok,err=pcall(function()
           print("setting "..k.." = "..v)
-          params:set(self.id..k,v)
+          params:set(k,v)
         end)
         if not ok then
           show_message("error setting "..k)
         end
-      end
-      if params.name_to_id[k]~=nil and params.lookup[self.id..params.name_to_id[k]]~=nil then
+      elseif params.id_to_name[self.id..k]~=nil then
+        local ok,err=pcall(function()
+          print("setting "..self.id..k.." = "..v)
+          params:set(self.id..k,v)
+        end)
+        if not ok then
+          show_message("error setting "..self.id..k)
+        end
+      elseif params.name_to_id[k]~=nil then
         local ok,err=pcall(function()
           print("setting "..params.name_to_id[k].." = "..v)
-          params:set(self.id..params.name_to_id[k],v)
+          params:set(params.name_to_id[k],v)
         end)
         if not ok then
           show_message("error setting "..params.name_to_id[k])
