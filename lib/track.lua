@@ -13,6 +13,8 @@ TYPE_SOFTSAMPLE=5
 TYPE_DRUM=6
 TYPE_CROW=7
 TYPE_MIDI=8
+TYPE_JF=9
+TYPE_WSYN=10
 
 function string.split(pString,pPattern)
   local Table={} -- NOTE: use {n = 0} in Lua-5.0
@@ -46,9 +48,22 @@ function Track:init()
 
   self.loop={pos_play=-1,pos_rec=-1,arm_play=false,arm_rec=false,send_tape=0}
 
-  self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi"}
+  self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
+
   params:set_action(self.id.."track_type",function(x)
+    local chosenclade=self.track_type_options[x]
+
+    -- if JF is chosen, init JF
+    if chosenclade=="jf" then
+      crow.ii.jf.mode(1)
+    end
+
+    -- if Wsyn is chosen, init wsyn
+    if chosenclade=="wsyn" then
+      crow.ii.wsyn.ar_mode(1)
+    end
+
     -- rerun show/hiding
     self:select(self.selected)
   end)
@@ -63,6 +78,15 @@ function Track:init()
   params:add_option(self.id.."mx_sample","instrument",mx_sample_options,1)
   -- crow
   params:add_option(self.id.."crow_type","outputs",{"1+2","3+4"},1)
+
+  -- jf
+  params:add_option(self.id.."jf_type","jf",{""},1)
+  -- jf params to come
+
+  -- wsyn
+  params:add_option(self.id.."wsyn_type","wsyn",{""},1)
+  -- wsyn params to come
+
   -- sliced sample
   params:add_number(self.id.."slices","slices",1,16,16)
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
@@ -211,6 +235,8 @@ function Track:init()
   self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","send_reverb"}
   self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","send_reverb"}
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
+  self.params["jf"]={"jf_type"} -- jf options to come
+  self.params["wsyn"]={"wsyn_type"} -- wsyn options to come
   self.params["midi"]={"midi_ch","midi_dev"}
   self.params["mx.synths"]={"db","monophonic_release","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
@@ -263,6 +289,8 @@ end
 -- enc3
 self.enc3={}
 self.enc3[TYPE_CROW]="crow_sustain"
+-- self.enc3[TYPE_JF]="something" jf options to come
+-- self.enc3[TYPE_WSYN]="something" wsyn options to come
 self.enc3[TYPE_DRUM]="drive"
 self.enc3[TYPE_INFINITEPAD]="swell"
 self.enc3[TYPE_MELODIC]="drive"
@@ -286,6 +314,10 @@ end,shift_updown=function(d)
     params:delta(self.id.."midi_dev",d)
   elseif params:get(self.id.."track_type")==TYPE_CROW then
     params:delta(self.id.."crow_type",d)
+  elseif params:get(self.id.."track_type")==TYPE_JF then
+    params:delta(self.id.."jf_type",d)
+  elseif params:get(self.id.."track_type")==TYPE_WSYN then
+    params:delta(self.id.."wsyn_type",d)
   elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
     params:delta(self.id.."sc",d)
   end
@@ -427,6 +459,13 @@ self.play_fn[TYPE_SOFTSAMPLE]={
 }
 -- crow
 self.play_fn[TYPE_CROW]={
+  note_off=function(d,mods)
+    local i=(params:get(self.id.."crow_type")-1)*2+1
+    local crow_asl=string.format("{to(0,%3.3f)}",params:get(self.id.."release")/1000)
+    print(crow_asl)
+    crow.output[i+1].action=crow_asl
+    crow.output[i+1]()
+  end,
   note_on=function(d,mods)
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
@@ -434,7 +473,7 @@ self.play_fn[TYPE_CROW]={
     if level>0 then
       -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
       local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,params:get(self.id.."crow_sustain"),d.duration_scaled,params:get(self.id.."release")/1000)
-      print(i+1,crow_asl)
+      print(i+1,note,crow_asl)
       crow.output[i+1].action=crow_asl
       crow.output[i].volts=(note-24)/12
       crow.output[i+1]()
@@ -456,6 +495,29 @@ self.play_fn[TYPE_CROW]={
     end
   end,
 }
+
+-- jf
+self.play_fn[TYPE_JF]={
+  note_on=function(d,mods)
+    local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
+    local note=(d.note_to_emit+params:get(self.id.."pitch")-48)
+    if level>0 then
+      crow.ii.jf.play_note(note/12,level)
+    end
+  end,
+}
+
+-- wsyn
+self.play_fn[TYPE_WSYN]={
+  note_on=function(d,mods)
+    local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
+    local note=(d.note_to_emit+params:get(self.id.."pitch")-48)
+    if level>0 then
+      crow.ii.wsyn.play_note(note/12,level)
+    end
+  end,
+}
+
 -- midi device
 self.play_fn[TYPE_MIDI]={
   note_on=function(d,mods)
@@ -520,7 +582,7 @@ function Track:description()
     s=s..string.format(" (%s)",params:string(self.id.."mx_synths"))
   elseif params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_MELODIC then
     local fname=params:string(self.id.."sample_file")
-    if string.find(fname,".wav") or string.find(fname,".flac") then
+    if string.find(fname,".wav") or string.find(fname,".flac") or string.find(fname,".aif") then
       if (#fname>12) then
         fname=fname:sub(1,12).."..."
       end
@@ -534,6 +596,10 @@ function Track:description()
     s=s..string.format(" (%s:%d)",params:string(self.id.."midi_dev"),params:get(self.id.."midi_ch"))
   elseif params:get(self.id.."track_type")==TYPE_CROW then
     s=s..string.format(" (%s)",params:string(self.id.."crow_type"))
+  elseif params:get(self.id.."track_type")==TYPE_JF then
+    s=s..string.format(" (%s)",params:string(self.id.."jf_type"))
+  elseif params:get(self.id.."track_type")==TYPE_WSYN then
+    s=s..string.format(" (%s)",params:string(self.id.."wsyn_type"))
   elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
     s=s..string.format(" (%s)",params:string(self.id.."sc"))
   end
@@ -696,6 +762,7 @@ function Track:emit(beat)
           local crossfade=duration>0.1 and 0.1 or duration/2
           print("recording "..self.tli.pulses.." pulses ".." for "..duration.." seconds")
           engine.loop_record(self.id,duration,crossfade,params:get(self.id.."track_type")<TYPE_CROW and 3 or 2)
+          -- something with jf / wsyn here?
           self.loop.arm_play=true
           self.loop.send_tape=1
         end

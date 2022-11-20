@@ -53,6 +53,7 @@ function Archive:init()
   end
 
   os.execute("mkdir -p ".._path.data.."zxcvbn/archives")
+  os.execute("mkdir -p ".._path.data.."zxcvbn/samples")
   params:add_file("load_archive","load archive",_path.data.."zxcvbn/archives/")
   params:set_action("load_archive",function(x)
     if string.find(x,".zip") then
@@ -64,6 +65,7 @@ function Archive:init()
   params:add{type="binary",name="make archive",id="make_archive",behavior="toggle",action=function(v)
     print("make_archive",v)
     if v==1 then
+      params:set("make_archive",0,false)
       params:set("archive_info","")
       params:set("load_archive",_path.data.."zxcvbn/archives/",true)
       local fname=self:make_archive()
@@ -109,7 +111,7 @@ function Archive:dump(fname,pset)
 
   for i,v in ipairs(pset_lines) do
     if string.find(v,"sample_file") and
-      (string.find(v,".wav") or string.find(v,".flac")) then
+      (string.find(v,".wav") or string.find(v,".flac") or string.find(v,".aif")) then
       local foo=self.string_split(v,":")
       self:package_audio(fname,foo[2])
     end
@@ -194,12 +196,14 @@ function Archive:remake_pset(fname)
 
   for i,v in ipairs(lines) do
     if string.find(v,"sample_file") and
-      (string.find(v,".wav") or string.find(v,".flac")) then
+      (string.find(v,".wav") or string.find(v,".flac") or string.find(v,".aif")) then
       local foo=self.string_split(v,":")
       local _,old_fname,_=self.path_split(foo[2])
       lines[i]=string.format("%s: /home/we/dust/data/zxcvbn/samples/%s",foo[1],old_fname)
       -- copy over the sample to the samples folder
-      os.execute(string.format("cp %s /home/we/dust/data/zxcvbn/samples/%s",foo[2],old_fname))
+      local cmd=string.format("cp %s /home/we/dust/data/zxcvbn/samples/%s",foo[2],old_fname)
+      print(cmd)
+      os.execute(cmd)
     end
   end
 

@@ -19,8 +19,15 @@ function Installer:do_install()
   clock.run(function()
     show_message_text="installing..."
     clock.sleep(1)
-    os.execute("cd ".._path.code.."zxcvbn/lib/ && chmod +x install.sh && ./install.sh")
+    local install_results=util.os_capture("cd ".._path.code.."zxcvbn/lib/ && chmod +x install.sh && ./install.sh")
     clock.sleep(1)
+    if string.find(install_results,"dpkg was interrupted") then 
+      print("correcting installation...")
+      os.execute("sudo dpkg --configure -a")      
+      clock.sleep(1)
+      os.execute("sudo apt-get install -y --no-install-recommends libavcodec-dev libavformat-dev")
+      clock.sleep(1)
+    end
     self:check_install()
   end)
 end
@@ -38,12 +45,6 @@ function Installer:is_installed()
     do return false end
   end
 
-  foo=util.os_capture("aubioonset --help")
-  if not string.find(foo,"-minioi") then
-    print("INSTALL NEEDED: aubioonset")
-    do return false end
-  end
-
   local foo=util.os_capture("/sbin/ldconfig -p | grep libavcodec")
   if not string.find(foo,"libavcodec.so") then 
     print("INSTALL NEEDED: libavcodec")
@@ -53,6 +54,12 @@ function Installer:is_installed()
   local foo=util.os_capture("/sbin/ldconfig -p | grep libavformat")
   if not string.find(foo,"libavformat.so") then 
     print("INSTALL NEEDED: libavformat")
+    do return false end
+  end
+
+  foo=util.os_capture("aubioonset --help")
+  if not string.find(foo,"-minioi") then
+    print("INSTALL NEEDED: aubioonset")
     do return false end
   end
 

@@ -1,4 +1,4 @@
--- zxcvbn v1.4.0
+-- zxcvbn v1.5.0
 --
 --
 -- zxcvbn.norns.online
@@ -34,6 +34,7 @@ viewselect_=include("lib/viewselect")
 installer_=include("lib/installer")
 tracker_=include("lib/tracker")
 softsample_=include("lib/softsample")
+grid_=include("lib/ggrid")
 tli_=include("lib/tli")
 archive_=include("lib/archive")
 tli=tli_:new()
@@ -395,6 +396,9 @@ function init2()
     os.execute("rm -f ".._path.data.."zxcvbn/first")
   end
 
+  -- setup grid
+  g_=grid_:new()
+
   --   -- Am F
   --   tracks[1]:load_text([[
   -- c4 pq v6.-6
@@ -433,6 +437,11 @@ function init2()
   --     clock.sleep(0.2)
   --     tracks[1]:loop_record()
   --   end)
+
+  -- DEBUG DEBUG
+  -- params:set("1track_type",7)
+  -- params:set("audioinpanL",0)
+  -- params:set("1scale_mode",2)
 end
 
 function rerun()
