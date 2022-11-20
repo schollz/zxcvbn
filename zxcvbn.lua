@@ -375,10 +375,12 @@ function init2()
   -- setup polls
   pitch_polls={}
   pitch_poll_on=false
+  pitch_polls_sma={sma(20),sma(20)}
   for i,v in ipairs({"pitch_in_l","pitch_in_r"}) do
     pitch_polls[i]=poll.set(v)
     pitch_polls[i].callback=function(val)
       if val>10 then
+        val=pitch_polls_sma[i](val)
         if debounce_fn[v]==nil then
           debounce_fn[v]={1,function() return val end}
         else
@@ -443,6 +445,20 @@ function init2()
   -- params:set("audioinpanL",0)
   -- params:set("1scale_mode",2)
 end
+
+function sma(period)
+	local t = {}
+	function sum(a, ...)
+		if a then return a+sum(...) else return 0 end
+	end
+	function average(n)
+		if #t == period then table.remove(t, 1) end
+		t[#t + 1] = n
+		return sum(table.unpack(t)) / #t
+	end
+	return average
+end
+
 
 function rerun()
   norns.script.load(norns.state.script)
@@ -551,26 +567,48 @@ function redraw()
   draw_message()
 
   if debounce_fn["pitch_in_r"]~=nil then
+    local freq=debounce_fn["pitch_in_r"][2]()
+    local note_num=musicutil.freq_to_note_num(freq)
+    local note_exact=math.log(freq/440)/math.log(2)*12+69
+    local note_diff=util.round(100*(note_exact-note_num))
+    local note_name=musicutil.note_num_to_name(note_num,true)
     screen.level(debounce_fn["pitch_in_r"][1])
-    screen.move(128,62-16)
-    screen.text_right(string.format("%2.2f Hz",debounce_fn["pitch_in_r"][2]()))
-    screen.move(128,62-8)
-    local note_num=musicutil.freq_to_note_num(debounce_fn["pitch_in_r"][2]())
-    screen.text_right(string.format("%2.2f Hz",musicutil.note_num_to_freq(note_num)))
-    screen.move(128,62)
-    screen.text_right(string.format("%s",musicutil.note_num_to_name(note_num,true)))
+    screen.move(127,62)
+    screen.font_size(16)
+    screen.text_right(note_name)
+    local text_width=screen.text_extents(note_name)
+    screen.font_size(8)
+    screen.move(127-text_width-3,62)
+    screen.text_right((note_diff>0 and "+" or "")..math.floor(note_diff))
   end
 
   if debounce_fn["pitch_in_l"]~=nil then
+    local freq=debounce_fn["pitch_in_l"][2]()
+    local note_num=musicutil.freq_to_note_num(freq)
+    local note_exact=math.log(freq/440)/math.log(2)*12+69
+    local note_diff=util.round(100*(note_exact-note_num))
+    local note_name=musicutil.note_num_to_name(note_num,true)
     screen.level(debounce_fn["pitch_in_l"][1])
-    screen.move(8,62-16)
-    screen.text(string.format("%2.2f Hz",debounce_fn["pitch_in_l"][2]()))
-    screen.move(8,62-8)
-    local note_num=musicutil.freq_to_note_num(debounce_fn["pitch_in_l"][2]())
-    screen.text(string.format("%2.2f Hz",musicutil.note_num_to_freq(note_num)))
     screen.move(8,62)
-    screen.text(string.format("%s",musicutil.note_num_to_name(note_num,true)))
+    screen.font_size(16)
+    screen.text(note_name)
+    local text_width=screen.text_extents(note_name)
+    screen.font_size(8)
+    screen.move(8+text_width+3,62)
+    screen.text((note_diff>0 and "+" or "")..math.floor(note_diff))
   end
+
+
+
+  -- screen.level(15)
+  -- screen.move(127,62)
+  -- screen.font_size(16)
+  -- screen.text_right("Fb")
+  -- local text_width=screen.text_extents("Fb")
+  -- screen.font_size(8)
+  -- screen.move(127-text_width-2,62)
+  -- screen.text_right("+10")
+
 
   screen.update()
 end
