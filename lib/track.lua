@@ -582,7 +582,7 @@ function Track:description()
     s=s..string.format(" (%s)",params:string(self.id.."mx_synths"))
   elseif params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_MELODIC then
     local fname=params:string(self.id.."sample_file")
-    if string.find(fname,".wav") or string.find(fname,".flac") then
+    if string.find(fname,".wav") or string.find(fname,".flac") or string.find(fname,".aif") then
       if (#fname>12) then
         fname=fname:sub(1,12).."..."
       end
