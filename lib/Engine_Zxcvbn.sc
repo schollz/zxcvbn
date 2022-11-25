@@ -6,6 +6,8 @@ Engine_Zxcvbn : CroneEngine {
     // Zxcvbn specific v0.1.0
     var buses;
     var syns;
+    var mods;
+    var im;
     var bufs; 
     var oscs;
     var mx;
@@ -14,6 +16,33 @@ Engine_Zxcvbn : CroneEngine {
 
     *new { arg context, doneCallback;
         ^super.new(context, doneCallback);
+    }
+
+    synthWatch {
+        arg id,syn;
+        id=id.asString;
+        [id,syn].postln;
+        if (mods[id].isNil,{
+            mods[id]=Array.newClear(10);
+            im[id]=1.neg;
+        });
+        im[id]=(im[id]+1)%10;
+        mods[id][im[id]]=syn;
+    }
+
+    synthChange {
+        arg id,k,v;
+        id=id.asString;
+        if (mods[id].notNil,{
+            10.do({ arg i;
+                if (mods[id][i].notNil,{
+                    if (mods[id][i].isRunning,{
+                        ["synthChange",id,k,v,i].postln;
+                        mods[id][i].set(k.asString,v);
+                    });                    
+                });
+            });
+        });
     }
 
     alloc {
@@ -25,6 +54,9 @@ Engine_Zxcvbn : CroneEngine {
         syns = Dictionary.new();
         bufs = Dictionary.new();
         oscs = Dictionary.new();
+        mods = Dictionary.new();
+        im = Dictionary.new();
+        
 
         bufs.put("tape",Buffer.alloc(context.server, context.server.sampleRate * 18.0, 2));
         oscs.put("position",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("progress",msg[3],msg[3]); }, '/position'));
@@ -124,7 +156,7 @@ Engine_Zxcvbn : CroneEngine {
                 Pan2.ar(snd2,VarLag.kr(LFNoise0.kr(1/3),3,warp:\sine)*stereo)
             }!2);
             snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
-            snd = LPF.ar(snd,lpf) * env * amp / 8;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
@@ -212,7 +244,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = (snd*envFilter).tanh;
 
             snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
-            snd = LPF.ar(snd,lpf) * env * amp / 2;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 2;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
@@ -242,7 +274,7 @@ Engine_Zxcvbn : CroneEngine {
             snd=Lag.ar(SinOsc.ar(0,pdres)*pdi,1/freqBase);
             snd = LPF.ar(snd,Clip.kr(hz*artifacts,20,18000));
             snd = Pan2.ar(snd,Lag.kr(pan,0.1));
-            snd = LPF.ar(snd,lpf) * env * amp / 5;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 5;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
@@ -307,7 +339,7 @@ Engine_Zxcvbn : CroneEngine {
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
 
-            snd = LPF.ar(snd,lpf) * env * amp / 8;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
@@ -352,7 +384,7 @@ Engine_Zxcvbn : CroneEngine {
 
             snd = Pan2.ar(snd,Lag.kr(pan,0.1));
 
-            snd = LPF.ar(snd,lpf) * env * amp / 8;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
@@ -386,7 +418,7 @@ Engine_Zxcvbn : CroneEngine {
             }!2);
             snd=snd+(Amplitude.kr(snd)*VarLag.kr(LFNoise0.kr(1),1,warp:\sine).range(0.1,1.0)*klankyvol*Klank.ar(`[[hz, hz*2+2, hz*4+5, hz*8+2], nil, [1, 1, 1, 1]], PinkNoise.ar([0.007, 0.007])));
             snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
-            snd = LPF.ar(snd,lpf) * env * amp / 8;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
@@ -432,7 +464,7 @@ Engine_Zxcvbn : CroneEngine {
             snd=snd+(SinOsc.kr(0.123).range(0.2,1.0)*bass*sub);
 
             snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
-            snd = LPF.ar(snd,lpf) * env * amp / 8;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
@@ -471,7 +503,7 @@ Engine_Zxcvbn : CroneEngine {
             );
 
             snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
-            snd = LPF.ar(snd,lpf) * env * amp;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
@@ -503,7 +535,7 @@ Engine_Zxcvbn : CroneEngine {
                 depth:LinExp.kr(mod3,-1,1,0.0001,1)
             );
             snd = Pan2.ar(snd,Lag.kr(pan,0.1));
-            snd = LPF.ar(snd,lpf) * env * amp / 6;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 6;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
@@ -528,7 +560,7 @@ Engine_Zxcvbn : CroneEngine {
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
             snd = Pan2.ar(snd,Lag.kr(pan,0.1));
-            snd = LPF.ar(snd,lpf) * env * amp / 12;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 12;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
@@ -572,7 +604,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = HPF.ar(snd, hpf_hz);
             snd = Pan2.ar(snd,Lag.kr(pan,0.1));
 
-            snd = LPF.ar(snd,lpf) * env * amp / 5;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 5;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
@@ -647,7 +679,7 @@ Engine_Zxcvbn : CroneEngine {
 
             snd = Balance2.ar(snd[0], snd[1], Lag.kr(pan,0.1)).tanh;
 
-            snd = LPF.ar(snd,lpf) * env * amp / 5;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 5;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
@@ -690,7 +722,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = Decimator.ar(snd, decimation_rate, decimation_bits);
 
             snd = Pan2.ar(snd,Lag.kr(pan,0.1));
-            snd = LPF.ar(snd,lpf) * env * amp / 8;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd); 
@@ -965,7 +997,7 @@ Engine_Zxcvbn : CroneEngine {
 
             snd = Compander.ar(snd,snd,compression,0.5,clampTime:0.01,relaxTime:0.01);
 
-            snd = RLPF.ar(snd,filter,0.707);
+            snd = RLPF.ar(snd,Lag.kr(filter),0.707);
 
             Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
@@ -1006,7 +1038,7 @@ Engine_Zxcvbn : CroneEngine {
 
             snd = Compander.ar(snd,snd,compression,0.5,clampTime:0.01,relaxTime:0.01);
 
-            snd = RLPF.ar(snd,filter,0.707);
+            snd = RLPF.ar(snd,Lag.kr(filter),0.707);
 
             Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
@@ -1075,6 +1107,13 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
+        this.addCommand("synth_set","ssf",{ arg msg;
+            var id=msg[1];
+            var k=msg[2];
+            var v=msg[3];
+            this.synthChange(id,k,v);
+        });
+
         this.addCommand("audionin_set","ssf",{ arg msg;
             var lr=msg[1];
             var key=msg[2];
@@ -1131,6 +1170,10 @@ Engine_Zxcvbn : CroneEngine {
             });
             if (retrig>0,{
                 db_first=db;
+                if (db_add>0,{
+                    db_first=db-(db_add*retrig);
+                    db=db_first;
+                })
             });
             // ["duration_slice",duration_slice,"duration_total",duration_total,"retrig",retrig].postln;
             if (bufs.at(filename).notNil,{
@@ -1191,9 +1234,11 @@ Engine_Zxcvbn : CroneEngine {
                             ], syns.at("reverb"), \addBefore));
                         };
                         NodeWatcher.register(syns.at(id));
+                        this.synthWatch(id.asString.split($_)[0].asString,syns.at(id));
                     }.play;
                  },{ 
                     NodeWatcher.register(syns.at(id));
+                    this.synthWatch(id.asString.split($_)[0].asString,syns.at(id));
                 });
             });
         });
@@ -1540,13 +1585,12 @@ Engine_Zxcvbn : CroneEngine {
                     }.play;
                 });
             });
+            NodeWatcher.register(syn);
             if (monophonic_release>0,{
-                NodeWatcher.register(syn);
                 syns.put(id,syn);
             });
+            this.synthWatch(id,syn);
         });
-
-
 
         // ^ Zxcvbn specific
 

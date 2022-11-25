@@ -402,9 +402,9 @@ function init2()
   g_=grid_:new()
 
   --   -- Am F
-  --   tracks[1]:load_text([[
-  -- c4 pq v6.-6
-  -- ]])
+    tracks[1]:load_text([[
+c4 pm v6.-6
+  ]])
 
   --   tracks[2]:load_text([[
   -- c4 pm
@@ -444,6 +444,7 @@ function init2()
   -- params:set("1track_type",7)
   -- params:set("audioinpanL",0)
   -- params:set("1scale_mode",2)
+  params:set("2play",1)
 end
 
 function sma(period)

@@ -159,7 +159,7 @@ function Track:init()
     {id="db",name="volume (v)",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="db_sub",name="volume sub",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="pan",name="pan (w)",min=-1,max=1,exp=false,div=0.01,default=0},
-    {id="filter",name="filter (i)",min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
+    {id="filter",name="filter (i)",mod=true,min=24,max=127,exp=false,div=0.5,default=127,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="probability",name="probability (q)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack (k)",min=5,max=2000,exp=true,div=5,default=1,unit="ms"},
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
@@ -185,6 +185,18 @@ function Track:init()
       name=pram.name,
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,
+      action=function(v)
+        if pram.mod then 
+          local k=pram.id
+          if pram.id=="filter" then 
+            v=musicutil.note_num_to_freq(v)
+            if params:get(self.id.."track_type")==TYPE_MXSYNTHS then 
+              k="lpf"
+            end
+          end
+          engine.synth_set(self.id,k,v)
+        end
+      end,
     }
   end
 
