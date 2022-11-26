@@ -5,6 +5,8 @@
 - [ ] add play all/ stop all @mcpepe
 - [ ] performance mixer @mcepe
 - [ ] filenames with spaces bugging? @mcpepe
+- [ ] DELETE key cursors to docs @mcpepe
+- [ ] octave detection doesn't work for <0 @mcpepe
 - [ ] v,y should behave ordered when given choices (so you can do things like 9 v5,0,0,5,0,0,5,0 pe)
 - [ ] y = transpose (its like note, but isn't affected by retriggers)
 - [ ] Add scale locking
