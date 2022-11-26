@@ -21,7 +21,6 @@ Engine_Zxcvbn : CroneEngine {
     synthWatch {
         arg id,syn;
         id=id.asString;
-        [id,syn].postln;
         if (mods[id].isNil,{
             mods[id]=Array.newClear(10);
             im[id]=1.neg;
@@ -559,7 +558,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = MoogFF.ar(snd,co,gain);
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
-            snd = Pan2.ar(snd,Lag.kr(pan,0.1));
+            snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 12;
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
@@ -1393,7 +1392,7 @@ Engine_Zxcvbn : CroneEngine {
         });
 
 
-        this.addCommand("note_on","ffffffffff",{ arg msg;
+        this.addCommand("note_on","ffffffffffs",{ arg msg;
             var note=msg[1];
             var amp=msg[2].dbamp;
             var attack=msg[3];
@@ -1404,6 +1403,7 @@ Engine_Zxcvbn : CroneEngine {
             var pan=msg[8];
             var lpf=msg[9].midicps;
             var sendTape=msg[10];
+            var track_id=msg[11];
             1.do{ arg i;
                 var id=note.asString++"_"++i;
                 if (syns.at(id).notNil,{
@@ -1427,6 +1427,7 @@ Engine_Zxcvbn : CroneEngine {
                 ],
                 syns.at("reverb"),\addBefore));
                 NodeWatcher.register(syns.at(id));
+                this.synthWatch(track_id,syns.at(id));
             };
         });
 

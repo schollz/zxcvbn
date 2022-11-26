@@ -156,9 +156,9 @@ function Track:init()
 
   params_menu={
     {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
-    {id="db",name="volume (v)",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
+    {id="db",name="volume (v)",mod=true,min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="db_sub",name="volume sub",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
-    {id="pan",name="pan (w)",min=-1,max=1,exp=false,div=0.01,default=0},
+    {id="pan",name="pan (w)",min=-1,mod=true,max=1,exp=false,div=0.01,default=0},
     {id="filter",name="filter (i)",mod=true,min=24,max=135,exp=false,div=0.5,default=135,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="probability",name="probability (q)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack (k)",min=5,max=2000,exp=true,div=5,default=1,unit="ms"},
@@ -187,14 +187,21 @@ function Track:init()
       formatter=pram.formatter,
       action=function(v)
         if pram.mod then
-          local k=pram.id
-          if pram.id=="filter" then
-            v=musicutil.note_num_to_freq(v)
-            if params:get(self.id.."track_type")==TYPE_MXSYNTHS then
-              k="lpf"
+          if params:get(self.id.."track_type")==TYPE_MXSYNTHS 
+          or params:get(self.id.."track_type")==TYPE_INFINITEPAD 
+            or params:get(self.id.."track_type")==TYPE_DRUM then 
+            local k=pram.id
+            if pram.id=="filter" then
+              v=musicutil.note_num_to_freq(v)
+              if params:get(self.id.."track_type")==TYPE_MXSYNTHS or params:get(self.id.."track_type")==TYPE_INFINITEPAD then
+                k="lpf"
+              end
+            elseif pram.id=="db" then 
+              v=util.dbamp(v)
+              k="amp"
             end
+            engine.synth_set(self.id,k,v)  
           end
-          engine.synth_set(self.id,k,v)
         end
       end,
     }
@@ -448,7 +455,7 @@ self.play_fn[TYPE_INFINITEPAD]={
       params:get(self.id.."release")/1000,
       d.duration_scaled,
       params:get(self.id.."swell"),params:get(self.id.."send_reverb"),
-    params:get(self.id.."pan"),params:get(self.id.."filter"),self.loop.send_tape)
+    params:get(self.id.."pan"),params:get(self.id.."filter"),self.loop.send_tape,self.id)
   end,
 }
 -- softsample
