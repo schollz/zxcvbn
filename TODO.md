@@ -10,7 +10,6 @@
 - [ ] DELETE key cursors to docs @mcpepe
 - [ ] octave detection doesn't work for <0 @mcpepe
 - [ ] v,y should behave ordered when given choices (so you can do things like 9 v5,0,0,5,0,0,5,0 pe)
-- [ ] y = transpose (its like note, but isn't affected by retriggers)
 - [ ] Add scale locking
 - [ ] Ctl+0 doesn't work?
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
@@ -32,6 +31,7 @@
 
 # DONE
 
+- [x] y = transpose (its like note, but isn't affected by retriggers)
 - [x] META > make bundle / load bundle (goes through and produces a shareable PSET, samples, dats, pngs, in a single file)
 - [x] option to automatically load default
 - [x] K2/K3 mute/play?

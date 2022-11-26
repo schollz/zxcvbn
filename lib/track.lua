@@ -175,7 +175,7 @@ function Track:init()
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="stretch",name="stretch",min=0,max=5,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
-    {id="send_reverb",name="send reverb (z)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="send_reverb",name="reverb send (z)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="transpose",name="transpose (y)",min=-127,max=127,exp=false,div=1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.0f",param:get()>-0.01 and "+" or "",param:get()) end},
   }
   for _,pram in ipairs(params_menu) do
@@ -186,11 +186,11 @@ function Track:init()
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,
       action=function(v)
-        if pram.mod then 
+        if pram.mod then
           local k=pram.id
-          if pram.id=="filter" then 
+          if pram.id=="filter" then
             v=musicutil.note_num_to_freq(v)
-            if params:get(self.id.."track_type")==TYPE_MXSYNTHS then 
+            if params:get(self.id.."track_type")==TYPE_MXSYNTHS then
               k="lpf"
             end
           end
@@ -241,9 +241,14 @@ function Track:init()
   end}
   params:add_number(self.id.."mute_group","mute group",1,10,self.id)
 
+  params:add_number(self.id.."db_add","activated db",-6,6,0)
+  params:add_number(self.id.."note_add","activated note",-6,6,0)
+  params:add_number(self.id.."retrig_add","activated retrig",0,32,0)
+  params:add{type="binary",name="activate db/retrig",id=self.id.."activate_dnr",behavior="momentary"}
+
   self.params={shared={"track_type","play","db","probability","pitch","mute","mute_group","transpose","scale_mode","root_note"}}
-  self.params["drum"]={"sample_file","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
-  self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","compressible"}
+  self.params["drum"]={"sample_file","retrig_add","db_add","activate_dnr","note_add","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
+  self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","compressible","send_reverb"}
   self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","send_reverb"}
   self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","send_reverb"}
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
@@ -358,13 +363,13 @@ self.play_fn[TYPE_DRUM]={
       on=true,
       id=id,
       ci=(d.note_to_emit-1)%16+1,
-      db=mods.v or 0,
+      db=(mods.v or 0)+params:get(self.id.."db_add")*params:get(self.id.."activate_dnr"),
       pan=params:get(self.id.."pan"),
       duration=d.duration_scaled,
       rate=clock.get_tempo()/params:get(self.id.."bpm")*params:get(self.id.."rate"),
       watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
-      retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
-      pitch=params:get(self.id.."pitch"),
+      retrig=(util.clamp((mods.x or 1)-1,0,30) or 0)+params:get(self.id.."retrig_add")*params:get(self.id.."activate_dnr"),
+      pitch=params:get(self.id.."pitch")+params:get(self.id.."note_add")*params:get(self.id.."activate_dnr"),
       gate=params:get(self.id.."gate")/100,
       send_tape=self.loop.send_tape,
     }
