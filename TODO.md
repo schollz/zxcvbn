@@ -1,5 +1,6 @@
 # To Do Now (Critical)
 
+- [ ] possible bug with midi out
 - [ ] add reverb to the melodic clade @mcpepe
 - [ ] panning in PolyPerc is bugged @hallmar
 - [ ] midi sending bad note offs?? @hallmar
