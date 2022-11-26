@@ -1,5 +1,10 @@
 # To Do Now (Critical)
 
+- [ ] panning in PolyPerc is bugged @hallmar
+- [ ] midi sending bad note offs?? @hallmar
+- [ ] add play all/ stop all @mcpepe
+- [ ] performance mixer @mcepe
+- [ ] filenames with spaces bugging? @mcpepe
 - [ ] v,y should behave ordered when given choices (so you can do things like 9 v5,0,0,5,0,0,5,0 pe)
 - [ ] y = transpose (its like note, but isn't affected by retriggers)
 - [ ] Add scale locking
@@ -53,7 +58,7 @@
 - [x] TEST wedges define wedges per-line, everything runs at 24ppqn wedge = pulses per line
 - [x] slice should send duration_total as well as duration_slice (duration_slice is switched by type and not affected by retrig rate) (need to test)
 - [x] in chaining, support "*" to multiply patterns?
-- [x] delete key should move previous line to current line
+- [x]  key should move previous line to current line
 - [x] ppl addressed in the meta
 - [x] ~~hookup the break effects in the engine~~ break effects are less interesting
 - [x] ~~add play visual on the left bar~~
