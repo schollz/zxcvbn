@@ -2,8 +2,8 @@
 
 - [ ] possible bug with midi out
 - [x] add reverb to the melodic clade @mcpepe
-- [ ] panning in PolyPerc is bugged @hallmar
-- [ ] midi sending bad note offs?? @hallmar
+- [x] panning in PolyPerc is bugged @hallmar
+- [x] midi sending bad note offs?? @hallmar
 - [ ] add play all/ stop all @mcpepe
 - [ ] performance mixer @mcepe
 - [ ] filenames with spaces bugging? @mcpepe
