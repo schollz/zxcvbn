@@ -167,7 +167,7 @@ function Track:init()
     {id="release",name="release (l)",min=5,max=2000,exp=true,div=5,default=50,unit="ms"},
     {id="monophonic_release",name="mono release",min=0,max=2000,exp=false,div=10,default=0,unit="ms"},
     {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
-    {id="gate_note",name="gate (h)",min=0,max=24*16,exp=false,div=1,default=0,unit="pulses"},
+    {id="gate_note",name="hold (h)",min=0,max=24*16,exp=false,div=1,default=0,formatter=function(param) return param:get()==0 and "full" or string.format("%d pulses",math.floor(param:get())) end},
     {id="decimate",name="decimate (m)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="compression",name="compression",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
@@ -256,13 +256,13 @@ function Track:init()
 
   self.params={shared={"track_type","play","db","probability","pitch","mute","mute_group","transpose","scale_mode","root_note"}}
   self.params["drum"]={"sample_file","retrig_add","db_add","activate_dnr","note_add","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
-  self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","compressible","send_reverb"}
-  self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","send_reverb"}
-  self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","send_reverb"}
-  self.params["crow"]={"crow_type","attack","release","crow_sustain"}
+  self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","gate_note","compressible","send_reverb"}
+  self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","gate_note","send_reverb"}
+  self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","gate_note","send_reverb"}
+  self.params["crow"]={"crow_type","attack","gate_note","release","crow_sustain"}
   self.params["jf"]={"jf_type"} -- jf options to come
   self.params["wsyn"]={"wsyn_type"} -- wsyn options to come
-  self.params["midi"]={"midi_ch","midi_dev"}
+  self.params["midi"]={"midi_ch","gate_note","midi_dev"}
   self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
 
@@ -390,12 +390,14 @@ self.play_fn[TYPE_MELODIC]={
       do return end
     end
     local id=self.id.."_"..d.note_to_emit
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    duration=duration>0 and duration or d.duration_scaled
     self.states[STATE_SAMPLE]:play{
       on=true,
       id=id,
       db=mods.v or 0,
       pitch=d.note_to_emit-params:get(self.id.."source_note")+params:get(self.id.."pitch"),
-      duration=d.duration_scaled,
+      duration=duration,
       retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
       watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
       gate=params:get(self.id.."gate")/100,
@@ -422,7 +424,8 @@ self.play_fn[TYPE_MXSAMPLES]={
     for i=1,4 do
       table.insert(mods,params:get(self.id.."mod"..i))
     end
-    local duration=d.duration_scaled
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    duration=duration>0 and duration or d.duration_scaled
     local sendCompressible=0
     local sendCompressing=0
     local sendReverb=params:get(self.id.."send_reverb")
@@ -451,11 +454,13 @@ self.play_fn[TYPE_MXSYNTHS]={
 self.play_fn[TYPE_INFINITEPAD]={
   note_on=function(d,mods)
     local note=d.note_to_emit+params:get(self.id.."pitch")
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    duration=duration>0 and duration or d.duration_scaled
     engine.note_on(note,
       params:get(self.id.."db")+util.clamp((mods.v or 0)/10,0,10),
       params:get(self.id.."attack")/1000,
       params:get(self.id.."release")/1000,
-      d.duration_scaled,
+      duration,
       params:get(self.id.."swell"),params:get(self.id.."send_reverb"),
     params:get(self.id.."pan"),params:get(self.id.."filter"),self.loop.send_tape,self.id)
   end,
@@ -496,9 +501,11 @@ self.play_fn[TYPE_CROW]={
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
     local note=d.note_to_emit+params:get(self.id.."pitch")
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    duration=duration>0 and duration or d.duration_scaled
     if level>0 then
       -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
-      local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,params:get(self.id.."crow_sustain"),d.duration_scaled,params:get(self.id.."release")/1000)
+      local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,params:get(self.id.."crow_sustain"),duration,params:get(self.id.."release")/1000)
       print(i+1,note,crow_asl)
       crow.output[i+1].action=crow_asl
       crow.output[i].volts=(note-24)/12
@@ -508,7 +515,7 @@ self.play_fn[TYPE_CROW]={
     if mods.x~=nil and mods.x>1 then
       clock.run(function()
         for i=1,mods.x do
-          clock.sleep(d.duration_scaled/mods.x)
+          clock.sleep(duration/mods.x)
           crow.output[i+1](false)
           level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0)*(i+1))
           note=d.note_to_emit+params:get(self.id.."pitch")*(i+1)
@@ -553,6 +560,10 @@ self.play_fn[TYPE_MIDI]={
     local vel=util.linlin(-48,12,0,127,params:get(self.id.."db")+(mods.v or 0))
     local note=d.note_to_emit+params:get(self.id.."pitch")
     local trigs=mods.x or 1
+    local duration=params:get(self.id.."gate_note")
+    d.duration=duration>0 and duration or d.duration
+    local duration_scaled=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    d.duration_scaled=duration_scaled>0 and duration_scaled or d.duration_scaled
     if vel>0 then
       -- print(note,vel,params:get(self.id.."midi_ch"))
       midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
