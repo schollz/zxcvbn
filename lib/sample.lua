@@ -368,6 +368,9 @@ function Sample:do_move(d)
   if d>0 then
     self.cursor_deleted[self.ci]=false
   end
+  if self.cursors[self.ci]==nil then 
+    do return end 
+  end
   self.cursors[self.ci]=util.clamp(self.cursors[self.ci]+d*((self.view[2]-self.view[1])/128),0,self.duration)
 
   -- update cursor durations
