@@ -12,6 +12,7 @@ Engine_Zxcvbn : CroneEngine {
     var oscs;
     var mx;
     var ouroboro;
+    var fm7synth;
     // Zxcvbn ^
 
     *new { arg context, doneCallback;
@@ -62,7 +63,7 @@ Engine_Zxcvbn : CroneEngine {
         oscs.put("audition",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("audition",msg[3],msg[3]); }, '/audition'));
         oscs.put("loopPosition",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("loopPosition",msg[3],msg[4]); }, '/loopPosition'));
     
-
+        fm7synth = ("/home/we/dust/code/zxcvbn/lib/DX7.scd").load;
         context.server.sync;
 
         // looper
@@ -1697,7 +1698,12 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-
+        this.addCommand("fm7","fff", { arg msg;
+            var note=msg[1];
+            var velocity=msg[2];
+            var preset=msg[3];
+            fm7synth.value(note,velocity,preset);
+        });
 
         // </ouroboro>
     }
@@ -1716,6 +1722,7 @@ Engine_Zxcvbn : CroneEngine {
         oscs.keysValuesDo({ arg buf, val;
             val.free;
         });
+        fm7synth.free;
         ouroboro.free;
         // ^ Zxcvbn specific
     }
