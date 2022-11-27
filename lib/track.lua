@@ -167,6 +167,7 @@ function Track:init()
     {id="release",name="release (l)",min=5,max=2000,exp=true,div=5,default=50,unit="ms"},
     {id="monophonic_release",name="mono release",min=0,max=2000,exp=false,div=10,default=0,unit="ms"},
     {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
+    {id="gate_note",name="gate (h)",min=0,max=24*16,exp=false,div=1,default=0,unit="pulses"},
     {id="decimate",name="decimate (m)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="compression",name="compression",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
@@ -262,7 +263,7 @@ function Track:init()
   self.params["jf"]={"jf_type"} -- jf options to come
   self.params["wsyn"]={"wsyn_type"} -- wsyn options to come
   self.params["midi"]={"midi_ch","midi_dev"}
-  self.params["mx.synths"]={"db","monophonic_release","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
+  self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
@@ -286,7 +287,7 @@ function Track:init()
     end,
   i=function(x,v) if v==nil then self.lfos["i"]:stop() end;params:set(self.id.."filter",x+30) end,
 q=function(x,v) if v==nil then self.lfos["q"]:stop() end;params:set(self.id.."probability",x) end,
-h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x) end,
+h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x); params:set(self.id.."gate_note",x) end,
 k=function(x,v) if v==nil then self.lfos["k"]:stop() end;params:set(self.id.."attack",x) end,
 l=function(x,v) if v==nil then self.lfos["l"]:stop() end;params:set(self.id.."release",x) end,
 w=function(x,v) if v==nil then self.lfos["w"]:stop() end;params:set(self.id.."pan",(x/100));params:set(self.id.."sc_pan",x/100) end,
@@ -438,7 +439,8 @@ self.play_fn[TYPE_MXSYNTHS]={
     local pan=params:get(self.id.."pan")
     local attack=params:get(self.id.."attack")/1000
     local release=params:get(self.id.."release")/1000
-    local duration=d.duration_scaled
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    duration=duration>0 and duration or d.duration_scaled
     local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
