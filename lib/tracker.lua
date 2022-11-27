@@ -122,6 +122,32 @@ function Tracker:keyboard(k,v)
       show_message((params:get(params:get("track").."play")==0 and "stopped" or "playing").." track "..params:get("track"))
     end
     do return end
+  elseif k=="CTRL+SPACE" then 
+    if v==1 then
+      -- pause/play all
+      print("pause/play all")
+      local any_playing=false
+      for i=1,10 do 
+        if params:get(i.."play")>0 then 
+          any_playing=true
+          break
+        end
+      end
+      if any_playing then 
+        show_message("stopping all")
+        for i=1,10 do 
+          params:set(i.."play",0)
+        end        
+      else
+        for i=1,10 do 
+          if tracks[i].tli~=nil and tracks[i].tli.pulses>0 then 
+            params:set(i.."play",1)
+          end
+        end        
+        show_message("playing all")
+      end
+    end
+    do return end 
   end
   tracks[params:get("track")]:keyboard(k,v)
 end

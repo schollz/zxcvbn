@@ -11,6 +11,7 @@ lib/aubiogo/aubiogo
 *.tar.gz
 lib/oscconnect/oscconnect
 lib/oscnotify/oscnotify
+lib/mm*
 lib/aubio/*
 release.tar.gz
 

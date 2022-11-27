@@ -61,11 +61,11 @@ function Sample:load_sample(path,is_melodic,slices)
     local delete_temp=false
     local filename=self.path
     if self.ext=="aif" then 
-      print(util.os_capture(string.format("sox %s %s",filename,filename..".wav")))
+      print(util.os_capture(string.format("sox '%s' '%s'",filename,filename..".wav")))
       filename=filename..".wav"
       delete_temp=true
     end
-    local cmd=string.format("%s -q -i %s -o %s -z %d -b 8 &",audiowaveform,filename,self.path_to_dat,2)
+    local cmd=string.format("%s -q -i '%s' -o '%s' -z %d -b 8 &",audiowaveform,filename,self.path_to_dat,2)
     print(cmd)
     os.execute(cmd)
     if delete_temp then 
@@ -167,7 +167,7 @@ function Sample:get_onsets()
 
   -- gather the onsets
   print("executing")
-  os.execute(_path.code.."zxcvbn/lib/aubiogo/aubiogo --id "..self.id.." --filename "..self.path.." --num "..self.slice_num.." &")
+  os.execute(_path.code.."zxcvbn/lib/aubiogo/aubiogo --id "..self.id.." --filename '"..self.path.."' --num "..self.slice_num.." &")
   print("executed")
 end
 
@@ -526,7 +526,7 @@ function Sample:get_render()
     if self.view[1]>self.view[2] then
       self.view[1],self.view[2]=self.view[2],self.view[1]
     end
-    local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color 757575 --no-axis-labels --compression 0 &",audiowaveform,self.path_to_dat,rendered,self.view[1],self.view[2],self.width,self.height)
+    local cmd=string.format("%s -q -i '%s' -o '%s' -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color 757575 --no-axis-labels --compression 0 &",audiowaveform,self.path_to_dat,rendered,self.view[1],self.view[2],self.width,self.height)
     print(cmd)
     os.execute(cmd)
   end

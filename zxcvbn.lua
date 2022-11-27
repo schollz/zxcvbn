@@ -1,4 +1,4 @@
--- zxcvbn v1.5.0
+-- zxcvbn v1.6.0
 --
 --
 -- zxcvbn.norns.online
@@ -402,9 +402,18 @@ function init2()
   g_=grid_:new()
 
   --   -- Am F
-  --   tracks[1]:load_text([[
-  -- c4 pq v6.-6
-  -- ]])
+  params:set("1track_type",6)
+  params:set("1play_through",1)
+  params:set("1sample_file",_path.data.."zxcvbn/samples/amenbreak_bpm136.wav")
+  tracks[1]:load_text([[
+0 1 2 3
+0 - - a
+9 a b c
+d - e a
+0 1
+0 2
+  ]])
+  -- params:set("1play",1)
 
   --   tracks[2]:load_text([[
   -- c4 pm
@@ -447,18 +456,17 @@ function init2()
 end
 
 function sma(period)
-	local t = {}
-	function sum(a, ...)
-		if a then return a+sum(...) else return 0 end
-	end
-	function average(n)
-		if #t == period then table.remove(t, 1) end
-		t[#t + 1] = n
-		return sum(table.unpack(t)) / #t
-	end
-	return average
+  local t={}
+  function sum(a,...)
+    if a then return a+sum(...) else return 0 end
+  end
+  function average(n)
+    if #t==period then table.remove(t,1) end
+    t[#t+1]=n
+    return sum(table.unpack(t))/#t
+  end
+  return average
 end
-
 
 function rerun()
   norns.script.load(norns.state.script)
@@ -598,8 +606,6 @@ function redraw()
     screen.text((note_diff>0 and "+" or "")..math.floor(note_diff))
   end
 
-
-
   -- screen.level(15)
   -- screen.move(127,62)
   -- screen.font_size(16)
@@ -608,7 +614,6 @@ function redraw()
   -- screen.font_size(8)
   -- screen.move(127-text_width-2,62)
   -- screen.text_right("+10")
-
 
   screen.update()
 end

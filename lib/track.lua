@@ -156,10 +156,10 @@ function Track:init()
 
   params_menu={
     {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
-    {id="db",name="volume (v)",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
+    {id="db",name="volume (v)",mod=true,min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="db_sub",name="volume sub",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
-    {id="pan",name="pan (w)",min=-1,max=1,exp=false,div=0.01,default=0},
-    {id="filter",name="filter (i)",min=24,max=135,exp=false,div=0.5,default=135,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
+    {id="pan",name="pan (w)",min=-1,mod=true,max=1,exp=false,div=0.01,default=0},
+    {id="filter",name="filter (i)",mod=true,min=24,max=135,exp=false,div=0.5,default=135,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="probability",name="probability (q)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack (k)",min=5,max=2000,exp=true,div=5,default=1,unit="ms"},
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
@@ -167,6 +167,7 @@ function Track:init()
     {id="release",name="release (l)",min=5,max=2000,exp=true,div=5,default=50,unit="ms"},
     {id="monophonic_release",name="mono release",min=0,max=2000,exp=false,div=10,default=0,unit="ms"},
     {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
+    {id="gate_note",name="gate (h)",min=0,max=24*16,exp=false,div=1,default=0,unit="pulses"},
     {id="decimate",name="decimate (m)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="compression",name="compression",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
@@ -175,7 +176,7 @@ function Track:init()
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="stretch",name="stretch",min=0,max=5,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
-    {id="send_reverb",name="send reverb (z)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="send_reverb",name="reverb send (z)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="transpose",name="transpose (y)",min=-127,max=127,exp=false,div=1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.0f",param:get()>-0.01 and "+" or "",param:get()) end},
   }
   for _,pram in ipairs(params_menu) do
@@ -185,6 +186,25 @@ function Track:init()
       name=pram.name,
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,
+      action=function(v)
+        if pram.mod then
+          if params:get(self.id.."track_type")==TYPE_MXSYNTHS 
+          or params:get(self.id.."track_type")==TYPE_INFINITEPAD 
+            or params:get(self.id.."track_type")==TYPE_DRUM then 
+            local k=pram.id
+            if pram.id=="filter" then
+              v=musicutil.note_num_to_freq(v)
+              if params:get(self.id.."track_type")==TYPE_MXSYNTHS or params:get(self.id.."track_type")==TYPE_INFINITEPAD then
+                k="lpf"
+              end
+            elseif pram.id=="db" then 
+              v=util.dbamp(v)
+              k="amp"
+            end
+            engine.synth_set(self.id,k,v)  
+          end
+        end
+      end,
     }
   end
 
@@ -229,16 +249,21 @@ function Track:init()
   end}
   params:add_number(self.id.."mute_group","mute group",1,10,self.id)
 
+  params:add_number(self.id.."db_add","activated db",-6,6,0)
+  params:add_number(self.id.."note_add","activated note",-6,6,0)
+  params:add_number(self.id.."retrig_add","activated retrig",0,32,0)
+  params:add{type="binary",name="activate db/retrig",id=self.id.."activate_dnr",behavior="momentary"}
+
   self.params={shared={"track_type","play","db","probability","pitch","mute","mute_group","transpose","scale_mode","root_note"}}
-  self.params["drum"]={"sample_file","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
-  self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","compressible"}
+  self.params["drum"]={"sample_file","retrig_add","db_add","activate_dnr","note_add","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
+  self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","compressible","send_reverb"}
   self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","send_reverb"}
   self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","send_reverb"}
   self.params["crow"]={"crow_type","attack","release","crow_sustain"}
   self.params["jf"]={"jf_type"} -- jf options to come
   self.params["wsyn"]={"wsyn_type"} -- wsyn options to come
   self.params["midi"]={"midi_ch","midi_dev"}
-  self.params["mx.synths"]={"db","monophonic_release","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
+  self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
@@ -262,7 +287,7 @@ function Track:init()
     end,
   i=function(x,v) if v==nil then self.lfos["i"]:stop() end;params:set(self.id.."filter",x+30) end,
 q=function(x,v) if v==nil then self.lfos["q"]:stop() end;params:set(self.id.."probability",x) end,
-h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x) end,
+h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x); params:set(self.id.."gate_note",x) end,
 k=function(x,v) if v==nil then self.lfos["k"]:stop() end;params:set(self.id.."attack",x) end,
 l=function(x,v) if v==nil then self.lfos["l"]:stop() end;params:set(self.id.."release",x) end,
 w=function(x,v) if v==nil then self.lfos["w"]:stop() end;params:set(self.id.."pan",(x/100));params:set(self.id.."sc_pan",x/100) end,
@@ -346,13 +371,13 @@ self.play_fn[TYPE_DRUM]={
       on=true,
       id=id,
       ci=(d.note_to_emit-1)%16+1,
-      db=mods.v or 0,
+      db=(mods.v or 0)+params:get(self.id.."db_add")*params:get(self.id.."activate_dnr"),
       pan=params:get(self.id.."pan"),
       duration=d.duration_scaled,
       rate=clock.get_tempo()/params:get(self.id.."bpm")*params:get(self.id.."rate"),
       watch=(params:get("track")==self.id and self.state==STATE_SAMPLE) and 1 or 0,
-      retrig=util.clamp((mods.x or 1)-1,0,30) or 0,
-      pitch=params:get(self.id.."pitch"),
+      retrig=(util.clamp((mods.x or 1)-1,0,30) or 0)+params:get(self.id.."retrig_add")*params:get(self.id.."activate_dnr"),
+      pitch=params:get(self.id.."pitch")+params:get(self.id.."note_add")*params:get(self.id.."activate_dnr"),
       gate=params:get(self.id.."gate")/100,
       send_tape=self.loop.send_tape,
     }
@@ -414,7 +439,8 @@ self.play_fn[TYPE_MXSYNTHS]={
     local pan=params:get(self.id.."pan")
     local attack=params:get(self.id.."attack")/1000
     local release=params:get(self.id.."release")/1000
-    local duration=d.duration_scaled
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    duration=duration>0 and duration or d.duration_scaled
     local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
@@ -431,7 +457,7 @@ self.play_fn[TYPE_INFINITEPAD]={
       params:get(self.id.."release")/1000,
       d.duration_scaled,
       params:get(self.id.."swell"),params:get(self.id.."send_reverb"),
-    params:get(self.id.."pan"),params:get(self.id.."filter"),self.loop.send_tape)
+    params:get(self.id.."pan"),params:get(self.id.."filter"),self.loop.send_tape,self.id)
   end,
 }
 -- softsample
