@@ -10,16 +10,17 @@ MxSamplesZ {
 	var busCompressing;
 	var busReverb;
 	var busTape;
+	var busDelay;
 
 	var garbageCollector;
 
 	*new {
-		arg serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape;
-		^super.new.init(serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape);
+		arg serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape,argBusDelay;
+		^super.new.init(serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape,argBusDelay);
 	}
 
 	init {
-		arg serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape;
+		arg serverName,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape,argBusDelay;
 		server=serverName;
 		maxSamples=numberMaxSamples;
 		busCompressible=argBusCompressible;
@@ -27,6 +28,7 @@ MxSamplesZ {
 		busCompressing=argBusCompressing;
 		busReverb=argBusReverb;
 		busTape=argBusTape;
+		busDelay=argBusDelay;
 
 		ins=Dictionary.new();
 
@@ -53,11 +55,11 @@ MxSamplesZ {
 	}
 
 	note {
-		arg folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape;
+		arg folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape,sendDelay;
 		if (ins.at(folder).isNil,{
-			ins.put(folder,MxSamplesZInstrument(server,folder,maxSamples,busCompressible,busNotCompressible,busCompressing,busReverb,busTape));
+			ins.put(folder,MxSamplesZInstrument(server,folder,maxSamples,busCompressible,busNotCompressible,busCompressing,busReverb,busTape,busDelay));
 		});
-		ins.at(folder).noteOn(note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape);
+		ins.at(folder).noteOn(note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape,sendDelay);
 	}
 
 	free {

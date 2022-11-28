@@ -216,6 +216,7 @@ function Sample:play(d)
   d.attack=d.attack or params:get(self.id.."attack")/1000
   d.release=d.release or params:get(self.id.."release")/1000
   d.reverb=d.reverb or params:get(self.id.."send_reverb")
+  d.delay=d.delay or params:get(self.id.."send_delay")
   d.drive=d.drive or params:get(self.id.."drive")
   d.compression=d.compression or params:get(self.id.."compression")
   d.stretch=d.stretch or params:get(self.id.."stretch")
@@ -245,7 +246,7 @@ function Sample:play(d)
         d.compressible,
         d.compressing,
         d.reverb,
-      d.watch,d.attack,d.release,d.monophonic_release,d.drive,d.send_tape)
+      d.watch,d.attack,d.release,d.monophonic_release,d.drive,d.send_tape,d.delay)
     end
   else
     if d.on and self.cursors~=nil then
@@ -287,7 +288,7 @@ function Sample:play(d)
         d.compressible,
         d.compressing,
         d.reverb,d.drive,d.compression,
-      d.watch,d.attack,d.release,d.stretch,d.send_tape)
+      d.watch,d.attack,d.release,d.stretch,d.send_tape,d.delay)
       if self.kick[d.ci]>-48 then
         engine.kick(
           musicutil.note_num_to_freq(params:get("kick_basenote")),
@@ -301,7 +302,7 @@ function Sample:play(d)
           params:get("kick_clicky")/1000,
           params:get("kick_compressing"),
           params:get("kick_compressible"),
-          d.reverb,d.send_tape
+          d.reverb,d.send_tape,d.send_delay
         )
       end
     elseif not d.on then

@@ -97,7 +97,7 @@ Engine_Zxcvbn : CroneEngine {
                 Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
                 Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
                 Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-                Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+                Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
             }).add;
         });
         // "ambisonic" version
@@ -129,7 +129,7 @@ Engine_Zxcvbn : CroneEngine {
                 Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
                 Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
                 Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-                Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+                Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
             }).add;
         });
 
@@ -162,7 +162,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         // https://gist.github.com/audionerd/fe50790b7601cba65ddd855caffb05ad
@@ -218,7 +218,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         SynthDef("bigbass",{
@@ -250,7 +250,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         SynthDef("casio",{
@@ -280,7 +280,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         SynthDef("icarus",{
@@ -345,7 +345,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         // port of STK's Rhodey (yamaha DX7-style Fender Rhodes) https://sccode.org/1-522
@@ -390,7 +390,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
 
@@ -424,7 +424,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         SynthDef("malone",{
@@ -470,7 +470,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         // http://sccode.org/1-51n
@@ -509,7 +509,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         SynthDef("mdapiano",{
@@ -541,7 +541,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         // https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
@@ -566,7 +566,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         // https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41
@@ -610,7 +610,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         SynthDef("aaaaaa",{
@@ -685,7 +685,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         SynthDef("triangles",{
@@ -728,7 +728,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd); 
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         // </mx.synths>
@@ -786,7 +786,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
 
@@ -853,7 +853,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd*amp);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
         });
 
@@ -868,7 +868,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).send(context.server);
 
         SynthDef(\main, {
@@ -878,7 +878,7 @@ Engine_Zxcvbn : CroneEngine {
             snd=In.ar(inBus,2);
             sndNSC=In.ar(inBusNSC,2);
             sndSC=In.ar(inSC,2);
-            sndDelay=In.ar(inDelay,2)+sndNSC;
+            sndDelay=In.ar(inDelay,2);
 
             snd = Compander.ar(snd, (sndSC*sidechain_mult), 
                 compress_thresh, 1, compress_level, 
@@ -892,8 +892,7 @@ Engine_Zxcvbn : CroneEngine {
             local = Rotate2.ar(local[0],local[1],0.2);
             local = BufDelayL.ar(delay_bufs,local,Lag.kr(delay_time),mul:EnvGen.ar(Env.new([1,0.1,0.1,1],[0.01,0.01,0.01]),Trig.kr(Changed.kr(delay_time))));
             local = LeakDC.ar(local);
-            local = (local + sndDelay).softclip*Clip.kr(delay_feedback,0,0.98);
-            LocalOut.ar(local);
+            LocalOut.ar((local + sndDelay).softclip*Clip.kr((36.neg.dbamp.log/(delay_feedback/delay_time+1)).exp,0,0.99999));
             snd = snd + local;
 
             snd = LeakDC.ar(snd);
@@ -923,7 +922,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = snd * EnvGen.ar(Env.asr(\attack.kr(0.5), 1.0, \release.kr(0.5)),\gate.kr(1) * ToggleFF.kr(1-TDelay.kr(DC.kr(1),\duration.kr(1))),doneAction:2);
             snd = snd * -30.dbamp * \amp.kr(1);
             Out.ar(\out.kr(0), (1-\sendreverb.kr(0))*snd);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).send(context.server);
 
         SynthDef(\pad1, {
@@ -935,7 +934,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
             snd = snd * -10.dbamp * \amp.kr(1);
             Out.ar(\out.kr(0), (1-\sendreverb.kr(0))*snd);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).send(context.server);
 
         SynthDef(\pad2,{
@@ -947,7 +946,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = Balance2.ar(snd[0], snd[1], \pan.kr(0));
             snd = snd * -50.dbamp * \amp.kr(1);
             Out.ar(\out.kr(0), (1-\sendreverb.kr(0))*snd);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).send(context.server);
 
         SynthDef(\padFx, {
@@ -1018,7 +1017,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd*amp);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).send(context.server);
         });
 
@@ -1059,7 +1058,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd*amp);
-            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).send(context.server);
         });
 
@@ -1068,15 +1067,16 @@ Engine_Zxcvbn : CroneEngine {
         buses.put("busCompressible",Bus.audio(s,2));
         buses.put("busNotCompressible",Bus.audio(s,2));
         buses.put("busCompressing",Bus.audio(s,2));
+        buses.put("busDelay",Bus.audio(s,2));
         buses.put("busReverb",Bus.audio(s,2));
         buses.put("busTape",Bus.audio(s,2));
         context.server.sync;
         ouroboro=Ouroboro.new(context.server,buses.at("busTape"));
         context.server.sync;
 
-        mx = MxSamplesZ(Server.default,100,buses.at("busCompressible").index,buses.at("busNotCompressible").index,buses.at("busCompressing"),buses.at("busReverb"),buses.at("busTape"));
+        mx = MxSamplesZ(Server.default,100,buses.at("busCompressible").index,buses.at("busNotCompressible").index,buses.at("busCompressing"),buses.at("busReverb"),buses.at("busTape"),buses.at("busDelay"));
         context.server.sync;
-        syns.put("main",Synth.new(\main,[\tapeBuf,bufs.at("tape"),\outBus,0,\sidechain_mult,8,\inBus,buses.at("busCompressible"),\inBusNSC,buses.at("busNotCompressible"),\inSC,buses.at("busCompressing"),\delay_bufs,bufsDelay]));
+        syns.put("main",Synth.new(\main,[\tapeBuf,bufs.at("tape"),\outBus,0,\sidechain_mult,8,\inBus,buses.at("busCompressible"),\inBusNSC,buses.at("busNotCompressible"),\inSC,buses.at("busCompressing"),\delay_bufs,bufsDelay,\inDelay,buses.at("busDelay")]));
         NodeWatcher.register(syns.at("main"));
         context.server.sync;
         syns.put("reverb", Synth.new(\padFx, [
@@ -1095,7 +1095,8 @@ Engine_Zxcvbn : CroneEngine {
             out: buses.at("busCompressible"),
             outsc: buses.at("busCompressing"),
             outnsc: buses.at("busNotCompressible"),
-            outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+            outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
+            outdelay: buses.at("busDelay"),
             compressible: 0,
             compressing: 0,
             pan:-1], syns.at("reverb"), \addBefore));
@@ -1103,7 +1104,8 @@ Engine_Zxcvbn : CroneEngine {
             out: buses.at("busCompressible"),
             outsc: buses.at("busCompressing"),
             outnsc: buses.at("busNotCompressible"),
-            outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+            outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
+            outdelay: buses.at("busDelay"),
             compressible: 0,
             compressing: 0,
             pan:1], syns.at("reverb"), \addBefore));
@@ -1154,7 +1156,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("slice_on","ssffffffffffffffffffffff",{ arg msg;
+        this.addCommand("slice_on","ssfffffffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -1179,6 +1181,7 @@ Engine_Zxcvbn : CroneEngine {
             var release=msg[22];
             var stretch=msg[23];
             var sendTape=msg[24];
+            var sendDelay=msg[25];
             var db_first=db+db_add;
             var do_stretch=0;
             if (stretch>0,{
@@ -1202,7 +1205,7 @@ Engine_Zxcvbn : CroneEngine {
                     out: buses.at("busCompressible"),
                     outsc: buses.at("busCompressing"),
                     outnsc: buses.at("busNotCompressible"),
-                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
                     compressible: compressible,
                     compressing: compressing,
                     sendreverb: send_reverb,
@@ -1220,6 +1223,7 @@ Engine_Zxcvbn : CroneEngine {
                     compression: compression,
                     send_pos: send_pos,
                     sendtape: sendTape,
+                    senddelay: sendDelay,
                 ], syns.at("reverb"), \addBefore));
                 if (retrig>0,{
                     Routine {
@@ -1229,7 +1233,7 @@ Engine_Zxcvbn : CroneEngine {
                                 out: buses.at("busCompressible"),
                                 outsc: buses.at("busCompressing"),
                                 outnsc: buses.at("busNotCompressible"),
-                                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+                                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
                                 sendreverb: send_reverb,
                                 compressible: compressible,
                                 compressing: compressing,
@@ -1247,6 +1251,7 @@ Engine_Zxcvbn : CroneEngine {
                                 compression: compression,
                                 send_pos: send_pos,
                                 sendtape: sendTape,
+                                senddelay: sendDelay,
                             ], syns.at("reverb"), \addBefore));
                         };
                         NodeWatcher.register(syns.at(id));
@@ -1270,7 +1275,7 @@ Engine_Zxcvbn : CroneEngine {
             });            
         });
 
-        this.addCommand("melodic_on","ssfffffffffffffffffffff",{ arg msg;
+        this.addCommand("melodic_on","ssffffffffffffffffffffff",{ arg msg;
             var id=msg[1];
             var filename=msg[2];
             var db=msg[3];
@@ -1294,6 +1299,7 @@ Engine_Zxcvbn : CroneEngine {
             var monophonic_release=msg[21];
             var drive=msg[22];
             var sendTape=msg[23];
+            var sendDelay=msg[24];
             var db_first=db+db_add;
             if (retrig>0,{
                 db_first=db;
@@ -1313,7 +1319,7 @@ Engine_Zxcvbn : CroneEngine {
                     out: buses.at("busCompressible"),
                     outsc: buses.at("busCompressing"),
                     outnsc: buses.at("busNotCompressible"),
-                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
                     sendreverb: send_reverb,
                     compressible: compressible,
                     compressing: compressing,
@@ -1332,6 +1338,7 @@ Engine_Zxcvbn : CroneEngine {
                     release: release,
                     drive: drive,
                     sendtape: sendTape,
+                    senddelay: sendDelay,
                 ], syns.at("reverb"), \addBefore));
                 if (retrig>0,{
                     if ((duration/ (retrig+1))>0.01, {
@@ -1342,7 +1349,7 @@ Engine_Zxcvbn : CroneEngine {
                                     out: buses.at("busCompressible"),
                                     outsc: buses.at("busCompressing"),
                                     outnsc: buses.at("busNotCompressible"),
-                                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+                                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
                                     sendreverb: send_reverb,
                                     compressible: compressible,
                                     compressing: compressing,
@@ -1361,6 +1368,7 @@ Engine_Zxcvbn : CroneEngine {
                                     release: release,
                                     drive: drive,
                                     sendtape: sendTape,
+                                    senddelay: sendDelay,
                                 ], syns.at("reverb"), \addBefore));
                             };
                             NodeWatcher.register(syns.at(id));
@@ -1373,7 +1381,7 @@ Engine_Zxcvbn : CroneEngine {
         });
 
 
-        this.addCommand("kick","fffffffffffff",{arg msg;
+        this.addCommand("kick","ffffffffffffff",{arg msg;
             var basefreq=msg[1];
             var ratio=msg[2];
             var sweeptime=msg[3];
@@ -1387,6 +1395,7 @@ Engine_Zxcvbn : CroneEngine {
             var compressible=msg[11];
             var send_reverb=msg[12];
             var sendTape=msg[13];
+            var sendDelay=msg[14];
             Synth.new("kick",[
                 basefreq: basefreq,
                 ratio: ratio,
@@ -1400,16 +1409,17 @@ Engine_Zxcvbn : CroneEngine {
                 out: buses.at("busCompressible"),
                 outsc: buses.at("busCompressing"),
                 outnsc: buses.at("busNotCompressible"),
-                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
                 compressible: compressible,
                 compressing: compressing,
                 sendreverb: send_reverb,
                 sendtape: sendTape,
+                senddelay: sendDelay,
             ],syns.at("reverb"),\addBefore).onFree({"freed!"});
         });
 
 
-        this.addCommand("note_on","ffffffffffs",{ arg msg;
+        this.addCommand("note_on","ffffffffffsf",{ arg msg;
             var note=msg[1];
             var amp=msg[2].dbamp;
             var attack=msg[3];
@@ -1421,6 +1431,7 @@ Engine_Zxcvbn : CroneEngine {
             var lpf=msg[9].midicps;
             var sendTape=msg[10];
             var track_id=msg[11];
+            var sendDelay=msg[12];
             1.do{ arg i;
                 var id=note.asString++"_"++i;
                 if (syns.at(id).notNil,{
@@ -1435,9 +1446,10 @@ Engine_Zxcvbn : CroneEngine {
                     release: release,
                     duration: duration,
                     swell: swell,
-                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
                     out: buses.at("main"),
                     sendreverb: sendreverb,
+                    senddelay: sendDelay,
                     pan: pan,
                     lpf: lpf,
                     sendtape: sendTape,
@@ -1501,7 +1513,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("mx","sfffffffffff", { arg msg;
+        this.addCommand("mx","sffffffffffff", { arg msg;
             var folder=msg[1].asString;
             var note=msg[2];
             var velocity=msg[3];
@@ -1514,10 +1526,11 @@ Engine_Zxcvbn : CroneEngine {
             var sendCompressing=msg[10];
             var sendReverb=msg[11];
             var sendTape=msg[12];
-            mx.note(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape);
+            var sendDelay=msg[13];
+            mx.note(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape,sendDelay);
         });
 
-        this.addCommand("mx_synths","sffffffffffffffffsfff", { arg msg;
+        this.addCommand("mx_synths","sffffffffffffffffsffff", { arg msg;
             var synth=msg[1].asString;
             var note=msg[2];
             var db=msg[3];
@@ -1539,6 +1552,7 @@ Engine_Zxcvbn : CroneEngine {
             var sendTape=msg[19];
             var retrig=msg[20];
             var db_add=msg[21];
+            var sendDelay=msg[22];
             var syn;
             if (monophonic_release>0,{
                 if (syns.at(id).notNil,{
@@ -1563,10 +1577,11 @@ Engine_Zxcvbn : CroneEngine {
                 out: buses.at("busCompressible"),
                 outsc: buses.at("busCompressing"),
                 outnsc: buses.at("busNotCompressible"),
-                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
                 compressible: sendCompressible,
                 compressing: sendCompressing,
                 sendreverb: sendReverb,
+                senddelay: sendDelay,
                 lpf: lpf,
                 sendtape: sendTape,
             ],syns.at("reverb"),\addBefore).onFree({"freed!"});
@@ -1592,10 +1607,11 @@ Engine_Zxcvbn : CroneEngine {
                                 out: buses.at("busCompressible"),
                                 outsc: buses.at("busCompressing"),
                                 outnsc: buses.at("busNotCompressible"),
-                                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+                                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
                                 compressible: sendCompressible,
                                 compressing: sendCompressing,
                                 sendreverb: sendReverb,
+                                senddelay: sendDelay,
                                 lpf: lpf,
                                 sendtape: sendTape,
                             ], syns.at("reverb"), \addBefore);
@@ -1670,7 +1686,7 @@ Engine_Zxcvbn : CroneEngine {
                     out: buses.at("busCompressible"),
                     outsc: buses.at("busCompressing"),
                     outnsc: buses.at("busNotCompressible"),
-                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),
+                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
                 ],syns.at("reverb"),\addBefore).onFree({"freed"+key}));
                 NodeWatcher.register(syns.at(key));
             },{

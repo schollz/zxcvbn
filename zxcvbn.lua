@@ -791,7 +791,7 @@ function params_sidechain()
     {id="compress_release",name="release",min=0,max=2,exp=false,div=0.01,default=0.2,formatter=function(param) return (param:get()*1000).." ms" end},
     {id="lpshelf",name="lp boost freq",min=12,max=127,exp=false,div=1,default=23,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end,fn=function(x) return musicutil.note_num_to_freq(x) end},
     {id="lpgain",name="lp boost db",min=-48,max=36,exp=false,div=1,default=0,unit="dB"},
-    {id="delay_feedback",name="tape delay feedback",min=0,max=1,exp=false,div=0.01,default=0.8,unit="x"},
+    {id="delay_feedback",name="tape feedback time",min=0.001,max=12,exp=false,div=0.1,default=1,unit="s"},
     {id="delay_time",name="tape delay time",min=0.01,max=4,exp=false,div=clock.get_beat_sec()/16,default=clock.get_beat_sec(),unit="s"},
     {id="tape_slow",name="tape slow",min=0,max=2,exp=false,div=0.01,default=0.0,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
   }

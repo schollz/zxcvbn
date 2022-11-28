@@ -176,7 +176,8 @@ function Track:init()
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="stretch",name="stretch",min=0,max=5,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
-    {id="send_reverb",name="reverb send (z)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="send_reverb",name="reverb send (z)",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="send_delay",name="delay send",mod=true,min=0,max=1,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="transpose",name="transpose (y)",min=-127,max=127,exp=false,div=1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.0f",param:get()>-0.01 and "+" or "",param:get()) end},
   }
   for _,pram in ipairs(params_menu) do
@@ -255,15 +256,15 @@ function Track:init()
   params:add{type="binary",name="activate db/retrig",id=self.id.."activate_dnr",behavior="momentary"}
 
   self.params={shared={"track_type","play","db","probability","pitch","mute","mute_group","transpose","scale_mode","root_note"}}
-  self.params["drum"]={"sample_file","retrig_add","db_add","activate_dnr","note_add","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb"}
-  self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","gate_note","compressible","send_reverb"}
-  self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","gate_note","send_reverb"}
-  self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","gate_note","send_reverb"}
+  self.params["drum"]={"sample_file","retrig_add","db_add","activate_dnr","note_add","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb","send_delay"}
+  self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","gate_note","compressible","send_reverb","send_delay"}
+  self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","gate_note","send_reverb","send_delay"}
+  self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","gate_note","send_reverb","send_delay"}
   self.params["crow"]={"crow_type","attack","gate_note","release","crow_sustain"}
   self.params["jf"]={"jf_type"} -- jf options to come
   self.params["wsyn"]={"wsyn_type"} -- wsyn options to come
   self.params["midi"]={"midi_ch","gate_note","midi_dev"}
-  self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb"}
+  self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb","send_delay"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
@@ -429,7 +430,8 @@ self.play_fn[TYPE_MXSAMPLES]={
     local sendCompressible=0
     local sendCompressing=0
     local sendReverb=params:get(self.id.."send_reverb")
-    engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,self.loop.send_tape)
+    local sendDelay=params:get(self.id.."send_delay")
+    engine.mx(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,self.loop.send_tape,sendDelay)
   end,
 }
 -- mx.synths
@@ -447,7 +449,7 @@ self.play_fn[TYPE_MXSYNTHS]={
     local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
-    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,db_add)
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,db_add,params:get(self.id.."send_delay"))
   end,
 }
 -- infinite pad
@@ -462,7 +464,7 @@ self.play_fn[TYPE_INFINITEPAD]={
       params:get(self.id.."release")/1000,
       duration,
       params:get(self.id.."swell"),params:get(self.id.."send_reverb"),
-    params:get(self.id.."pan"),params:get(self.id.."filter"),self.loop.send_tape,self.id)
+    params:get(self.id.."pan"),params:get(self.id.."filter"),self.loop.send_tape,self.id,params:get(self.id.."send_delay"))
   end,
 }
 -- softsample
