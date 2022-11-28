@@ -1,5 +1,20 @@
 json=require("json")
 
+
+function calc(s)
+  -- returns ok, val
+  return pcall(assert(loadstring("return "..s)))
+end
+
+calc_p=function(s)
+    s=s:gsub("m","96")
+    s=s:gsub("h","48")
+    s=s:gsub("q","24")
+    s=s:gsub("s","12")
+    s=s:gsub("e","6")
+    return calc(s)
+end
+
 function table.append(t1,t2)
   for i=1,#t2 do
     t1[#t1+1]=t2[i]
@@ -112,11 +127,24 @@ function recurse_line(t,all_parts,line,pulses)
   end
 end
 
+
+local pulses=24
 local t={}
 local parts={}
-local line="(a Z12 mi1 . h50) c"
+local line="(a p8 Z12 mi1 . h50) c"
+for w in line:gmatch("%S+") do
+  local c=w:sub(1,1)
+  if c=="p" then
+    local ok,vv=calc_p(w:sub(2))
+    if vv==nil or (not ok) then
+      error(string.format("bad '%s'",w))
+    end
+    pulses=vv
+  end
+end
+
 print(line)
-recurse_line(t,parts,line,36)
+recurse_line(t,parts,line,pulses)
 s=""
 for _,v in ipairs(t) do
   s=s..(v and "1" or "0")
