@@ -12,7 +12,7 @@ Engine_Zxcvbn : CroneEngine {
     var oscs;
     var mx;
     var ouroboro;
-    var fm7synth;
+    var dx7syn;
     var bufsDelay;
     // Zxcvbn ^
 
@@ -65,7 +65,7 @@ Engine_Zxcvbn : CroneEngine {
         oscs.put("audition",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("audition",msg[3],msg[3]); }, '/audition'));
         oscs.put("loopPosition",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("loopPosition",msg[3],msg[4]); }, '/loopPosition'));
     
-        fm7synth = ("/home/we/dust/code/zxcvbn/lib/DX7.scd").load;
+        dx7syn = ("/home/we/dust/code/zxcvbn/lib/DX7.scd").load;
         context.server.sync;
 
         // looper
@@ -1730,12 +1730,34 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("fm7","fff", { arg msg;
-            var note=msg[1];
-            var velocity=msg[2];
-            var preset=msg[3];
-            fm7synth.value(note,velocity,preset);
+
+        this.addCommand("dx7","sffffffffffff", { arg msg;
+            var id=msg[1].asString;
+            var preset=msg[2];
+            var note=msg[3];
+            var vel=msg[4];
+            var pan=msg[5];
+            var attack=msg[6];
+            var release=msg[7];
+            var duration=msg[8];
+            var compressible=msg[9];
+            var compressing=msg[10];
+            var sendreverb=msg[11];
+            var sendtape=msg[12];
+            var senddelay=msg[13];
+            var out=buses.at("busCompressible");
+            var outsc=buses.at("busCompressing");
+            var outnsc=buses.at("busNotCompressible");
+            var outreverb=buses.at("busReverb");
+            var outtape=buses.at("busTape");
+            var outdelay=buses.at("busDelay");
+            var synBefore=syns.at("reverb");
+            ["preset",preset].postln;
+            dx7syn.value(preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, 
+                out, outsc, outnsc, outreverb, outtape, outdelay, synBefore);
         });
+
+
 
         // </ouroboro>
     }
@@ -1754,7 +1776,7 @@ Engine_Zxcvbn : CroneEngine {
         oscs.keysValuesDo({ arg buf, val;
             val.free;
         });
-        fm7synth.free;
+        dx7syn.free;
         ouroboro.free;
         bufsDelay.do(_.free);
         // ^ Zxcvbn specific

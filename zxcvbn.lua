@@ -450,9 +450,11 @@ d - e a
   --   end)
 
   -- DEBUG DEBUG
-  -- params:set("1track_type",7)
+  params:set("4track_type",2)
+  params:set("4play",1)
   -- params:set("audioinpanL",0)
   -- params:set("1scale_mode",2)
+  -- engine.fm7("1",1108,60,100,0.5,0.1,0.2,0.2,0,0,0,0.5)
 end
 
 function sma(period)

@@ -6,15 +6,16 @@ STATE_LOADSCREEN=3
 STATE_SOFTSAMPLE=4
 
 TYPE_MXSYNTHS=1
-TYPE_INFINITEPAD=2
-TYPE_MELODIC=3
-TYPE_MXSAMPLES=4
-TYPE_SOFTSAMPLE=5
-TYPE_DRUM=6
-TYPE_CROW=7
-TYPE_MIDI=8
-TYPE_JF=9
-TYPE_WSYN=10
+TYPE_DX7=2
+TYPE_INFINITEPAD=3
+TYPE_MELODIC=4
+TYPE_MXSAMPLES=5
+TYPE_SOFTSAMPLE=6
+TYPE_DRUM=7
+TYPE_CROW=8
+TYPE_MIDI=9
+TYPE_JF=10
+TYPE_WSYN=11
 
 function string.split(pString,pPattern)
   local Table={} -- NOTE: use {n = 0} in Lua-5.0
@@ -48,7 +49,7 @@ function Track:init()
 
   self.loop={pos_play=-1,pos_rec=-1,arm_play=false,arm_rec=false,send_tape=0}
 
-  self.track_type_options={"mx.synths","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn"}
+  self.track_type_options={"mx.synths","dx7","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
 
   params:set_action(self.id.."track_type",function(x)
@@ -155,6 +156,7 @@ function Track:init()
   end
 
   params_menu={
+    {id="dx7_preset",name="preset",min=1,max=12000,exp=false,div=1,default=1108,formatter=function(param) return math.floor(param:get()) end},
     {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="db",name="volume (v)",mod=true,min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="db_sub",name="volume sub",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
@@ -265,6 +267,7 @@ function Track:init()
   self.params["wsyn"]={"wsyn_type"} -- wsyn options to come
   self.params["midi"]={"midi_ch","gate_note","midi_dev"}
   self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb","send_delay"}
+  self.params["dx7"]={"db","monophonic_release","gate_note","filter","attack","pan","release","compressing","compressible","dx7_preset","send_reverb","send_delay"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
 
   -- define the shortcodes here
@@ -323,6 +326,7 @@ self.enc3[TYPE_MELODIC]="drive"
 self.enc3[TYPE_MIDI]="probability"
 self.enc3[TYPE_MXSAMPLES]="pan"
 self.enc3[TYPE_MXSYNTHS]="pan"
+self.enc3[TYPE_DX7]="pan"
 self.enc3[TYPE_SOFTSAMPLE]="pan"
 
 -- initialize track data
@@ -336,6 +340,8 @@ end,shift_updown=function(d)
     params:delta(self.id.."mx_sample",d)
   elseif params:get(self.id.."track_type")==TYPE_MXSYNTHS then
     params:delta(self.id.."mx_synths",d)
+  elseif params:get(self.id.."track_type")==TYPE_DX7 then
+    params:delta(self.id.."dx7_preset",d)
   elseif params:get(self.id.."track_type")==TYPE_MIDI then
     params:delta(self.id.."midi_dev",d)
   elseif params:get(self.id.."track_type")==TYPE_CROW then
@@ -450,6 +456,24 @@ self.play_fn[TYPE_MXSYNTHS]={
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
     duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,db_add,params:get(self.id.."send_delay"))
+  end,
+}
+-- mx.synths
+self.play_fn[TYPE_DX7]={
+  note_on=function(d,mods)
+    -- preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay
+    local preset=params:get(self.id.."dx7_preset")
+    local note=d.note_to_emit+params:get(self.id.."pitch")
+    local db=params:get(self.id.."db")
+    local db_add=(mods.v or 0)
+    local vel=util.clamp(util.dbamp(db+db_add),0,1)*127
+    local pan=params:get(self.id.."pan")
+    local attack=params:get(self.id.."attack")/1000
+    local release=params:get(self.id.."release")/1000
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    duration=duration>0 and duration or d.duration_scaled
+    engine.dx7(self.id, preset, note, vel, pan, attack, release, duration, 
+      params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),0,params:get(self.id.."send_delay"))
   end,
 }
 -- infinite pad
@@ -619,6 +643,8 @@ function Track:description()
   local s=params:string(self.id.."track_type")
   if params:get(self.id.."track_type")==TYPE_MXSYNTHS then
     s=s..string.format(" (%s)",params:string(self.id.."mx_synths"))
+  elseif params:get(self.id.."track_type")==TYPE_DX7 then
+    s=s..string.format(" (%d)",params:string(self.id.."dx7_preset"))
   elseif params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_MELODIC then
     local fname=params:string(self.id.."sample_file")
     if string.find(fname,".wav") or string.find(fname,".flac") or string.find(fname,".aif") then

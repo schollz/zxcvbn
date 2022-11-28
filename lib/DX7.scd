@@ -323,7 +323,7 @@ SynthDef(\InfEfx, {
 
 
 SynthDef(\DX7, {
-	arg outBus=0, pitch, gate = 1, attack=0.05, release=2,duration=10,
+	arg outBus=0, pitch, gate = 1, attack=0.05, release=2,duration=10,pan=0,
 	envPL0, envPL1, envPL2, envPL3, envPL4, envPR0, envPR1, envPR2, envPR3,
 	coars1, fine_1,	coars2, fine_2,	coars3, fine_3,	coars4, fine_4,	coars5, fine_5,	coars6, fine_6,
 	env1L0, env1L1, env1L2, env1L3, env1L4, env1R0, env1R1, env1R2, env1R3, env1C0, env1C1, env1C2, env1C3,
@@ -345,7 +345,7 @@ SynthDef(\DX7, {
 	//below is the general,
 	osc_sync, transpose,
 	gate1=1, gate1Rel = 1, amp=0.1, totVol;
-	var ctls, mods, chans, out, kilnod,
+	var snd, ctls, mods, chans, out, kilnod,
 	envAmp1, envEnv1, envAmp2, envEnv2, envAmp3, envEnv3 ,envAmp4, envEnv4, envAmp5, envEnv5, envAmp6, envEnv6, dca, envAmpP, envEnvP;
 	//
 	envEnvP = Env.new([ envPL0, envPL1, envPL2, envPL3, envPL4], [envPR0,envPR1,envPR2,envPR3], 0, 3);
@@ -397,8 +397,13 @@ SynthDef(\DX7, {
 	out = out * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
 	//DetectSilence.ar(out, 0.01, 0.2,doneAction:2);
 	//out = out * ((totVol -15).dbamp);
-	Out.ar(outBus, out.dup); //orj
-
+	snd=Pan2.ar(out,pan)*amp; //orj
+	Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
+	Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+	Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+	Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
+	Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+	Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
 }).add;
 
 scale_vrv = { arg dummy, scaling_curve, scaling_depth, vrv;
@@ -634,29 +639,36 @@ defme = { arg note, vel;
 	a;
 
 };
-noteParser = { arg vel, note;
+noteParser = { arg note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore;
+[note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore].postln;
 	1.do { arg yxx;
 			if(vel > 0,
 				{
 					//150.do({ arg c; ("cc#" ++ c.asString ++ " = " ++ vr[c]).postln}); //general cc printer, rates are not inverted.
-					if(noteArrayDX7[note] !== nil,noteArrayDX7[note].free);
+					if(noteArrayDX7[note] !== nil,noteArrayDX7[note].set(\gate,0));
 					if(vr[137] == 1, {//lfo sync controller
 						if(betass == 1,   {
 							headno.free;
 						});
 						betass = 1;
-						headno = Synth.before(novaDX7, \InfEfx, defjamHead0.());
+						// headno = Synth.before(synBefore, \InfEfx, defjamHead0.());
+						headno = Synth.new(\InfEfx, defjamHead0.(),synBefore, \addBefore);
 					},
 					{
 						if(betass == 0,   {
 							betass = 1;
-							headno = Synth.before(novaDX7, \InfEfx, defjamHead0.())
+							// headno = Synth.before(synBefore, \InfEfx, defjamHead0.())
+							headno = Synth.new(\InfEfx, defjamHead0.(), synBefore, \addBefore)
 						},
 						{
 							headno.set(defjamHead0.())
 						});
 					});
-					noteArrayDX7[note] = Synth(\DX7 ,defme.value(note, vel),novaDX7);
+					noteArrayDX7[note] = Synth.new(\DX7 ,defme.value(note, vel).postln++[
+						\pan,pan,\attack,attack,\release,release,\duration,duration,
+						\compressible,compressible, \compressing,compressing, \sendreverb,sendreverb, \sendtape,sendtape, \senddelay,senddelay, 
+						\out,out, \outsc,outsc, \outnsc,outnsc, \outreverb,outreverb, \outtape,outtape, \outdelay,outdelay
+					],synBefore,\addBefore);
 					//noteArrayDX7[note] = Synth(\DX7 ,defme.value(note, vel), novaDX7); //orjburayi addtotail diye degistirdin
 
 				},
@@ -682,16 +694,18 @@ r = File("DX7.afx".resolveRelative,"r");
 	dx7patches[item] = r.getLine;
 });
 
-mainCaller = { arg note, vel, preset;
+
+
+mainCaller = { arg preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore;
 	if(vel > 0,{
-		var g = dx7patches[preset%16384];
+		var g = dx7patches[preset.asInteger%16384];
 		145.do({arg item;
 			var k = (g.at((item*2)) ++ g.at((item*2) + 1)).asInteger;
 			f.value(cirklonCCparse[item][0],cirklonCCparse[item][1],k);
 			//~midiOutDX7.control(~cirklonCCparse[item][0],~cirklonCCparse[item][1],k);
 		});
 	});
-	noteParser.value(vel, note)
+	noteParser.value(note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore)
 };
 )
 
