@@ -29,6 +29,8 @@
 
 # To Do Later (Not Critical)
 
+- [ ] parentheses as a subdivision @sixolet
+- [ ] non-line ops with a prefix version that is latchin @sixolet
 - [ ] slice stretch synthdef (Using WarpZ)
 - [ ] have tli keep track of originating line and highlight it
 - [ ] use blend_mode to highlight the region being played
