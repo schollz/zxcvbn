@@ -135,27 +135,69 @@ function recurse_line(t,all_parts,line,pulses)
   end
 end
 
-
-local pulses=24
-local t={}
-local parts={}
-local line="(a o1 p8 Z12 mi1 . h50) c o2"
-for w in line:gmatch("%S+") do
-  local c=w:sub(1,1)
-  if c=="p" then
-    local ok,vv=calc_p(w:sub(2))
-    if vv==nil or (not ok) then
-      error(string.format("bad '%s'",w))
+function parse_positions(lines,default_pulses)
+  local elast=nil
+  local entities={}
+  local pulse_index=0
+  local pulses=default_pulses or 24*4 
+  for _, line in ipairs(lines) do 
+    -- <line>
+    -- determine if there is a nuew number of pulses
+    for w in line:gmatch("%S+") do
+      local c=w:sub(1,1)
+      if c=="p" then
+        local ok,vv=calc_p(w:sub(2))
+        if vv==nil or (not ok) then
+          error(string.format("bad '%s'",w))
+        end
+        pulses=vv
+      end
     end
-    pulses=vv
+    local pos={}
+    local ele={}
+    recurse_line(pos,ele,line,pulses)
+    s=""
+    for _,v in ipairs(pos) do
+      s=s..(v and "1" or "0")
+    end
+    print(s)
+    local ei=0
+    for pi,p in ipairs(pos) do
+      pulse_index=pulse_index+1
+      if p then
+        if elast~=nil and ele[ei+1].e~="-" then
+          table.insert(entities,{el=elast.el,
+              start=elast.start,
+              stop=pulse_index,
+              mods=elast.mods,
+              line=elast.line})
+          mods=nil
+          elast=nil
+        end
+        if ele[ei+1].e~="-" then
+          elast={el=ele[ei+1].e,start=pulse_index,mods=ele[ei+1].mods,line=i}
+        end
+        ei=ei+1
+      end
+    end
+    
+    -- </line>
   end
+  if elast~=nil then
+    table.insert(entities,{el=elast.el,
+        start=elast.start,
+        stop=pulse_index+1,
+        mods=elast.mods,
+        line=elast.line})
+    elast=nil
+  end
+
+  return entities,pulse_index
 end
 
-print(line)
-recurse_line(t,parts,line,pulses)
-s=""
-for _,v in ipairs(t) do
-  s=s..(v and "1" or "0")
+local e,p=parse_positions({"(a o1 p8 Z12 mi1 . h50) c o2","(a p32 a a a) - . d"},64)
+for _, f in ipairs(e) do 
+  print(json.encode(f))
 end
-print(json.encode(parts))
-print(s)
+print(json.encode(p))
+
