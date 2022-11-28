@@ -117,7 +117,15 @@ function recurse_line(t,all_parts,line,pulses)
       table.insert(entites,{e=e,mods=mods})
     end
     print(json.encode(entites),pulses)
-    table.append(t,er(#parts,pulses,0))
+    local shift=0
+    for _, part in ipairs(entites) do 
+      for _, mod in ipairs(part.mods) do
+        if mod[1]=="o" and tonumber(mod[2])~=nil then
+          shift=mod[2]
+        end
+      end
+    end
+    table.append(t,er(#parts,pulses,shift))
     table.append(all_parts,entites)
     do return end
   end
@@ -131,7 +139,7 @@ end
 local pulses=24
 local t={}
 local parts={}
-local line="(a p8 Z12 mi1 . h50) c"
+local line="(a o1 p8 Z12 mi1 . h50) c o2"
 for w in line:gmatch("%S+") do
   local c=w:sub(1,1)
   if c=="p" then
