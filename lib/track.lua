@@ -156,7 +156,7 @@ function Track:init()
   end
 
   params_menu={
-    {id="dx7_preset",name="preset",min=1,max=12000,exp=false,div=1,default=1108,formatter=function(param) return math.floor(param:get()) end},
+    {id="dx7_preset",name="preset",min=1,max=12000,exp=false,div=1,default=1108,formatter=function(param) return dx7_names[math.floor(param:get())+1] end},
     {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="db",name="volume (v)",mod=true,min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
     {id="db_sub",name="volume sub",min=-48,max=12,exp=false,div=0.1,default=-6,unit="db"},
@@ -467,13 +467,12 @@ self.play_fn[TYPE_DX7]={
     local note=d.note_to_emit+params:get(self.id.."pitch")
     local db=params:get(self.id.."db")
     local db_add=(mods.v or 0)
-    local vel=util.clamp(util.dbamp(db+db_add),0,1)*127
     local pan=params:get(self.id.."pan")
     local attack=params:get(self.id.."attack")/1000
     local release=params:get(self.id.."release")/1000
     local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
     duration=duration>0 and duration or d.duration_scaled
-    engine.dx7(self.id, preset, note, vel, pan, attack, release, duration, 
+    engine.dx7(self.id, preset, note, db, db_add, pan, attack, release, duration, 
       params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),0,params:get(self.id.."send_delay"))
   end,
 }
@@ -645,7 +644,7 @@ function Track:description()
   if params:get(self.id.."track_type")==TYPE_MXSYNTHS then
     s=s..string.format(" (%s)",params:string(self.id.."mx_synths"))
   elseif params:get(self.id.."track_type")==TYPE_DX7 then
-    s=s..string.format(" (%d)",params:string(self.id.."dx7_preset"))
+    s=s..string.format(" (%s)",params:string(self.id.."dx7_preset"))
   elseif params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_MELODIC then
     local fname=params:string(self.id.."sample_file")
     if string.find(fname,".wav") or string.find(fname,".flac") or string.find(fname,".aif") then

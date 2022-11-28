@@ -54,6 +54,7 @@ engine.name=util.file_exists(fverb_so) and "Zxcvbn" or nil
 
 debounce_fn={}
 osc_fun={}
+dx7_names={}
 
 function init()
   -- turn reverb off
@@ -102,6 +103,9 @@ function init2()
   end
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
   os.execute(_path.code.."zxcvbn/lib/oscconnect/run.sh &")
+
+  -- load dx7 names
+  load_dx7()
 
   -- choose audiowaveform binary
   audiowaveform="audiowaveform"
@@ -455,9 +459,26 @@ c6 Z100
 e5 Z0
 ]])
   params:set("4track_type",2)
-  params:set("4play",1)
+  params:set("track",4)
+  -- params:set("4play",1)
   -- params:set("audioinpanL",0)
   -- params:set("1scale_mode",2)
+end
+
+function load_dx7()
+  filename=_path.code.."zxcvbn/lib/dx7.json"
+  if not util.file_exists(filename) then
+    print("could not find "..filename)
+    do return end
+  end
+  local f=io.open(filename,"rb")
+  local content=f:read("*all")
+  f:close()
+  if content==nil then
+    print("no content in dx7")
+    do return end
+  end
+  dx7_names=json.decode(content)
 end
 
 function sma(period)

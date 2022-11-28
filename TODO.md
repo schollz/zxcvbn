@@ -1,5 +1,9 @@
 # To Do Now (Critical)
 
+- [ ] documentation for "Z" command
+- [ ] hook up DX7 to modulate parameters in realtime
+- [ ] Add filter to DX7
+- [x] Add DX7 names
 - [ ] performance mixer @mcepe
 - [ ] octave detection doesn't work for <0 @mcpepe
 - [ ] v,y should behave ordered when given choices (so you can do things like 9 v5,0,0,5,0,0,5,0 pe)

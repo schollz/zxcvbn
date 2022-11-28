@@ -1731,20 +1731,21 @@ Engine_Zxcvbn : CroneEngine {
         });
 
 
-        this.addCommand("dx7","sffffffffffff", { arg msg;
+        this.addCommand("dx7","sfffffffffffff", { arg msg;
             var id=msg[1].asString;
             var preset=msg[2];
             var note=msg[3];
-            var vel=msg[4];
-            var pan=msg[5];
-            var attack=msg[6];
-            var release=msg[7];
-            var duration=msg[8];
-            var compressible=msg[9];
-            var compressing=msg[10];
-            var sendreverb=msg[11];
-            var sendtape=msg[12];
-            var senddelay=msg[13];
+            var db=msg[4];
+            var db_add=msg[5];
+            var pan=msg[6];
+            var attack=msg[7];
+            var release=msg[8];
+            var duration=msg[9];
+            var compressible=msg[10];
+            var compressing=msg[11];
+            var sendreverb=msg[12];
+            var sendtape=msg[13];
+            var senddelay=msg[14];
             var out=buses.at("busCompressible");
             var outsc=buses.at("busCompressing");
             var outnsc=buses.at("busNotCompressible");
@@ -1752,9 +1753,11 @@ Engine_Zxcvbn : CroneEngine {
             var outtape=buses.at("busTape");
             var outdelay=buses.at("busDelay");
             var synBefore=syns.at("reverb");
+            var amp= (db+db_add).dbamp;
+            ["amp",amp].postln;
             ["preset",preset].postln;
-            dx7syn.value(preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, 
-                out, outsc, outnsc, outreverb, outtape, outdelay, synBefore);
+            dx7syn.value(preset, note, 110, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, 
+                out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp);
         });
 
 

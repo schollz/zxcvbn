@@ -323,7 +323,7 @@ SynthDef(\InfEfx, {
 
 
 SynthDef(\DX7, {
-	arg outBus=0, pitch, gate = 1, attack=0.05, release=2,duration=10,pan=0,
+	arg outBus=0, pitch, gate = 1, attack=0.05, release=2,duration=10,pan=0,ampAdj=1,
 	envPL0, envPL1, envPL2, envPL3, envPL4, envPR0, envPR1, envPR2, envPR3,
 	coars1, fine_1,	coars2, fine_2,	coars3, fine_3,	coars4, fine_4,	coars5, fine_5,	coars6, fine_6,
 	env1L0, env1L1, env1L2, env1L3, env1L4, env1R0, env1R1, env1R2, env1R3, env1C0, env1C1, env1C2, env1C3,
@@ -397,7 +397,7 @@ SynthDef(\DX7, {
 	out = out * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
 	//DetectSilence.ar(out, 0.01, 0.2,doneAction:2);
 	//out = out * ((totVol -15).dbamp);
-	snd=Pan2.ar(out,pan)*amp; //orj
+	snd=Pan2.ar(out,pan)*amp*ampAdj; //orj
 	Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
 	Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
 	Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
@@ -639,8 +639,7 @@ defme = { arg note, vel;
 	a;
 
 };
-noteParser = { arg note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore;
-[note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore].postln;
+noteParser = { arg note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp;
 	1.do { arg yxx;
 			if(vel > 0,
 				{
@@ -664,10 +663,10 @@ noteParser = { arg note, vel, pan, attack, release, duration, compressible, comp
 							headno.set(defjamHead0.())
 						});
 					});
-					noteArrayDX7[note] = Synth.new(\DX7 ,defme.value(note, vel).postln++[
+					noteArrayDX7[note] = Synth.new(\DX7 ,defme.value(note, vel)++[
 						\pan,pan,\attack,attack,\release,release,\duration,duration,
 						\compressible,compressible, \compressing,compressing, \sendreverb,sendreverb, \sendtape,sendtape, \senddelay,senddelay, 
-						\out,out, \outsc,outsc, \outnsc,outnsc, \outreverb,outreverb, \outtape,outtape, \outdelay,outdelay
+						\out,out, \outsc,outsc, \outnsc,outnsc, \outreverb,outreverb, \outtape,outtape, \outdelay,outdelay, \ampAdj, amp
 					],synBefore,\addBefore);
 					//noteArrayDX7[note] = Synth(\DX7 ,defme.value(note, vel), novaDX7); //orjburayi addtotail diye degistirdin
 
@@ -696,7 +695,7 @@ r = File("DX7.afx".resolveRelative,"r");
 
 
 
-mainCaller = { arg preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore;
+mainCaller = { arg preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp;
 	if(vel > 0,{
 		var g = dx7patches[preset.asInteger%16384];
 		145.do({arg item;
@@ -705,7 +704,7 @@ mainCaller = { arg preset, note, vel, pan, attack, release, duration, compressib
 			//~midiOutDX7.control(~cirklonCCparse[item][0],~cirklonCCparse[item][1],k);
 		});
 	});
-	noteParser.value(note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore)
+	noteParser.value(note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp)
 };
 )
 
