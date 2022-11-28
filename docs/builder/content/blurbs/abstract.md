@@ -6,7 +6,7 @@ weight: 1.0
 
 <img src="/static/main1.png" class="fr">
 
-*zxcvbn* is a [tracker](https://en.wikipedia.org/wiki/Music_tracker) for [norns](https://monome.org). *zxcvbn* is best used with a keyboard. The keyboard is used to create musical expressions in the [tli syntax](#tli) for sequences on up to ten different tracks that can control [eight different clades](#clades). Clades are sound systems which include multiple samplers, and over a dozen internal synth engines.
+*zxcvbn* is a [tracker](https://en.wikipedia.org/wiki/Music_tracker) for [norns](https://monome.org). *zxcvbn* is best used with a keyboard. The keyboard is used to create musical expressions in the [tli syntax](#tli) for sequences on up to ten different tracks that can control [eleven different clades](#clades). Clades are sound systems which include multiple samplers, and over a dozen internal synth engines.
 
 
 
