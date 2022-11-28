@@ -13,6 +13,7 @@ Engine_Zxcvbn : CroneEngine {
     var mx;
     var ouroboro;
     var fm7synth;
+    var bufsDelay;
     // Zxcvbn ^
 
     *new { arg context, doneCallback;
@@ -56,6 +57,7 @@ Engine_Zxcvbn : CroneEngine {
         oscs = Dictionary.new();
         mods = Dictionary.new();
         im = Dictionary.new();
+        bufsDelay = Buffer.allocConsecutive(2,context.server,48000*4,1);
         
 
         bufs.put("tape",Buffer.alloc(context.server, context.server.sampleRate * 18.0, 2));
@@ -870,16 +872,30 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\main, {
-            arg outBus=0,inBusNSC,inSC,lpshelf=60,lpgain=0,sidechain_mult=2,compress_thresh=0.1,compress_level=0.1,compress_attack=0.01,compress_release=1,inBus,
-            tape_buf,tape_slow=0,tape_stretch=0;
-            var snd,sndSC,sndNSC,tapePosRec,tapePosStretch;
+            arg outBus=0,inBusNSC,inSC,inDelay,lpshelf=60,lpgain=0,sidechain_mult=2,compress_thresh=0.1,compress_level=0.1,compress_attack=0.01,compress_release=1,inBus,
+            tape_buf,tape_slow=0,tape_stretch=0,delay_bufs=#[0,1],delay_time=0.25,delay_feedback=0.5;
+            var snd,sndSC,sndNSC,sndDelay,tapePosRec,tapePosStretch,local;
             snd=In.ar(inBus,2);
             sndNSC=In.ar(inBusNSC,2);
             sndSC=In.ar(inSC,2);
+            sndDelay=In.ar(inDelay,2)+sndNSC;
+
             snd = Compander.ar(snd, (sndSC*sidechain_mult), 
                 compress_thresh, 1, compress_level, 
                 compress_attack, compress_release);
             snd = snd + sndNSC;
+
+            // tape delay
+            local = LocalIn.ar(2);
+            local = OnePole.ar(local,0.4);
+            local = OnePole.ar(local, -0.08);
+            local = Rotate2.ar(local[0],local[1],0.2);
+            local = BufDelayL.ar(delay_bufs,local,Lag.kr(delay_time),mul:EnvGen.ar(Env.new([1,0.1,0.1,1],[0.01,0.01,0.01]),Trig.kr(Changed.kr(delay_time))));
+            local = LeakDC.ar(local);
+            local = (local + sndDelay).softclip*Clip.kr(delay_feedback,0,0.98);
+            LocalOut.ar(local);
+            snd = snd + local;
+
             snd = LeakDC.ar(snd);
             // snd = RHPF.ar(snd,60,0.707);
             snd=BLowShelf.ar(snd, lpshelf, 1, lpgain);
@@ -1060,7 +1076,7 @@ Engine_Zxcvbn : CroneEngine {
 
         mx = MxSamplesZ(Server.default,100,buses.at("busCompressible").index,buses.at("busNotCompressible").index,buses.at("busCompressing"),buses.at("busReverb"),buses.at("busTape"));
         context.server.sync;
-        syns.put("main",Synth.new(\main,[\tapeBuf,bufs.at("tape"),\outBus,0,\sidechain_mult,8,\inBus,buses.at("busCompressible"),\inBusNSC,buses.at("busNotCompressible"),\inSC,buses.at("busCompressing")]));
+        syns.put("main",Synth.new(\main,[\tapeBuf,bufs.at("tape"),\outBus,0,\sidechain_mult,8,\inBus,buses.at("busCompressible"),\inBusNSC,buses.at("busNotCompressible"),\inSC,buses.at("busCompressing"),\delay_bufs,bufsDelay]));
         NodeWatcher.register(syns.at("main"));
         context.server.sync;
         syns.put("reverb", Synth.new(\padFx, [
@@ -1724,6 +1740,7 @@ Engine_Zxcvbn : CroneEngine {
         });
         fm7synth.free;
         ouroboro.free;
+        bufsDelay.do(_.free);
         // ^ Zxcvbn specific
     }
 }
