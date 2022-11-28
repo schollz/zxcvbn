@@ -854,7 +854,8 @@ function TLI:parse_positions(lines,default_pulses)
     local er_rotation=0
     for w in line:gmatch("%S+") do
       local c=w:sub(1,1)
-      if string.byte(c)>string.byte("g") and string.byte(c)<=string.byte("z") then
+      if (string.byte(c)>string.byte("g") and string.byte(c)<=string.byte("z")) or
+      (string.byte(c)>string.byte("G") and string.byte(c)<=string.byte("Z")) then
         if #ele>0 then
           local mod=tonumber(w:sub(2))
           if c=="o" and mod~=nil then

@@ -179,7 +179,7 @@ function Track:init()
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="stretch",name="stretch",min=0,max=5,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="send_reverb",name="reverb send (z)",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
-    {id="send_delay",name="delay send",mod=true,min=0,max=1,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="send_delay",name="delay send (Z)",mod=true,min=0,max=1,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="transpose",name="transpose (y)",min=-127,max=127,exp=false,div=1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.0f",param:get()>-0.01 and "+" or "",param:get()) end},
   }
   for _,pram in ipairs(params_menu) do
@@ -299,6 +299,7 @@ m=function(x) self:setup_lfo(x) end,
 n=function(x,v) if v==nil then self.lfos["n"]:stop() end;params:set(self.id.."pitch",x) end,
 u=function(x,v) if v==nil then self.lfos["u"]:stop() end;params:set(self.id.."rate",x/100);params:set(self.id.."sc_rate",x/100) end,
 z=function(x,v) if v==nil then self.lfos["z"]:stop() end;params:set(self.id.."send_reverb",x/100) end,
+Z=function(x,v) if v==nil then self.lfos["Z"]:stop() end;params:set(self.id.."send_delay",x/100) end,
 y=function(x,v) if v==nil then self.lfos["y"]:stop() end;params:set(self.id.."transpose",x) end,
 }
 -- setup lfos
@@ -857,6 +858,7 @@ function Track:emit(beat)
           k=vvv[1]
           v=vvv[2]
           mods[k]=tli.numdashcomr(v) or v
+          tab.print(mods)
           if self.mods[k]~=nil and mods[k]~=nil then
             pcall(
               function()

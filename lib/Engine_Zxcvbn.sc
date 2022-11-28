@@ -887,9 +887,9 @@ Engine_Zxcvbn : CroneEngine {
 
             // tape delay
             local = LocalIn.ar(2);
-            local = OnePole.ar(local,0.4);
-            local = OnePole.ar(local, -0.08);
-            local = Rotate2.ar(local[0],local[1],0.2);
+            // local = OnePole.ar(local,0.4);
+            // local = OnePole.ar(local, -0.08);
+            // local = Rotate2.ar(local[0],local[1],0.2);
             local = BufDelayL.ar(delay_bufs,local,Lag.kr(delay_time),mul:EnvGen.ar(Env.new([1,0.1,0.1,1],[0.01,0.01,0.01]),Trig.kr(Changed.kr(delay_time))));
             local = LeakDC.ar(local);
             LocalOut.ar((local + sndDelay).softclip*Clip.kr((36.neg.dbamp.log/(delay_feedback/delay_time+1)).exp,0,0.99999));
