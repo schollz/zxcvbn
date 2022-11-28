@@ -38,9 +38,8 @@ er=function(k,n,w)
   return r
 end
 
-function recurse_line(t,line,pulses)
-
-  print("recurse_line",line,pulses)
+function recurse_line(t,all_parts,line,pulses)
+  --print("recurse_line",line,pulses)
   line=trim(line)
   local par_count=0
   local has_par=false
@@ -69,7 +68,8 @@ function recurse_line(t,line,pulses)
     else
       if par_count==0 and
         ((string.byte(c)>=string.byte("a") and string.byte(c)<=string.byte("g")) or
-        (string.byte(c)>=string.byte("A") and string.byte(c)<=string.byte("G"))) then
+        (string.byte(c)>=string.byte("A") and string.byte(c)<=string.byte("G")) or 
+        c=="." or c=="-") then
         part=trim(part)
         if part~="" then
           table.insert(parts,part)
@@ -85,22 +85,41 @@ function recurse_line(t,line,pulses)
     table.insert(parts,part)
   end
   if not string.find(line,"%(") then
-    print(json.encode(parts),pulses)
+    local entites={}
+    for _, part in ipairs(parts) do 
+      local e=""
+      local mods={}
+      local i=1
+      for w in part:gmatch("%S+") do
+        if i==1 then 
+          e=w
+        else
+          local d=w:sub(1,1)
+          table.insert(mods,{d,tonumber(w:sub(2)) or w:sub(2)})
+        end
+        i=i+1
+      end
+      table.insert(entites,{e=e,mods=mods})
+    end
+    print(json.encode(entites),pulses)
     table.append(t,er(#parts,pulses,0))
+    table.append(all_parts,entites)
     do return end
   end
   -- print(json.encode(parts),pulses,#parts)
   for _,part in ipairs(parts) do
-    recurse_line(t,part,math.floor(pulses/#parts))
+    recurse_line(t,all_parts,part,math.floor(pulses/#parts))
   end
 end
 
 local t={}
--- recurse_line(t,"(b c) a a",12)
--- recurse_line({},"a a",96)
-recurse_line(t,"(a a a ) a a a",24)
+local parts={}
+local line="(a Z12 mi1 . h50) c"
+print(line)
+recurse_line(t,parts,line,36)
 s=""
 for _,v in ipairs(t) do
   s=s..(v and "1" or "0")
 end
+print(json.encode(parts))
 print(s)
