@@ -191,20 +191,26 @@ function Track:init()
       formatter=pram.formatter,
       action=function(v)
         if pram.mod then
-          if params:get(self.id.."track_type")==TYPE_MXSYNTHS 
-          or params:get(self.id.."track_type")==TYPE_INFINITEPAD 
-            or params:get(self.id.."track_type")==TYPE_DRUM then 
+          if params:get(self.id.."track_type")==TYPE_MXSYNTHS
+            or params:get(self.id.."track_type")==TYPE_INFINITEPAD
+            or params:get(self.id.."track_type")==TYPE_DRUM
+            or params:get(self.id.."track_type")==TYPE_DX7 then
             local k=pram.id
             if pram.id=="filter" then
               v=musicutil.note_num_to_freq(v)
               if params:get(self.id.."track_type")==TYPE_MXSYNTHS or params:get(self.id.."track_type")==TYPE_INFINITEPAD then
                 k="lpf"
               end
-            elseif pram.id=="db" then 
+            elseif pram.id=="db" then
               v=util.dbamp(v)
               k="amp"
             end
-            engine.synth_set(self.id,k,v)  
+            if params:get(self.id.."track_type")==TYPE_DX7 then
+              print("setting dx7",k,v)
+              engine.dx7_set(k,v)
+            else
+              engine.synth_set(self.id,k,v)
+            end
           end
         end
       end,
@@ -291,7 +297,7 @@ function Track:init()
     end,
   i=function(x,v) if v==nil then self.lfos["i"]:stop() end;params:set(self.id.."filter",x+30) end,
 q=function(x,v) if v==nil then self.lfos["q"]:stop() end;params:set(self.id.."probability",x) end,
-h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x); params:set(self.id.."gate_note",x) end,
+h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x);params:set(self.id.."gate_note",x) end,
 k=function(x,v) if v==nil then self.lfos["k"]:stop() end;params:set(self.id.."attack",x) end,
 l=function(x,v) if v==nil then self.lfos["l"]:stop() end;params:set(self.id.."release",x) end,
 w=function(x,v) if v==nil then self.lfos["w"]:stop() end;params:set(self.id.."pan",(x/100));params:set(self.id.."sc_pan",x/100) end,
@@ -398,7 +404,7 @@ self.play_fn[TYPE_MELODIC]={
       do return end
     end
     local id=self.id.."_"..d.note_to_emit
-    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     duration=duration>0 and duration or d.duration_scaled
     self.states[STATE_SAMPLE]:play{
       on=true,
@@ -432,7 +438,7 @@ self.play_fn[TYPE_MXSAMPLES]={
     for i=1,4 do
       table.insert(mods,params:get(self.id.."mod"..i))
     end
-    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     duration=duration>0 and duration or d.duration_scaled
     local sendCompressible=0
     local sendCompressing=0
@@ -451,7 +457,7 @@ self.play_fn[TYPE_MXSYNTHS]={
     local pan=params:get(self.id.."pan")
     local attack=params:get(self.id.."attack")/1000
     local release=params:get(self.id.."release")/1000
-    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     duration=duration>0 and duration or d.duration_scaled
     local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
@@ -470,17 +476,17 @@ self.play_fn[TYPE_DX7]={
     local pan=params:get(self.id.."pan")
     local attack=params:get(self.id.."attack")/1000
     local release=params:get(self.id.."release")/1000
-    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     duration=duration>0 and duration or d.duration_scaled
-    engine.dx7(self.id, preset, note, db, db_add, pan, attack, release, duration, 
-      params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),0,params:get(self.id.."send_delay"))
+    engine.dx7(self.id,preset,note,db,db_add,pan,attack,release,duration,
+    params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),0,params:get(self.id.."send_delay"),params:get(self.id.."filter"))
   end,
 }
 -- infinite pad
 self.play_fn[TYPE_INFINITEPAD]={
   note_on=function(d,mods)
     local note=d.note_to_emit+params:get(self.id.."pitch")
-    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     duration=duration>0 and duration or d.duration_scaled
     engine.note_on(note,
       params:get(self.id.."db")+util.clamp((mods.v or 0)/10,0,10),
@@ -527,7 +533,7 @@ self.play_fn[TYPE_CROW]={
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
     local note=d.note_to_emit+params:get(self.id.."pitch")
-    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     duration=duration>0 and duration or d.duration_scaled
     if level>0 then
       -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
@@ -588,7 +594,7 @@ self.play_fn[TYPE_MIDI]={
     local trigs=mods.x or 1
     local duration=params:get(self.id.."gate_note")
     d.duration=duration>0 and duration or d.duration
-    local duration_scaled=params:get(self.id.."gate_note")/24*clock.get_beat_sec() 
+    local duration_scaled=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     d.duration_scaled=duration_scaled>0 and duration_scaled or d.duration_scaled
     if vel>0 then
       -- print(note,vel,params:get(self.id.."midi_ch"))

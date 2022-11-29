@@ -454,12 +454,12 @@ d - e a
   --   end)
 
   -- DEBUG DEBUG
-  tracks[4]:load_text([[
-c6 Z100
-e5 Z0
-]])
-  params:set("4track_type",2)
-  params:set("track",4)
+  --   tracks[4]:load_text([[
+  -- c6 Z100
+  -- e5 Z0
+  -- ]])
+  --   params:set("4track_type",2)
+  --   params:set("track",4)
   -- params:set("4play",1)
   -- params:set("audioinpanL",0)
   -- params:set("1scale_mode",2)

@@ -323,7 +323,7 @@ SynthDef(\InfEfx, {
 
 
 SynthDef(\DX7, {
-	arg outBus=0, pitch, gate = 1, attack=0.05, release=2,duration=10,pan=0,ampAdj=1,
+	arg outBus=0, pitch, gate = 1, attack=0.05, release=2,duration=10,pan=0,filter=20000,
 	envPL0, envPL1, envPL2, envPL3, envPL4, envPR0, envPR1, envPR2, envPR3,
 	coars1, fine_1,	coars2, fine_2,	coars3, fine_3,	coars4, fine_4,	coars5, fine_5,	coars6, fine_6,
 	env1L0, env1L1, env1L2, env1L3, env1L4, env1R0, env1R1, env1R2, env1R3, env1C0, env1C1, env1C2, env1C3,
@@ -397,7 +397,8 @@ SynthDef(\DX7, {
 	out = out * Env.asr(attack, 1, release).ar(Done.freeSelf, gate * ToggleFF.kr(1-TDelay.kr(DC.kr(1),duration)) );
 	//DetectSilence.ar(out, 0.01, 0.2,doneAction:2);
 	//out = out * ((totVol -15).dbamp);
-	snd=Pan2.ar(out,pan)*amp*ampAdj; //orj
+	snd=LPF.ar(out,filter);
+	snd=Pan2.ar(snd,pan)*amp; //orj
 	Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
 	Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
 	Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
@@ -639,7 +640,7 @@ defme = { arg note, vel;
 	a;
 
 };
-noteParser = { arg note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp;
+noteParser = { arg note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter;
 	1.do { arg yxx;
 			if(vel > 0,
 				{
@@ -666,8 +667,9 @@ noteParser = { arg note, vel, pan, attack, release, duration, compressible, comp
 					noteArrayDX7[note] = Synth.new(\DX7 ,defme.value(note, vel)++[
 						\pan,pan,\attack,attack,\release,release,\duration,duration,
 						\compressible,compressible, \compressing,compressing, \sendreverb,sendreverb, \sendtape,sendtape, \senddelay,senddelay, 
-						\out,out, \outsc,outsc, \outnsc,outnsc, \outreverb,outreverb, \outtape,outtape, \outdelay,outdelay, \ampAdj, amp
+						\out,out, \outsc,outsc, \outnsc,outnsc, \outreverb,outreverb, \outtape,outtape, \outdelay,outdelay, \amp, amp, \filter,filter
 					],synBefore,\addBefore);
+					NodeWatcher.register(noteArrayDX7[note]);
 					//noteArrayDX7[note] = Synth(\DX7 ,defme.value(note, vel), novaDX7); //orjburayi addtotail diye degistirdin
 
 				},
@@ -694,18 +696,40 @@ r = File("DX7.afx".resolveRelative,"r");
 });
 
 
-
-mainCaller = { arg preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp;
-	if(vel > 0,{
-		var g = dx7patches[preset.asInteger%16384];
-		145.do({arg item;
-			var k = (g.at((item*2)) ++ g.at((item*2) + 1)).asInteger;
-			f.value(cirklonCCparse[item][0],cirklonCCparse[item][1],k);
-			//~midiOutDX7.control(~cirklonCCparse[item][0],~cirklonCCparse[item][1],k);
+mainCaller = { arg set,k,v,preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter;
+	[set,k,v,preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter].postln;
+	if (set>0,{
+		if (set>1,{
+			headno.free;
+			128.do({ arg noteSet;
+				if (noteArrayDX7[noteSet].notNil,{
+					if (noteArrayDX7[noteSet].isRunning,{
+						noteArrayDX7[noteSet].set(\gate,0);
+					});
+				});
+			});
+		},{
+			128.do({ arg noteSet;
+				if (noteArrayDX7[noteSet].notNil,{
+					if (noteArrayDX7[noteSet].isRunning,{
+						["noteArrayDX7",noteSet,k,v].postln;
+						noteArrayDX7[noteSet].set(k.asString,v);
+					});
+				});
+			});
 		});
+	},{
+		if(vel > 0,{
+			var g = dx7patches[preset.asInteger%16384];
+			145.do({arg item;
+				var k = (g.at((item*2)) ++ g.at((item*2) + 1)).asInteger;
+				f.value(cirklonCCparse[item][0],cirklonCCparse[item][1],k);
+				//~midiOutDX7.control(~cirklonCCparse[item][0],~cirklonCCparse[item][1],k);
+			});
+		});
+		noteParser.value(note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter)
 	});
-	noteParser.value(note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp)
-};
+}
 )
 
 /*

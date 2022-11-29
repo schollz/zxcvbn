@@ -68,7 +68,7 @@ function TLI:init()
       else
         if par_count==0 and
           ((string.byte(c)>=string.byte("a") and string.byte(c)<=string.byte("g")) or
-          (string.byte(c)>=string.byte("A") and string.byte(c)<=string.byte("G")) or 
+            (string.byte(c)>=string.byte("A") and string.byte(c)<=string.byte("G")) or
           c=="." or c=="-") then
           part=self.trim(part)
           if part~="" then
@@ -86,12 +86,12 @@ function TLI:init()
     end
     if not string.find(line,"%(") then
       local entites={}
-      for _, part in ipairs(parts) do 
+      for _,part in ipairs(parts) do
         local e=""
         local mods={}
         local i=1
         for w in part:gmatch("%S+") do
-          if i==1 then 
+          if i==1 then
             e=w
           else
             local d=w:sub(1,1)
@@ -102,8 +102,8 @@ function TLI:init()
         table.insert(entites,{e=e,mods=mods})
       end
       local shift=0
-      for _, part in ipairs(entites) do 
-        for _, mod in ipairs(part.mods) do
+      for _,part in ipairs(entites) do
+        for _,mod in ipairs(part.mods) do
           if mod[1]=="o" and tonumber(mod[2])~=nil then
             shift=mod[2]
           end
@@ -935,14 +935,14 @@ function TLI:parse_positions(lines,default_pulses)
   local elast=nil
   local entities={}
   local pulse_index=0
-  local pulses=default_pulses or 24*4 
-  for _, line in ipairs(lines) do 
+  local pulses=default_pulses or 24*4
+  for _,line in ipairs(lines) do
     -- <line>
     -- determine if there is a nuew number of pulses
     for w in line:gmatch("%S+") do
       local c=w:sub(1,1)
       if c=="p" then
-        local ok,vv=calc_p(w:sub(2))
+        local ok,vv=self.calc_p(w:sub(2))
         if vv==nil or (not ok) then
           error(string.format("bad '%s'",w))
         end
@@ -963,10 +963,10 @@ function TLI:parse_positions(lines,default_pulses)
       if p then
         if elast~=nil and ele[ei+1].e~="-" then
           table.insert(entities,{el=elast.el,
-              start=elast.start,
-              stop=pulse_index,
-              mods=elast.mods,
-              line=elast.line})
+            start=elast.start,
+            stop=pulse_index,
+            mods=elast.mods,
+          line=elast.line})
           mods=nil
           elast=nil
         end
@@ -980,10 +980,10 @@ function TLI:parse_positions(lines,default_pulses)
   end
   if elast~=nil then
     table.insert(entities,{el=elast.el,
-        start=elast.start,
-        stop=pulse_index+1,
-        mods=elast.mods,
-        line=elast.line})
+      start=elast.start,
+      stop=pulse_index+1,
+      mods=elast.mods,
+    line=elast.line})
     elast=nil
   end
 
@@ -1223,7 +1223,7 @@ function TLI:parse_tli_(text,use_hex)
   end
   for _,line in ipairs(lines) do
     -- remove comments at end
-    if not string.sub(line,1,1)=="#" then 
+    if not string.sub(line,1,1)=="#" then
       local parts=self.string_split(line," #")
       if #parts>1 then
         line=parts[1]
