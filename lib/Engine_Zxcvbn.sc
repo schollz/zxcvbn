@@ -1372,10 +1372,12 @@ Engine_Zxcvbn : CroneEngine {
                                 ], syns.at("reverb"), \addBefore));
                             };
                             NodeWatcher.register(syns.at(id));
+                            this.synthWatch(id.asString.split($_)[0].asString,syns.at(id));
                         }.play;
                     });
                  },{ 
                     NodeWatcher.register(syns.at(id));
+                    this.synthWatch(id.asString.split($_)[0].asString,syns.at(id));
                 });
             });
         });

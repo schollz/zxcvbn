@@ -194,6 +194,7 @@ function Track:init()
           if params:get(self.id.."track_type")==TYPE_MXSYNTHS
             or params:get(self.id.."track_type")==TYPE_INFINITEPAD
             or params:get(self.id.."track_type")==TYPE_DRUM
+            or params:get(self.id.."track_type")==TYPE_MELODIC
             or params:get(self.id.."track_type")==TYPE_DX7 then
             local k=pram.id
             if pram.id=="filter" then
