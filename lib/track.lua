@@ -284,6 +284,8 @@ function Track:init()
         params:set(self.id.."sc_rec_level",util.clamp(x,0,100)/100)
       elseif params:get(self.id.."track_type")==TYPE_DRUM then
         params:set(self.id.."decimate",util.clamp(x,0,100)/100)
+      elseif params:get(self.id.."track_type")==TYPE_DX7 then
+        params:set(self.id.."dx7_preset",x)
       elseif params:get(self.id.."track_type")==TYPE_INFINITEPAD then
         params:set(self.id.."swell",util.clamp(x,0,200)/100)
       elseif params:get(self.id.."track_type")==TYPE_MXSYNTHS then
