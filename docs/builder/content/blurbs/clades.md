@@ -13,7 +13,7 @@ The first three clades are synth engines:
 2. [DX7](#dx7) is an engine based on the Yamaha DX7 which lets you choose between over 15,000 patches.
 3. [infinite pad](#infinite-pad) is a engine based around a pad-like sound with a swell parameter and filter.
 
-THe next four clades are sample-based engines:
+The next four clades are sample-based engines:
 
 4. [mx-samples](#mx-samples) is a sample-based engine that can load and interpolate between many layers of samples.
 5. [melodic](#melodic) is a sample-based engine that you can load any single sample and play it across the musical keyboard.
