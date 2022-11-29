@@ -94,7 +94,7 @@ You can also change the number of pulses **per line**. So if you want the number
  c4 d4 e4 p72
 </pre>
 
-The "shortcodes" like the [pulse](#pulse) command ([*p*](#pulse)) are ignored for the purposes of counting subdivisions - only notes are counted. So in this case the first line has four notes with 96 pulses and the second line has three notes with 72 pulses, so this essentially is a 7/4 time signature.
+The "shortcodes" like the [pulse](#pulse) command ([*p*](#pulse)) are ignored for the purposes of counting subdivisions - only notes, rests, ties or parentheses-enclosed sections are counted. So in this case the first line has four notes with 96 pulses and the second line has three notes with 72 pulses, so this essentially is a 7/4 time signature.
 
 There is nothing stopping you from defining prime numbers of pulses to get oblique rhythms.
 
