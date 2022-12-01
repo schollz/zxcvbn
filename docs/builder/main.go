@@ -77,6 +77,9 @@ func run() (err error) {
 		"lowercase": func(s string) string {
 			return strings.ToLower(s)
 		},
+		"isupper": func(s string) bool {
+			return s == strings.ToUpper(s)
+		},
 	})
 	t, err = t.Parse(string(b))
 	if err != nil {
@@ -134,7 +137,7 @@ func run() (err error) {
 		return d.Changelog[i].Version > d.Changelog[j].Version
 	})
 	sort.Slice(d.Commands, func(i, j int) bool {
-		return d.Commands[i].Shortcode < d.Commands[j].Shortcode
+		return strings.ToLower(d.Commands[i].Shortcode) < strings.ToLower(d.Commands[j].Shortcode)
 	})
 	sort.Slice(d.Lessons, func(i, j int) bool {
 		return d.Lessons[i].Weight < d.Lessons[j].Weight

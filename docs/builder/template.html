@@ -776,7 +776,7 @@
         <div class="box">
             <div class="boxl">
                 <div class="command-icon">
-                    <div>{{with .Shortfa}}<i class="fas fa-{{.}}" aria-hidden="true"></i>{{end}}{{with .Shortcode}}<span style="font-size:2.5em;font-weight:900;">{{.}}</span>{{end}}</div>
+                    <div>{{with .Shortfa}}<i class="fas fa-{{.}}" aria-hidden="true"></i>{{end}}{{with .Shortcode}}<span style="font-size:2.5em;font-weight:900;{{if isupper .}}text-decoration:underline;{{end}}">{{.}}</span>{{end}}</div>
                 </div>
             </div>
             <div class="boxr">
