@@ -45,6 +45,7 @@ function TLI:init()
     local has_par=false
     local parts={}
     local part=""
+    local c_last=""
     for i=1,#line do
       local c=line:sub(i,i)
       if c=="(" then
@@ -66,10 +67,10 @@ function TLI:init()
           part=""
         end
       else
-        if par_count==0 and
+        if par_count==0 and c_last==" " and
           ((string.byte(c)>=string.byte("a") and string.byte(c)<=string.byte("g")) or
             (string.byte(c)>=string.byte("A") and string.byte(c)<=string.byte("G")) or
-          c=="." or c=="-") then
+          c=="." or c=="-" or (string.byte(c)>=string.byte("0") and string.byte(c)<=string.byte("9"))) then
           part=self.trim(part)
           if part~="" then
             table.insert(parts,part)
@@ -79,6 +80,7 @@ function TLI:init()
           part=part..c
         end
       end
+      c_last=c
     end
     part=self.trim(part)
     if part~="" then
