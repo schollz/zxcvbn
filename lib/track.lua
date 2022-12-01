@@ -653,7 +653,7 @@ function Track:description()
   if params:get(self.id.."track_type")==TYPE_MXSYNTHS then
     s=s..string.format(" (%s)",params:string(self.id.."mx_synths"))
   elseif params:get(self.id.."track_type")==TYPE_DX7 then
-    s=s..string.format(" (%s)",params:string(self.id.."dx7_preset"))
+    s=string.format("DX7 (#%d, %s)",params:get(self.id.."dx7_preset"),params:string(self.id.."dx7_preset"))
   elseif params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_MELODIC then
     local fname=params:string(self.id.."sample_file")
     if string.find(fname,".wav") or string.find(fname,".flac") or string.find(fname,".aif") then
@@ -884,7 +884,9 @@ function Track:emit(beat)
       local note_to_emit=d.m
       if note_to_emit~=nil then
         -- add transposition to note before getting scale
+        print(musicutil.note_num_to_name(note_to_emit,true))
         note_to_emit=self:note_in_scale(note_to_emit+params:get(self.id.."transpose"))
+        print(musicutil.note_num_to_name(note_to_emit,true))
         self:scroll_add((params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE) and note_to_emit or string.lower(musicutil.note_num_to_name(note_to_emit)))
       end
       if note_to_emit==nil or params:get(self.id.."mute")==1 then
