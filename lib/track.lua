@@ -179,7 +179,7 @@ function Track:init()
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="stretch",name="stretch",min=0,max=5,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="send_reverb",name="reverb send (z)",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
-    {id="send_delay",name="delay send (Z)",mod=true,min=0,max=1,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="send_delay",name="delay send (Z)",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="transpose",name="transpose (y)",min=-127,max=127,exp=false,div=1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.0f",param:get()>-0.01 and "+" or "",param:get()) end},
   }
   for _,pram in ipairs(params_menu) do
@@ -775,11 +775,7 @@ function Track:parse_tli()
   end
   -- update the meta
   if self.tli.meta~=nil then
-    print(json.encode(self.tli.meta))
     for k,v in pairs(self.tli.meta) do
-      print(params.id_to_name[k])
-      print(params.id_to_name[self.id..k])
-      print(params.name_to_id[k])
       if params.id_to_name[k]~=nil then
         local ok,err=pcall(function()
           print("setting "..k.." = "..v)
@@ -866,7 +862,6 @@ function Track:emit(beat)
           k=vvv[1]
           v=vvv[2]
           mods[k]=tli.numdashcomr(v) or v
-          tab.print(mods)
           if self.mods[k]~=nil and mods[k]~=nil then
             pcall(
               function()
@@ -884,9 +879,7 @@ function Track:emit(beat)
       local note_to_emit=d.m
       if note_to_emit~=nil then
         -- add transposition to note before getting scale
-        print(musicutil.note_num_to_name(note_to_emit,true))
         note_to_emit=self:note_in_scale(note_to_emit+params:get(self.id.."transpose"))
-        print(musicutil.note_num_to_name(note_to_emit,true))
         self:scroll_add((params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE) and note_to_emit or string.lower(musicutil.note_num_to_name(note_to_emit)))
       end
       if note_to_emit==nil or params:get(self.id.."mute")==1 then

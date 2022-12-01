@@ -70,6 +70,7 @@ function ViewSelect:regen(path)
     tab.print(self.cache[self.current_folder])
   end
   if self.cache[path]~=nil then
+    print("[viewselect] getting list from cache")
     tab.print(self.cache[path])
     self.current_folder=self.cache[path].current_folder
     self.ls=self.cache[path].ls
@@ -131,6 +132,7 @@ function ViewSelect:list_files(path)
 end
 
 function ViewSelect:list_all(path)
+      print("[viewselect] generating list for "..path)
   local files=self:list_folders(path)
   for _,v in ipairs(self:list_files(path)) do
     table.insert(files,v)
@@ -319,6 +321,7 @@ function ViewSelect:redraw()
         print("stopping")
         self.is_playing=false
       end
+      print(json.encode(self.ls))
       if string.sub(self.ls[self.current][1],-1)~="/" then
         self.path_to_render=self.ls[self.current][1]
         self.path_to_dat=nil
