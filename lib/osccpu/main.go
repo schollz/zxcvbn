@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -9,16 +8,12 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hypebeast/go-osc/osc"
 	ps "github.com/mitchellh/go-ps"
 	log "github.com/schollz/logger"
-	"github.com/schollz/peerdiscovery"
 )
-
-var mu sync.Mutex
 
 var flagRecvHost, flagRecvAddress, flagHost, flagAddress, flagPath string
 var flagPort int
@@ -29,10 +24,10 @@ var flagPName string
 func init() {
 	flag.StringVar(&flagHost, "host", "localhost", "osc host")
 	flag.IntVar(&flagPort, "port", 10111, "port to use")
-	flag.StringVar(&flagAddress, "addr", "/oscdiscover", "osc address")
-	flag.Float64Var(&flagWaitTime, "delay", 3.0, "delay time in seconds")
+	flag.StringVar(&flagAddress, "addr", "/osccpu", "osc address")
+	flag.Float64Var(&flagWaitTime, "d", 3.0, "delay time in seconds")
 	flag.IntVar(&flagPID, "pid", 0, "pid of process")
-	flag.StringVar(&flagPName, "name", "scsynth", "process name")
+	flag.StringVar(&flagPName, "n", "scsynth", "process name")
 }
 
 func main() {
@@ -45,47 +40,11 @@ func main() {
 	}
 	if flagPID == 0 {
 		for _, p := range processes {
-			if p.Executable() == flagPName {
-				flagPID = p.PPid()
+			if strings.Contains(p.Executable(), flagPName) {
+				log.Tracef("found '%s': %d", p.Executable(), p.Pid())
+				flagPID = p.Pid()
 			}
 		}
-	}
-
-	if true == false {
-		// discover peers
-
-		discovered := make(map[string]struct{})
-		_, err := peerdiscovery.Discover(peerdiscovery.Settings{
-			Limit:     -1,
-			Payload:   []byte("norns"),
-			Delay:     2 * time.Second,
-			TimeLimit: 30 * time.Minute,
-			Port:      "9889",
-			Notify: func(d peerdiscovery.Discovered) {
-				if _, ok := discovered[d.Address]; ok {
-					return
-				}
-				if !bytes.Equal(d.Payload, []byte("norns")) {
-					return
-				}
-				// got new address
-				mu.Lock()
-				discovered[d.Address] = struct{}{}
-				mu.Unlock()
-				log.Debugf("norns discovered: %s", d)
-				client := osc.NewClient(flagHost, flagPort)
-				msg := osc.NewMessage(flagAddress)
-				msg.Append(d.Address)
-				err := client.Send(msg)
-				if err != nil {
-					log.Error(err)
-				}
-			},
-		})
-		if err != nil {
-			log.Error(err)
-		}
-
 	}
 
 	out, err := exec.Command("getconf", "CLK_TCK").Output()
@@ -100,9 +59,9 @@ func main() {
 	}
 	ttimelast := 0
 	for {
-		time.Sleep(time.Duration(flagWaitTime) * time.Second)
 		b, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", flagPID))
 		if err != nil {
+			time.Sleep(time.Duration(flagWaitTime) * time.Second)
 			continue
 		}
 		fields := strings.Fields(string(b))
@@ -111,9 +70,17 @@ func main() {
 		ttime := utime + ktime
 		if ttimelast > 0 {
 			cpuUsage := float64(ttime-ttimelast) / cpuc / flagWaitTime * 100
-			fmt.Printf("cpu usage: %2.3f\n", cpuUsage)
+			log.Tracef("cpu usage: %2.3f\n", cpuUsage)
+			client := osc.NewClient(flagHost, flagPort)
+			msg := osc.NewMessage(flagAddress)
+			msg.Append(int32(cpuUsage * 1000))
+			err := client.Send(msg)
+			if err != nil {
+				log.Error(err)
+			}
 		}
 		ttimelast = ttime
+		time.Sleep(time.Duration(flagWaitTime) * time.Second)
 	}
 
 }
