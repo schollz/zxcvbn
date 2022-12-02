@@ -56,6 +56,7 @@ engine.name=util.file_exists(fverb_so) and "Zxcvbn" or nil
 debounce_fn={}
 osc_fun={}
 dx7_names={}
+cpu_usage=0
 
 function init()
   -- turn reverb off
@@ -251,7 +252,7 @@ function init2()
       tracks[id].loop.pos_rec=progress
     end,
     osccpu=function(args)
-	    tab.print(args)
+	    cpu_usage=tonumber(args[1])
     end,
     amplitude=function(args)
       screens[3]:set_levels(args)

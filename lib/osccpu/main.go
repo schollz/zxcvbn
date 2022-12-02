@@ -67,6 +67,10 @@ func main() {
 		}
 		b, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", flagPID))
 		if err != nil {
+			log.Errorf("could not find pid")
+			if flagPName != "" {
+				getPID()
+			}
 			time.Sleep(time.Duration(flagWaitTime) * time.Second)
 			continue
 		}
