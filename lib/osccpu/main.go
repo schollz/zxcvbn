@@ -30,22 +30,21 @@ func init() {
 	flag.StringVar(&flagPName, "n", "scsynth", "process name")
 }
 
-func main() {
-	flag.Parse()
-	log.SetLevel("info")
-
+func getPID() {
 	processes, err := ps.Processes()
 	if err != nil {
 		panic(err)
 	}
-	if flagPID == 0 {
-		for _, p := range processes {
-			if strings.Contains(p.Executable(), flagPName) {
-				log.Tracef("found '%s': %d", p.Executable(), p.Pid())
-				flagPID = p.Pid()
-			}
+	for _, p := range processes {
+		if strings.Contains(p.Executable(), flagPName) {
+			log.Tracef("found '%s': %d", p.Executable(), p.Pid())
+			flagPID = p.Pid()
 		}
 	}
+}
+func main() {
+	flag.Parse()
+	log.SetLevel("info")
 
 	out, err := exec.Command("getconf", "CLK_TCK").Output()
 	if err != nil {
@@ -59,6 +58,13 @@ func main() {
 	}
 	ttimelast := 0
 	for {
+		if flagPID == 0 {
+			getPID()
+			if flagPID == 0 {
+				time.Sleep(time.Duration(flagWaitTime) * time.Second)
+				continue
+			}
+		}
 		b, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", flagPID))
 		if err != nil {
 			time.Sleep(time.Duration(flagWaitTime) * time.Second)
