@@ -117,6 +117,7 @@ function init2()
   end
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
   os.execute(_path.code.."zxcvbn/lib/oscconnect/run.sh &")
+  os.execute(_path.code.."zxcvbn/lib/osccpu/run.sh &")
 
   -- load dx7 names
   load_dx7()
@@ -248,6 +249,9 @@ function init2()
       local progress=tonumber(args[2])
       print("recordingProgress",id,progress)
       tracks[id].loop.pos_rec=progress
+    end,
+    osccpu=function(args)
+	    tab.print(args)
     end,
     amplitude=function(args)
       screens[3]:set_levels(args)
