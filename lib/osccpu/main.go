@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"sync"
@@ -22,6 +24,7 @@ var flagRecvHost, flagRecvAddress, flagHost, flagAddress, flagPath string
 var flagPort int
 var flagWaitTime float64
 var flagPID int
+var flagPName string
 
 func init() {
 	flag.StringVar(&flagHost, "host", "localhost", "osc host")
@@ -29,6 +32,7 @@ func init() {
 	flag.StringVar(&flagAddress, "addr", "/oscdiscover", "osc address")
 	flag.Float64Var(&flagWaitTime, "delay", 3.0, "delay time in seconds")
 	flag.IntVar(&flagPID, "pid", 0, "pid of process")
+	flag.StringVar(&flagPName, "name", "scsynth", "process name")
 }
 
 func main() {
@@ -39,10 +43,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	pid := 0
-	for _, p := range processes {
-		if p.Executable() == "scsynth" {
-			pid = p.PPid()
+	if flagPID == 0 {
+		for _, p := range processes {
+			if p.Executable() == flagPName {
+				flagPID = p.PPid()
+			}
 		}
 	}
 
@@ -83,7 +88,16 @@ func main() {
 
 	}
 
-	cpuc := 100.0
+	out, err := exec.Command("getconf", "CLK_TCK").Output()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	cpuc, errParse := strconv.ParseFloat(strings.TrimSpace(string(out)), 64)
+	if errParse != nil {
+		log.Error(errParse)
+		os.Exit(1)
+	}
 	ttimelast := 0
 	for {
 		time.Sleep(time.Duration(flagWaitTime) * time.Second)
