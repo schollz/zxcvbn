@@ -752,6 +752,10 @@ function redraw()
   -- screen.move(127-text_width-2,62)
   -- screen.text_right("+10")
 
+  -- show cpu usage
+screen.move(126,8)
+screen.level(0)
+screen.text_right(string.format("%2.1f%%",cpu_usage))
   screen.update()
 end
 
