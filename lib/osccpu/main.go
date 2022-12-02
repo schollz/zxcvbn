@@ -37,7 +37,7 @@ func getPID() {
 	}
 	for _, p := range processes {
 		if strings.Contains(p.Executable(), flagPName) {
-			log.Tracef("found '%s': %d", p.Executable(), p.Pid())
+			log.Debugf("found '%s': %d", p.Executable(), p.Pid())
 			flagPID = p.Pid()
 		}
 	}
@@ -76,7 +76,7 @@ func main() {
 		ttime := utime + ktime
 		if ttimelast > 0 {
 			cpuUsage := float64(ttime-ttimelast) / cpuc / flagWaitTime * 100
-			log.Tracef("cpu usage: %2.3f\n", cpuUsage)
+			fmt.Printf("%2.3f\n", cpuUsage)
 			client := osc.NewClient(flagHost, flagPort)
 			msg := osc.NewMessage(flagAddress)
 			msg.Append(int32(cpuUsage * 1000))
