@@ -1,12 +1,12 @@
 # To Do Now (Critical)
 
-- [ ] performance mixer @mcepe
 - [ ] octave detection doesn't work for <0 @mcpepe
 - [ ] v,y should behave ordered when given choices (so you can do things like 9 v5,0,0,5,0,0,5,0 pe)
 - [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
 - [ ] TEST retrig/volume w/ crow
 - [ ] TEST retrig/volume w/ midi
 - [ ] TEST retrig/volume w/ melodic
+- [x] performance mixer @mcepe
 - [x] documentation for "Z" command
 - [x] hook up DX7 to modulate parameters in realtime
 - [x] Add filter to DX7
