@@ -399,6 +399,7 @@ SynthDef(\DX7, {
 	//out = out * ((totVol -15).dbamp);
 	snd=LPF.ar(out,filter);
 	snd=Pan2.ar(snd,pan)*amp; //orj
+	Out.ar(\outtrack.kr(0),snd);
 	Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
 	Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
 	Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
@@ -640,7 +641,7 @@ defme = { arg note, vel;
 	a;
 
 };
-noteParser = { arg note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter;
+noteParser = { arg note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter, outtrack;
 	1.do { arg yxx;
 			if(vel > 0,
 				{
@@ -667,7 +668,7 @@ noteParser = { arg note, vel, pan, attack, release, duration, compressible, comp
 					noteArrayDX7[note] = Synth.new(\DX7 ,defme.value(note, vel)++[
 						\pan,pan,\attack,attack,\release,release,\duration,duration,
 						\compressible,compressible, \compressing,compressing, \sendreverb,sendreverb, \sendtape,sendtape, \senddelay,senddelay, 
-						\out,out, \outsc,outsc, \outnsc,outnsc, \outreverb,outreverb, \outtape,outtape, \outdelay,outdelay, \amp, amp, \filter,filter
+						\out,out, \outsc,outsc, \outnsc,outnsc, \outreverb,outreverb, \outtape,outtape, \outdelay,outdelay, \amp, amp, \filter,filter, \outtrack,outtrack
 					],synBefore,\addBefore);
 					NodeWatcher.register(noteArrayDX7[note]);
 					//noteArrayDX7[note] = Synth(\DX7 ,defme.value(note, vel), novaDX7); //orjburayi addtotail diye degistirdin
@@ -696,8 +697,8 @@ r = File("DX7.afx".resolveRelative,"r");
 });
 
 
-mainCaller = { arg set,k,v,preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter;
-	[set,k,v,preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter].postln;
+mainCaller = { arg set,k,v,preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter, outtrack;
+	[set,k,v,preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter, outtrack].postln;
 	if (set>0,{
 		if (set>1,{
 			headno.free;
@@ -727,7 +728,7 @@ mainCaller = { arg set,k,v,preset, note, vel, pan, attack, release, duration, co
 				//~midiOutDX7.control(~cirklonCCparse[item][0],~cirklonCCparse[item][1],k);
 			});
 		});
-		noteParser.value(note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter)
+		noteParser.value(note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter, outtrack)
 	});
 }
 )

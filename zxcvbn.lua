@@ -249,6 +249,9 @@ function init2()
       print("recordingProgress",id,progress)
       tracks[id].loop.pos_rec=progress
     end,
+    amplitude=function(args)
+      screens[3]:set_levels(args)
+    end,
     loopPosition=function(args)
       local id=math.floor(tonumber(args[1]))
       local position=tonumber(args[2])
@@ -421,11 +424,7 @@ function init2()
   g_=grid_:new()
 
   -- DEBUG DEBUG
-  screen_ind=3
-  --   tracks[4]:load_text([[
-  -- c6 Z100
-  -- e5 Z0
-  -- ]])
+  params:set("1play",1)
   --   params:set("4track_type",2)
   --   params:set("track",4)
   -- params:set("4play",1)
@@ -606,8 +605,10 @@ function keyboard.code(k,v)
     if v==1 then
       if screen_ind==2 then
         screen_ind=3
+        engine.mixer(1)
       elseif screen_ind==3 then
         screen_ind=2
+        engine.mixer(0)
       end
       print(screen_ind)
     end
