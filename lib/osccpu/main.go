@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,18 +14,21 @@ import (
 	ps "github.com/mitchellh/go-ps"
 	log "github.com/schollz/logger"
 	"github.com/schollz/peerdiscovery"
-	"github.com/struCoder/pidusage"
 )
 
 var mu sync.Mutex
 
 var flagRecvHost, flagRecvAddress, flagHost, flagAddress, flagPath string
 var flagPort int
+var flagWaitTime float64
+var flagPID int
 
 func init() {
 	flag.StringVar(&flagHost, "host", "localhost", "osc host")
 	flag.IntVar(&flagPort, "port", 10111, "port to use")
 	flag.StringVar(&flagAddress, "addr", "/oscdiscover", "osc address")
+	flag.Float64Var(&flagWaitTime, "delay", 3.0, "delay time in seconds")
+	flag.IntVar(&flagPID, "pid", 0, "pid of process")
 }
 
 func main() {
@@ -77,10 +83,23 @@ func main() {
 
 	}
 
-	if pid > 0 {
-		sysInfo, _ := pidusage.GetStat(pid)
-		fmt.Printf("%+v", sysInfo.CPU)
-
+	cpuc := 100.0
+	ttimelast := 0
+	for {
+		time.Sleep(time.Duration(flagWaitTime) * time.Second)
+		b, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", flagPID))
+		if err != nil {
+			continue
+		}
+		fields := strings.Fields(string(b))
+		utime, _ := strconv.Atoi(fields[13])
+		ktime, _ := strconv.Atoi(fields[14])
+		ttime := utime + ktime
+		if ttimelast > 0 {
+			cpuUsage := float64(ttime-ttimelast) / cpuc / flagWaitTime * 100
+			fmt.Printf("cpu usage: %2.3f\n", cpuUsage)
+		}
+		ttimelast = ttime
 	}
 
 }
