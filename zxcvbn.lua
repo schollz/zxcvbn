@@ -33,6 +33,7 @@ sample_=include("lib/sample")
 viewselect_=include("lib/viewselect")
 installer_=include("lib/installer")
 tracker_=include("lib/tracker")
+mixer_=include("lib/mixer")
 softsample_=include("lib/softsample")
 grid_=include("lib/ggrid")
 tli_=include("lib/tli")
@@ -78,6 +79,7 @@ function init()
   screen_ind=1
   table.insert(screens,installer_:new())
   table.insert(screens,tracker_:new())
+  table.insert(screens,mixer_:new())
 
   -- startupclock
   clock.run(function()
@@ -92,6 +94,18 @@ function init()
 end
 
 function init2()
+  -- setup keyboard stuff
+  ctrl_on=false
+  shift_on=false
+  alt_on=false
+  meta_on=false
+  norns_keyboard=0
+
+  codes_keyboard={}
+  for i,v in pairs(keyboard.codes) do
+    codes_keyboard[v]=tonumber(i)
+  end
+
   screen_ind=2
   show_message("zxcvbn ready.",2)
   -- make the default pages
@@ -169,6 +183,7 @@ function init2()
   params_reverb()
   params_kick()
   params_midi()
+  params_mixer()
 
   local charset={} do -- [0-9a-zA-Z]
     for c=48,57 do table.insert(charset,string.char(c)) end
@@ -204,7 +219,7 @@ function init2()
   -- add lookups
   params.id_to_name={}
   params.name_to_id={}
-  for _,p in ipairs(params.params) do
+  for i,p in ipairs(params.params) do
     -- matrix_depth_1_cell  nil
     if p.name~=nil then
       params.id_to_name[p.id]=p.name
@@ -405,8 +420,8 @@ function init2()
   -- setup grid
   g_=grid_:new()
 
-
   -- DEBUG DEBUG
+  screen_ind=3
   --   tracks[4]:load_text([[
   -- c6 Z100
   -- e5 Z0
@@ -461,6 +476,143 @@ function reset_clocks()
 end
 
 function keyboard.code(k,v)
+  -- print(codes_keyboard[k])
+  if string.find(k,"CTRL") then
+    ctrl_on=v>0
+    if norns_keyboard>0 then
+      osc.send({other_norns[norns_keyboard],10111},"/remote/brd",{codes_keyboard[k],v})
+    end
+    do return end
+  elseif string.find(k,"SHIFT") then
+    shift_on=v>0
+    if norns_keyboard>0 then
+      osc.send({other_norns[norns_keyboard],10111},"/remote/brd",{codes_keyboard[k],v})
+    end
+    do return end
+  elseif string.find(k,"ALT") then
+    alt_on=v>0
+    if norns_keyboard>0 then
+      osc.send({other_norns[norns_keyboard],10111},"/remote/brd",{codes_keyboard[k],v})
+    end
+    do return end
+  elseif string.find(k,"META") then
+    meta_on=v>0
+    do return end
+  end
+  if meta_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then
+    norns_keyboard=tonumber(k)-1
+    if norns_keyboard==0 then
+      show_message("keyboard -> local",3)
+    else
+      if norns_keyboard>#other_norns then
+        norns_keyboard=0
+      else
+        show_message("keyboard -> "..other_norns[norns_keyboard],3)
+      end
+    end
+    do return end
+  end
+  if norns_keyboard>0 then
+    osc.send({other_norns[norns_keyboard],10111},"/remote/brd",{codes_keyboard[k],v})
+    do return end
+  end
+  if alt_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then
+    if v==1 then
+      -- mute group
+      local mute_group=tonumber(k)
+      if mute_group==0 then
+        mute_group=10
+      end
+      local do_mute=-1
+      for i,_ in ipairs(tracks) do
+        if params:get(i.."mute_group")==mute_group then
+          if do_mute<0 then
+            do_mute=1-params:get(i.."mute")
+            break
+          end
+        end
+      end
+      for i,_ in ipairs(tracks) do
+        if params:get(i.."mute_group")==mute_group then
+          params:set(i.."mute",do_mute)
+        end
+      end
+      print("MUTE",alt_on,tonumber(k),mute_group,do_mute)
+      if do_mute>-1 then
+        show_message((do_mute==1 and "muted" or "unmuted").." group "..mute_group)
+      end
+    end
+    do return end
+  end
+  k=shift_on and "SHIFT+"..k or k
+  k=ctrl_on and "CTRL+"..k or k
+  k=alt_on and "ALT+"..k or k
+  if k:sub(1,5)=="CTRL+" and tonumber(k:sub(6))~=nil then
+    if v==1 then
+      local track=tonumber(k:sub(6))
+      if track==0 then
+        track=10
+      end
+      params:set("track",track)
+      do return end
+    end
+  elseif k=="CTRL+I" then
+    if v==1 then
+      for i,k in ipairs({"pitch_in_l","pitch_in_l"}) do
+        if pitch_poll_on then
+          print("stopping poll")
+          pitch_polls[i]:stop()
+        else
+          print("starting poll")
+          pitch_polls[i]:start()
+        end
+      end
+      pitch_poll_on=not pitch_poll_on
+    end
+    do return end
+  elseif k=="CTRL+P" then
+    if v==1 then
+      params:set(params:get("track").."play",1-params:get(params:get("track").."play"))
+      show_message((params:get(params:get("track").."play")==0 and "stopped" or "playing").." track "..params:get("track"))
+    end
+    do return end
+  elseif k=="CTRL+SPACE" then
+    if v==1 then
+      -- pause/play all
+      print("pause/play all")
+      local any_playing=false
+      for i=1,10 do
+        if params:get(i.."play")>0 then
+          any_playing=true
+          break
+        end
+      end
+      if any_playing then
+        show_message("stopping all")
+        for i=1,10 do
+          params:set(i.."play",0)
+        end
+      else
+        for i=1,10 do
+          if tracks[i].tli~=nil and tracks[i].tli.pulses>0 then
+            params:set(i.."play",1)
+          end
+        end
+        show_message("playing all")
+      end
+    end
+    do return end
+  elseif k=="CTRL+L" then
+    if v==1 then
+      if screen_ind==2 then
+        screen_ind=3
+      elseif screen_ind==3 then
+        screen_ind=2
+      end
+      print(screen_ind)
+    end
+    do return end
+  end
   screens[screen_ind]:keyboard(k,v)
 end
 
@@ -634,6 +786,13 @@ function params_action()
       tracks[i]:loads(s)
     end
   end
+end
+
+function params_mixer()
+  params:add_option("mixer_param","mixer_param",{"db","filter"})
+  params:add_number("mixer_factor","mixer_factor",1,20,1)
+  params:hide("mixer_param")
+  params:hide("mixer_factor")
 end
 
 function params_kick()
