@@ -157,7 +157,7 @@ function TLI:init()
 
     local t={}
     local num1=tonumber(s)
-    if num1~=nil then
+    if num1~=nil and num1==math.floor(num1) then
       t={num1}
     else
       local foo=self.string_split(s,",")
