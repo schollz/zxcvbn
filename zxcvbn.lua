@@ -359,19 +359,19 @@ function init2()
     pitch_polls[i].time=0.05
     pitch_polls[i]:stop()
   end
-    
+
   -- setup softcut (initially disabled)
   audio.level_adc_cut(1)
   audio.level_eng_cut(0)
   audio.level_tape_cut(1)
-  for i=1,6 do 
+  for i=1,6 do
     softcut.enable(i,0)
   end
 
   if util.file_exists(_path.data.."zxcvbn/first") then
-    params:set("clock_tempo",150)
     params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
     os.execute("rm -f ".._path.data.."zxcvbn/first")
+    params:set("clock_tempo",150)
   end
 
   -- setup grid
@@ -838,17 +838,17 @@ end
 
 function check_reverb()
   local reverb_should_be_on=false
-  for i=1,10 do 
-    if params:get(i.."play")==1 and params:get(i.."send_reverb")>0 then 
+  for i=1,10 do
+    if params:get(i.."play")==1 and params:get(i.."send_reverb")>0 then
       reverb_should_be_on=true
       break
     end
   end
   print("reverb_should_be_on",reverb_should_be_on)
-  if params:get("reverb_on")==0 and reverb_should_be_on then  
+  if params:get("reverb_on")==0 and reverb_should_be_on then
     print("check_reverb on")
     params:set("reverb_on",1)
-  elseif params:get("reverb_on")==1 and not reverb_should_be_on then 
+  elseif params:get("reverb_on")==1 and not reverb_should_be_on then
     print("check_reverb off")
     params:set("reverb_on",0)
   end
@@ -895,8 +895,8 @@ function params_reverb()
     params:set_action(pram.id,function(v)
       if pram.id=="reverb_on" then
         engine.reverb(v)
-        if v==1 then 
-          for _, ppram in ipairs(params_menu) do 
+        if v==1 then
+          for _,ppram in ipairs(params_menu) do
             v=params:get(ppram.id)
             if ppram.id=="decay" then
               v=util.clamp(100*math.exp(-1.1/v),0,100)
@@ -904,8 +904,8 @@ function params_reverb()
             engine.reverb_set(ppram.id,v)
           end
         end
-        do return end 
-      elseif params:get("reverb_on")==1 then 
+        do return end
+      elseif params:get("reverb_on")==1 then
         if pram.id=="decay" then
           v=util.clamp(100*math.exp(-1.1/v),0,100)
         end
