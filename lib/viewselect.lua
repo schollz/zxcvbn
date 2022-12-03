@@ -70,6 +70,7 @@ function ViewSelect:regen(path)
     tab.print(self.cache[self.current_folder])
   end
   if self.cache[path]~=nil then
+    print("[viewselect] getting list from cache")
     tab.print(self.cache[path])
     self.current_folder=self.cache[path].current_folder
     self.ls=self.cache[path].ls
@@ -101,10 +102,10 @@ function ViewSelect:split(inputstr,sep)
 end
 
 function ViewSelect:list_folders(path)
-  local folder_string=util.os_capture("find "..path.." -maxdepth 1 -not -empty -type d | tail -n +2 | sort")
+  local folder_string=util.os_capture("find "..path.." -maxdepth 1 -not -empty -type d | tail -n +2 | sort",true)
   local cur_path=self:split(path,"/")
   local folders={}
-  for s in folder_string:gmatch("%S+") do
+  for s in folder_string:gmatch('[^\r\n]+') do
     -- trim string
     local s2=(s:gsub("^%s*(.-)%s*$","%1"))
     if s2~="" then
@@ -117,9 +118,9 @@ function ViewSelect:list_folders(path)
 end
 
 function ViewSelect:list_files(path)
-  local folder_string=util.os_capture("find "..path.." -maxdepth 1 -type f -name '*.wav' -o -name '*.flac' -o -name '*.aif' | sort")
+  local folder_string=util.os_capture("find "..path.." -maxdepth 1 -type f -name '*.wav' -o -name '*.flac' -o -name '*.aif' | sort",true)
   local files={}
-  for s in folder_string:gmatch("%S+") do
+  for s in folder_string:gmatch('[^\r\n]+') do
     -- trim string
     local s2=(s:gsub("^%s*(.-)%s*$","%1"))
     if s2~="" then
@@ -131,6 +132,7 @@ function ViewSelect:list_files(path)
 end
 
 function ViewSelect:list_all(path)
+      print("[viewselect] generating list for "..path)
   local files=self:list_folders(path)
   for _,v in ipairs(self:list_files(path)) do
     table.insert(files,v)
@@ -242,11 +244,11 @@ function ViewSelect:get_render()
 	    local delete_temp=false
 	    local filename=self.path
 	    if self.ext=="aif" then 
-		    print(util.os_capture(string.format("sox %s %s",filename,filename..".wav")))
+		    print(util.os_capture(string.format("sox '%s' '%s'",filename,filename..".wav")))
 		    filename=filename..".wav"
 		    delete_temp=true
 	    end
-      local cmd=string.format("%s -q -i %s -o %s -z %d -b 8 &",audiowaveform,filename,self.path_to_dat,2)
+      local cmd=string.format("%s -q -i '%s' -o '%s' -z %d -b 8 &",audiowaveform,filename,self.path_to_dat,2)
       print(cmd)
       os.execute(cmd)
       if delete_temp then 
@@ -269,7 +271,7 @@ function ViewSelect:get_render()
     self.duration=self.samples/self.sample_rate
     if not util.file_exists(path_to_rendered) then
       local view={0,self.duration}
-      local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0 &",audiowaveform,self.path_to_dat,path_to_rendered,view[1],view[2],self.width,self.height)
+      local cmd=string.format("%s -q -i '%s' -o '%s' -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color aaaaaa --no-axis-labels --compression 0 &",audiowaveform,self.path_to_dat,path_to_rendered,view[1],view[2],self.width,self.height)
       print(cmd)
       os.execute(cmd)
     end
@@ -319,6 +321,7 @@ function ViewSelect:redraw()
         print("stopping")
         self.is_playing=false
       end
+      print(json.encode(self.ls))
       if string.sub(self.ls[self.current][1],-1)~="/" then
         self.path_to_render=self.ls[self.current][1]
         self.path_to_dat=nil

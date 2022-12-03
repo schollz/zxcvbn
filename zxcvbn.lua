@@ -1,4 +1,4 @@
--- zxcvbn v1.5.0
+-- zxcvbn v2.0.0
 --
 --
 -- zxcvbn.norns.online
@@ -33,6 +33,7 @@ sample_=include("lib/sample")
 viewselect_=include("lib/viewselect")
 installer_=include("lib/installer")
 tracker_=include("lib/tracker")
+mixer_=include("lib/mixer")
 softsample_=include("lib/softsample")
 grid_=include("lib/ggrid")
 tli_=include("lib/tli")
@@ -49,16 +50,18 @@ softcut_offsets={2,70,2,2,70,2}
 softcut_positions={0,0,0,0,0,0}
 softcut_renders={{},{},{}}
 softcut_rendering={false,false,false,false,false,false}
+softcut_enabled=false
 local fverb_so="/home/we/.local/share/SuperCollider/Extensions/fverb/Fverb.so"
 engine.name=util.file_exists(fverb_so) and "Zxcvbn" or nil
 
 debounce_fn={}
 osc_fun={}
+dx7_names={}
+cpu_usage={}
+screen_fade_in=0
+norns_keyboard=0
 
 function init()
-  -- turn reverb off
-  params:set("reverb",1)
-
   -- check if engine file exists
   Needs_Restart=false
   if not util.file_exists(fverb_so) then
@@ -77,6 +80,7 @@ function init()
   screen_ind=1
   table.insert(screens,installer_:new())
   table.insert(screens,tracker_:new())
+  table.insert(screens,mixer_:new())
 
   -- startupclock
   clock.run(function()
@@ -91,6 +95,17 @@ function init()
 end
 
 function init2()
+  -- setup keyboard stuff
+  ctrl_on=false
+  shift_on=false
+  alt_on=false
+  meta_on=false
+
+  codes_keyboard={}
+  for i,v in pairs(keyboard.codes) do
+    codes_keyboard[v]=tonumber(i)
+  end
+
   screen_ind=2
   show_message("zxcvbn ready.",2)
   -- make the default pages
@@ -102,6 +117,10 @@ function init2()
   end
   os.execute(_path.code.."zxcvbn/lib/oscnotify/run.sh &")
   os.execute(_path.code.."zxcvbn/lib/oscconnect/run.sh &")
+  os.execute(_path.code.."zxcvbn/lib/osccpu/run.sh &")
+
+  -- load dx7 names
+  load_dx7()
 
   -- choose audiowaveform binary
   audiowaveform="audiowaveform"
@@ -117,47 +136,6 @@ function init2()
     table.insert(mx_sample_options,v)
   end
 
-  -- setup softcut
-  audio.level_adc_cut(1)
-  audio.level_eng_cut(0)
-  audio.level_tape_cut(1)
-  for i=1,3 do
-    -- enable playback head
-    softcut.buffer(i,softcut_buffers[i])
-    softcut.enable(i,1)
-    softcut.play(i,1)
-    softcut.loop(i,0)
-    softcut.fade_time(i,0.005)
-    softcut.loop_start(i,softcut_offsets[i])
-    softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
-    softcut.position(i,softcut_offsets[i]+30) -- set to the loop end for each voice, so we aren't playing anything
-    softcut.rate(i,1)
-    softcut.rate_slew_time(i,0.005)
-    softcut.pan_slew_time(i,0.005)
-    softcut.level_slew_time(i,0.005)
-    softcut.post_filter_dry(i,0)
-    softcut.post_filter_lp(i,1)
-    softcut.post_filter_fc(i,12000)
-    softcut.level(i,1)
-  end
-  for i=4,6 do
-    -- enable recording head (decoupled from playback head)
-    softcut.buffer(i,softcut_buffers[i])
-    softcut.enable(i,1)
-    softcut.play(i,1)
-    softcut.loop(i,1)
-    softcut.rec(i,1)
-    softcut.level(i,0)
-    softcut.rec_level(i,0)
-    softcut.pre_level(i,1)
-    softcut.fade_time(i,0.05)
-    softcut.loop_start(i,softcut_offsets[i])
-    softcut.level_input_cut(1,i,1)
-    softcut.level_input_cut(2,i,1)
-    softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
-    softcut.position(i,softcut_offsets[i])
-  end
-
   -- add major parameters
   params_meta()
   params_audioin()
@@ -165,6 +143,7 @@ function init2()
   params_reverb()
   params_kick()
   params_midi()
+  params_mixer()
 
   local charset={} do -- [0-9a-zA-Z]
     for c=48,57 do table.insert(charset,string.char(c)) end
@@ -200,7 +179,7 @@ function init2()
   -- add lookups
   params.id_to_name={}
   params.name_to_id={}
-  for _,p in ipairs(params.params) do
+  for i,p in ipairs(params.params) do
     -- matrix_depth_1_cell  nil
     if p.name~=nil then
       params.id_to_name[p.id]=p.name
@@ -229,6 +208,12 @@ function init2()
       local progress=tonumber(args[2])
       print("recordingProgress",id,progress)
       tracks[id].loop.pos_rec=progress
+    end,
+    osccpu=function(args)
+      cpu_usage[args[1]]=tonumber(args[2])
+    end,
+    amplitude=function(args)
+      screens[3]:set_levels(args)
     end,
     loopPosition=function(args)
       local id=math.floor(tonumber(args[1]))
@@ -354,23 +339,6 @@ function init2()
     end
   end)
 
-  -- start softcut polling
-  softcut.event_phase(function(i,x)
-    softcut_positions[i]=x
-  end)
-
-  softcut.event_render(function(ch,start,sec_per_sample,samples)
-    print("got render for ",ch,start,sec_per_sample)
-    for i=1,3 do
-      if ch==softcut_buffers[i] and start>=softcut_offsets[i] and start<=softcut_offsets[i]+60 then
-        print("assigned to ",i)
-        softcut_renders[i]=samples
-        softcut_rendering[i]=false
-        do return end
-      end
-    end
-  end)
-  softcut.poll_start_phase()
 
   -- setup polls
   pitch_polls={}
@@ -391,6 +359,14 @@ function init2()
     pitch_polls[i].time=0.05
     pitch_polls[i]:stop()
   end
+    
+  -- setup softcut (initially disabled)
+  audio.level_adc_cut(1)
+  audio.level_eng_cut(0)
+  audio.level_tape_cut(1)
+  for i=1,6 do 
+    softcut.enable(i,0)
+  end
 
   if util.file_exists(_path.data.."zxcvbn/first") then
     params:set("clock_tempo",150)
@@ -401,64 +377,43 @@ function init2()
   -- setup grid
   g_=grid_:new()
 
-  --   -- Am F
-  --   tracks[1]:load_text([[
-  -- c4 pq v6.-6
-  -- ]])
-
-  --   tracks[2]:load_text([[
-  -- c4 pm
-  -- a3
-  --   ]])
-
-  --   tracks[3]:load_text([[
-  -- a1 pm
-  -- f1
-  --         ]])
-
-  --   tracks[4]:load_text([[
-  -- e3 d2 pm
-  -- c2
-  --     ]])
-
-  --   params:set("1track_type",6)
-  --   -- params:set("1sample_file",_path.audio.."mx.samples/alto_sax_choir/52.1.1.1.0.wav")
-  --   -- for i=1,5 do
-  --   --   params:set(i.."track_type",7)
-  --   --   params:set(i.."crow_type",2)
-  --   -- end
-  --   params:set("track",1)
-  --   params:set("1play",1)
-  --   clock.run(function()
-  --     clock.sleep(0.5)
-  --     params:set("1mute",0)
-  --     clock.sleep(1)
-  --     tracks[1]:loop_record()
-  --     clock.sleep(8)
-  --     params:set("1mute",0)
-  --     clock.sleep(0.2)
-  --     tracks[1]:loop_record()
-  --   end)
-
   -- DEBUG DEBUG
-  -- params:set("1track_type",7)
+  -- params:set("1play",1)
+  --   params:set("4track_type",2)
+  --   params:set("track",4)
+  -- params:set("4play",1)
   -- params:set("audioinpanL",0)
   -- params:set("1scale_mode",2)
 end
 
-function sma(period)
-	local t = {}
-	function sum(a, ...)
-		if a then return a+sum(...) else return 0 end
-	end
-	function average(n)
-		if #t == period then table.remove(t, 1) end
-		t[#t + 1] = n
-		return sum(table.unpack(t)) / #t
-	end
-	return average
+function load_dx7()
+  filename=_path.code.."zxcvbn/lib/dx7.json"
+  if not util.file_exists(filename) then
+    print("could not find "..filename)
+    do return end
+  end
+  local f=io.open(filename,"rb")
+  local content=f:read("*all")
+  f:close()
+  if content==nil then
+    print("no content in dx7")
+    do return end
+  end
+  dx7_names=json.decode(content)
 end
 
+function sma(period)
+  local t={}
+  function sum(a,...)
+    if a then return a+sum(...) else return 0 end
+  end
+  function average(n)
+    if #t==period then table.remove(t,1) end
+    t[#t+1]=n
+    return sum(table.unpack(t))/#t
+  end
+  return average
+end
 
 function rerun()
   norns.script.load(norns.state.script)
@@ -474,6 +429,145 @@ function reset_clocks()
 end
 
 function keyboard.code(k,v)
+  -- print(codes_keyboard[k])
+  if string.find(k,"CTRL") then
+    ctrl_on=v>0
+    if norns_keyboard>0 then
+      osc.send({other_norns[norns_keyboard],10111},"/remote/brd",{codes_keyboard[k],v})
+    end
+    do return end
+  elseif string.find(k,"SHIFT") then
+    shift_on=v>0
+    if norns_keyboard>0 then
+      osc.send({other_norns[norns_keyboard],10111},"/remote/brd",{codes_keyboard[k],v})
+    end
+    do return end
+  elseif string.find(k,"ALT") then
+    alt_on=v>0
+    if norns_keyboard>0 then
+      osc.send({other_norns[norns_keyboard],10111},"/remote/brd",{codes_keyboard[k],v})
+    end
+    do return end
+  elseif string.find(k,"META") then
+    meta_on=v>0
+    do return end
+  end
+  if meta_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then
+    norns_keyboard=tonumber(k)-1
+    if norns_keyboard==0 then
+      show_message("keyboard -> local",3)
+    else
+      if norns_keyboard>#other_norns then
+        norns_keyboard=0
+      else
+        show_message("keyboard -> "..other_norns[norns_keyboard],3)
+      end
+    end
+    do return end
+  end
+  if norns_keyboard>0 then
+    osc.send({other_norns[norns_keyboard],10111},"/remote/brd",{codes_keyboard[k],v})
+    do return end
+  end
+  if alt_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then
+    if v==1 then
+      -- mute group
+      local mute_group=tonumber(k)
+      if mute_group==0 then
+        mute_group=10
+      end
+      local do_mute=-1
+      for i,_ in ipairs(tracks) do
+        if params:get(i.."mute_group")==mute_group then
+          if do_mute<0 then
+            do_mute=1-params:get(i.."mute")
+            break
+          end
+        end
+      end
+      for i,_ in ipairs(tracks) do
+        if params:get(i.."mute_group")==mute_group then
+          params:set(i.."mute",do_mute)
+        end
+      end
+      print("MUTE",alt_on,tonumber(k),mute_group,do_mute)
+      if do_mute>-1 then
+        show_message((do_mute==1 and "muted" or "unmuted").." group "..mute_group)
+      end
+    end
+    do return end
+  end
+  k=shift_on and "SHIFT+"..k or k
+  k=ctrl_on and "CTRL+"..k or k
+  k=alt_on and "ALT+"..k or k
+  if k:sub(1,5)=="CTRL+" and tonumber(k:sub(6))~=nil then
+    if v==1 then
+      local track=tonumber(k:sub(6))
+      if track==0 then
+        track=10
+      end
+      params:set("track",track)
+      do return end
+    end
+  elseif k=="CTRL+I" then
+    if v==1 then
+      for i,k in ipairs({"pitch_in_l","pitch_in_l"}) do
+        if pitch_poll_on then
+          print("stopping poll")
+          pitch_polls[i]:stop()
+        else
+          print("starting poll")
+          pitch_polls[i]:start()
+        end
+      end
+      pitch_poll_on=not pitch_poll_on
+    end
+    do return end
+  elseif k=="CTRL+P" then
+    if v==1 then
+      params:set(params:get("track").."play",1-params:get(params:get("track").."play"))
+      show_message((params:get(params:get("track").."play")==0 and "stopped" or "playing").." track "..params:get("track"))
+    end
+    do return end
+  elseif k=="CTRL+SPACE" then
+    if v==1 then
+      -- pause/play all
+      print("pause/play all")
+      local any_playing=false
+      for i=1,10 do
+        if params:get(i.."play")>0 then
+          any_playing=true
+          break
+        end
+      end
+      if any_playing then
+        show_message("stopping all")
+        for i=1,10 do
+          params:set(i.."play",0)
+        end
+      else
+        for i=1,10 do
+          if tracks[i].tli~=nil and tracks[i].tli.pulses>0 then
+            params:set(i.."play",1)
+          end
+        end
+        show_message("playing all")
+      end
+    end
+    do return end
+  elseif k=="CTRL+L" then
+    if v==1 then
+      if screen_ind==2 then
+        screen_ind=3
+        engine.mixer(1)
+      elseif screen_ind==3 then
+        screen_ind=2
+        engine.mixer(0)
+      end
+      print(screen_ind)
+    end
+    do return end
+  end
   screens[screen_ind]:keyboard(k,v)
 end
 
@@ -498,23 +592,23 @@ function draw_message()
     screen.level(0)
     screen.fill()
     screen.rect(x-w/2,y,w+2,10)
-    screen.level(15)
+    screen.level(screen_fade_in)
     screen.stroke()
     screen.move(x,y+7)
-    screen.level(10)
+    screen.level(math.floor(screen_fade_in*2/3))
     screen.text_center(show_message_text)
     if show_message_progress~=nil and show_message_progress>0 then
-      screen.update()
+      -- screen.update()
       screen.blend_mode(13)
       screen.rect(x-w/2,y,w*(show_message_progress/100)+2,9)
-      screen.level(10)
+      screen.level(math.floor(screen_fade_in*2/3))
       screen.fill()
       screen.blend_mode(0)
     else
-      screen.update()
+      -- screen.update()
       screen.blend_mode(13)
       screen.rect(x-w/2,y,w+2,9)
-      screen.level(10)
+      screen.level(math.floor(screen_fade_in*2/3))
       screen.fill()
       screen.blend_mode(0)
       screen.level(0)
@@ -598,8 +692,6 @@ function redraw()
     screen.text((note_diff>0 and "+" or "")..math.floor(note_diff))
   end
 
-
-
   -- screen.level(15)
   -- screen.move(127,62)
   -- screen.font_size(16)
@@ -609,7 +701,12 @@ function redraw()
   -- screen.move(127-text_width-2,62)
   -- screen.text_right("+10")
 
-
+  -- show cpu usage
+  if cpu_usage["scsynth"]~=nil and cpu_usage["scsynth"]>0 then
+    screen.move(126,6)
+    screen.level(math.floor(util.linlin(0,50,7,0,cpu_usage["scsynth"])))
+    screen.text_right(string.format("%d%%",cpu_usage["scsynth"]))
+  end
   screen.update()
 end
 
@@ -650,6 +747,13 @@ function params_action()
       tracks[i]:loads(s)
     end
   end
+end
+
+function params_mixer()
+  params:add_option("mixer_param","mixer_param",{"db","filter"})
+  params:add_number("mixer_factor","mixer_factor",1,20,1)
+  params:hide("mixer_param")
+  params:hide("mixer_factor")
 end
 
 function params_kick()
@@ -731,6 +835,25 @@ function params_audioin()
   params:set("audioinpanL",-1)
 end
 
+
+function check_reverb()
+  local reverb_should_be_on=false
+  for i=1,10 do 
+    if params:get(i.."play")==1 and params:get(i.."send_reverb")>0 then 
+      reverb_should_be_on=true
+      break
+    end
+  end
+  print("reverb_should_be_on",reverb_should_be_on)
+  if params:get("reverb_on")==0 and reverb_should_be_on then  
+    print("check_reverb on")
+    params:set("reverb_on",1)
+  elseif params:get("reverb_on")==1 and not reverb_should_be_on then 
+    print("check_reverb off")
+    params:set("reverb_on",0)
+  end
+end
+
 function params_reverb()
 
   -- predelay: 20,
@@ -745,6 +868,7 @@ function params_reverb()
   -- modulator_frequency: 1,
   -- modulator_depth: 0.1,
   local params_menu={
+    {id="reverb_on",name="reverb",min=0,max=1,exp=false,div=1,default=0,formatter=function(param) return param:get()==1 and "ON" or "OFF" end},
     {id="decay",name="decay time",min=0.4,max=100,exp=false,div=0.1,default=4,unit="s"},
     {id="shimmer",name="shimmer",min=0,max=2,exp=false,div=0.01,default=0.15,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="predelay",name="predelay",min=0,max=1000,exp=false,div=1,default=20.0,unit="ms"},
@@ -769,10 +893,24 @@ function params_reverb()
       formatter=pram.formatter,
     }
     params:set_action(pram.id,function(v)
-      if pram.id=="decay" then
-        v=util.clamp(100*math.exp(-1.1/v),0,100)
+      if pram.id=="reverb_on" then
+        engine.reverb(v)
+        if v==1 then 
+          for _, ppram in ipairs(params_menu) do 
+            v=params:get(ppram.id)
+            if ppram.id=="decay" then
+              v=util.clamp(100*math.exp(-1.1/v),0,100)
+            end
+            engine.reverb_set(ppram.id,v)
+          end
+        end
+        do return end 
+      elseif params:get("reverb_on")==1 then 
+        if pram.id=="decay" then
+          v=util.clamp(100*math.exp(-1.1/v),0,100)
+        end
+        engine.reverb_set(pram.id,v)
       end
-      engine.reverb_set(pram.id,v)
     end)
   end
 end
@@ -786,6 +924,8 @@ function params_sidechain()
     {id="compress_release",name="release",min=0,max=2,exp=false,div=0.01,default=0.2,formatter=function(param) return (param:get()*1000).." ms" end},
     {id="lpshelf",name="lp boost freq",min=12,max=127,exp=false,div=1,default=23,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end,fn=function(x) return musicutil.note_num_to_freq(x) end},
     {id="lpgain",name="lp boost db",min=-48,max=36,exp=false,div=1,default=0,unit="dB"},
+    {id="delay_feedback",name="tape feedback time",min=0.001,max=12,exp=false,div=0.1,default=1,unit="s"},
+    {id="delay_time",name="tape delay time",min=0.01,max=4,exp=false,div=clock.get_beat_sec()/16,default=clock.get_beat_sec(),unit="s"},
     {id="tape_slow",name="tape slow",min=0,max=2,exp=false,div=0.01,default=0.0,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
   }
   params:add_group("AUDIO OUT",#params_menu)
@@ -832,6 +972,64 @@ function params_midi()
       end
     end
   end
+end
+
+function setup_softcut()
+  softcut_enabled=true
+  for i=1,3 do
+    -- enable playback head
+    softcut.buffer(i,softcut_buffers[i])
+    softcut.enable(i,1)
+    softcut.play(i,1)
+    softcut.loop(i,0)
+    softcut.fade_time(i,0.005)
+    softcut.loop_start(i,softcut_offsets[i])
+    softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
+    softcut.position(i,softcut_offsets[i]+30) -- set to the loop end for each voice, so we aren't playing anything
+    softcut.rate(i,1)
+    softcut.rate_slew_time(i,0.005)
+    softcut.pan_slew_time(i,0.005)
+    softcut.level_slew_time(i,0.005)
+    softcut.post_filter_dry(i,0)
+    softcut.post_filter_lp(i,1)
+    softcut.post_filter_fc(i,12000)
+    softcut.level(i,1)
+  end
+  for i=4,6 do
+    -- enable recording head (decoupled from playback head)
+    softcut.buffer(i,softcut_buffers[i])
+    softcut.enable(i,1)
+    softcut.play(i,1)
+    softcut.loop(i,1)
+    softcut.rec(i,1)
+    softcut.level(i,0)
+    softcut.rec_level(i,0)
+    softcut.pre_level(i,1)
+    softcut.fade_time(i,0.05)
+    softcut.loop_start(i,softcut_offsets[i])
+    softcut.level_input_cut(1,i,1)
+    softcut.level_input_cut(2,i,1)
+    softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
+    softcut.position(i,softcut_offsets[i])
+  end
+
+  -- start softcut polling
+  softcut.event_phase(function(i,x)
+    softcut_positions[i]=x
+  end)
+
+  softcut.event_render(function(ch,start,sec_per_sample,samples)
+    print("got render for ",ch,start,sec_per_sample)
+    for i=1,3 do
+      if ch==softcut_buffers[i] and start>=softcut_offsets[i] and start<=softcut_offsets[i]+60 then
+        print("assigned to ",i)
+        softcut_renders[i]=samples
+        softcut_rendering[i]=false
+        do return end
+      end
+    end
+  end)
+  softcut.poll_start_phase()
 end
 
 function whatislove()

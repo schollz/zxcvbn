@@ -631,7 +631,7 @@
     <section class="hero">
         <div class="hero-inner">
             <p align=center><strong><em>zxcvbn</em></strong></p>
-            <p><code><a href="#changelog" style="text-decoration: none;color:inherit;">v1.5.0</a></code></p>
+            <p><code><a href="#changelog" style="text-decoration: none;color:inherit;">v2.0.0</a></code></p>
             <p align=center id="app"></p>
         </div>
     </section>
@@ -776,7 +776,7 @@
         <div class="box">
             <div class="boxl">
                 <div class="command-icon">
-                    <div>{{with .Shortfa}}<i class="fas fa-{{.}}" aria-hidden="true"></i>{{end}}{{with .Shortcode}}<span style="font-size:2.5em;font-weight:900;">{{.}}</span>{{end}}</div>
+                    <div>{{with .Shortfa}}<i class="fas fa-{{.}}" aria-hidden="true"></i>{{end}}{{with .Shortcode}}<span style="font-size:2.5em;font-weight:900;{{if isupper .}}text-decoration:underline;{{end}}">{{.}}</span>{{end}}</div>
                 </div>
             </div>
             <div class="boxr">
@@ -808,6 +808,16 @@
                 <td class="w25 bold">Move</td>
                 <td class="w25"><em>←</em>/<em>→</em>/<em>↑</em>/<em>↓</em></td>
                 <td class="w50">Pressing the arrow keys will move the cursor to new positions.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Save/parse</td>
+                <td class="w25"><em>ctrl</em> + <em>s</em></td>
+                <td class="w50">Saves the current text to history and parses.</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Play track</td>
+                <td class="w25"><em>ctrl</em> + <em>p</em></td>
+                <td class="w50">Plays or stops the current track.</td>
             </tr>
             <tr class="hrw hrt">
                 <td class="w25 bold">Jump to track</td>
@@ -842,16 +852,6 @@
                 <td class="w50">For clades with samples, this will switch to sample view.</td>
             </tr>
             <tr class="hrw">
-                <td class="w25 bold">Play track</td>
-                <td class="w25"><em>ctrl</em> + <em>p</em></td>
-                <td class="w50">Plays or stops the current track.</td>
-            </tr>
-            <tr class="hrw">
-                <td class="w25 bold">Save/parse</td>
-                <td class="w25"><em>ctrl</em> + <em>s</em></td>
-                <td class="w50">Saves the current text to history and parses.</td>
-            </tr>
-            <tr class="hrw">
                 <td class="w25 bold">Copy</td>
                 <td class="w25"><em>ctrl</em> + <em>c</em></td>
                 <td class="w50">Copies the current line into a buffer.</td>
@@ -880,6 +880,11 @@
                 <td class="w25 bold">Mute group</td>
                 <td class="w25"><em>atl</em> + <em>0-9</em></td>
                 <td class="w50">Mutes the specified group (set groups in `PARAMS`).</td>
+            </tr>
+            <tr class="hrw">
+                <td class="w25 bold">Play/sto all</td>
+                <td class="w25"><em>ctrl</em> + <em>space</em></td>
+                <td class="w50">Toggles playing of **all** tracks.</td>
             </tr>
             <tr class="hrw">
                 <td class="w25 bold">Record tape</td>

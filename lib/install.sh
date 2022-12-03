@@ -29,7 +29,7 @@ rm -rf aubio.tar.gz
 
 # install first data folder
 cd ~/dust/data/
-wget https://github.com/schollz/zxcvbn/releases/download/assets/zxcvbn.tar.gz
-tar -xvzf zxcvbn.tar.gz
-rm zxcvbn.tar.gz
+wget https://github.com/schollz/zxcvbn/releases/download/assets/zxcvbn_v2.tar.gz
+tar -xvzf zxcvbn_v2.tar.gz
+rm zxcvbn_v2.tar.gz
 

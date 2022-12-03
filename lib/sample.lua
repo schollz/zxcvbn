@@ -61,11 +61,11 @@ function Sample:load_sample(path,is_melodic,slices)
     local delete_temp=false
     local filename=self.path
     if self.ext=="aif" then 
-      print(util.os_capture(string.format("sox %s %s",filename,filename..".wav")))
+      print(util.os_capture(string.format("sox '%s' '%s'",filename,filename..".wav")))
       filename=filename..".wav"
       delete_temp=true
     end
-    local cmd=string.format("%s -q -i %s -o %s -z %d -b 8 &",audiowaveform,filename,self.path_to_dat,2)
+    local cmd=string.format("%s -q -i '%s' -o '%s' -z %d -b 8 &",audiowaveform,filename,self.path_to_dat,2)
     print(cmd)
     os.execute(cmd)
     if delete_temp then 
@@ -167,7 +167,7 @@ function Sample:get_onsets()
 
   -- gather the onsets
   print("executing")
-  os.execute(_path.code.."zxcvbn/lib/aubiogo/aubiogo --id "..self.id.." --filename "..self.path.." --num "..self.slice_num.." &")
+  os.execute(_path.code.."zxcvbn/lib/aubiogo/aubiogo --id "..self.id.." --filename '"..self.path.."' --num "..self.slice_num.." &")
   print("executed")
 end
 
@@ -216,6 +216,7 @@ function Sample:play(d)
   d.attack=d.attack or params:get(self.id.."attack")/1000
   d.release=d.release or params:get(self.id.."release")/1000
   d.reverb=d.reverb or params:get(self.id.."send_reverb")
+  d.delay=d.delay or params:get(self.id.."send_delay")
   d.drive=d.drive or params:get(self.id.."drive")
   d.compression=d.compression or params:get(self.id.."compression")
   d.stretch=d.stretch or params:get(self.id.."stretch")
@@ -245,7 +246,7 @@ function Sample:play(d)
         d.compressible,
         d.compressing,
         d.reverb,
-      d.watch,d.attack,d.release,d.monophonic_release,d.drive,d.send_tape)
+      d.watch,d.attack,d.release,d.monophonic_release,d.drive,d.send_tape,d.delay)
     end
   else
     if d.on and self.cursors~=nil then
@@ -287,7 +288,7 @@ function Sample:play(d)
         d.compressible,
         d.compressing,
         d.reverb,d.drive,d.compression,
-      d.watch,d.attack,d.release,d.stretch,d.send_tape)
+      d.watch,d.attack,d.release,d.stretch,d.send_tape,d.delay)
       if self.kick[d.ci]>-48 then
         engine.kick(
           musicutil.note_num_to_freq(params:get("kick_basenote")),
@@ -301,7 +302,7 @@ function Sample:play(d)
           params:get("kick_clicky")/1000,
           params:get("kick_compressing"),
           params:get("kick_compressible"),
-          d.reverb,d.send_tape
+          d.reverb,d.send_tape,d.send_delay
         )
       end
     elseif not d.on then
@@ -526,7 +527,7 @@ function Sample:get_render()
     if self.view[1]>self.view[2] then
       self.view[1],self.view[2]=self.view[2],self.view[1]
     end
-    local cmd=string.format("%s -q -i %s -o %s -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color 757575 --no-axis-labels --compression 0 &",audiowaveform,self.path_to_dat,rendered,self.view[1],self.view[2],self.width,self.height)
+    local cmd=string.format("%s -q -i '%s' -o '%s' -s %2.4f -e %2.4f -w %2.0f -h %2.0f --background-color 000000 --waveform-color 757575 --no-axis-labels --compression 0 &",audiowaveform,self.path_to_dat,rendered,self.view[1],self.view[2],self.width,self.height)
     print(cmd)
     os.execute(cmd)
   end

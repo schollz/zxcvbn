@@ -15,9 +15,10 @@ end
 function TLI:init()
   self:reset()
 
-  self.round=function(num,numDecimalPlaces)
-    local mult=10^(numDecimalPlaces or 0)
-    return math.floor(num*mult+0.5)/mult
+  self.append=function(t1,t2)
+    for i=1,#t2 do
+      t1[#t1+1]=t2[i]
+    end
   end
 
   self.calc=function(s)
@@ -34,6 +35,97 @@ function TLI:init()
     return self.calc(s)
   end
 
+  self.trim=function(s)
+    return (s:gsub("^%s*(.-)%s*$","%1"))
+  end
+
+  self.recurse_line=function(t,all_parts,line,pulses)
+    line=self.trim(line)
+    local par_count=0
+    local has_par=false
+    local parts={}
+    local part=""
+    local c_last=""
+    for i=1,#line do
+      local c=line:sub(i,i)
+      if c=="(" then
+        if par_count==0 and part~="" then
+          table.insert(parts,part)
+          part=""
+        end
+        par_count=par_count+1
+        has_par=true
+        if par_count~=1 then
+          part=part..c
+        end
+      elseif c==")" then
+        par_count=par_count-1
+        if par_count~=0 then
+          part=part..c
+        elseif par_count==0 then
+          table.insert(parts,part)
+          part=""
+        end
+      else
+        if par_count==0 and c_last==" " and
+          ((string.byte(c)>=string.byte("a") and string.byte(c)<=string.byte("g")) or
+            (string.byte(c)>=string.byte("A") and string.byte(c)<=string.byte("G")) or
+          c=="." or c=="-" or (string.byte(c)>=string.byte("0") and string.byte(c)<=string.byte("9"))) then
+          part=self.trim(part)
+          if part~="" then
+            table.insert(parts,part)
+          end
+          part=c
+        else
+          part=part..c
+        end
+      end
+      c_last=c
+    end
+    part=self.trim(part)
+    if part~="" then
+      table.insert(parts,part)
+    end
+    if not string.find(line,"%(") then
+      local entites={}
+      for _,part in ipairs(parts) do
+        local e=""
+        local mods={}
+        local i=1
+        for w in part:gmatch("%S+") do
+          if i==1 then
+            e=w
+          else
+            local d=w:sub(1,1)
+            table.insert(mods,{d,tonumber(w:sub(2)) or w:sub(2)})
+          end
+          i=i+1
+        end
+        table.insert(entites,{e=e,mods=mods})
+      end
+      local shift=0
+      for _,part in ipairs(entites) do
+        for _,mod in ipairs(part.mods) do
+          if mod[1]=="o" and tonumber(mod[2])~=nil then
+            shift=mod[2]
+          end
+        end
+      end
+      self.append(t,self.er(#parts,pulses,shift))
+      self.append(all_parts,entites)
+      do return end
+    end
+    -- print(json.encode(parts),pulses,#parts)
+    for _,part in ipairs(parts) do
+      self.recurse_line(t,all_parts,part,math.floor(pulses/#parts))
+    end
+  end
+
+  self.round=function(num,numDecimalPlaces)
+    local mult=10^(numDecimalPlaces or 0)
+    return math.floor(num*mult+0.5)/mult
+  end
+
   self.fields=function(s)
     local foo={}
     for w in s:gmatch("%S+") do
@@ -42,9 +134,6 @@ function TLI:init()
     return foo
   end
 
-  self.trim=function(s)
-    return (s:gsub("^%s*(.-)%s*$","%1"))
-  end
   self.string_split=function(input_string,split_character)
     local s=split_character~=nil and split_character or "%s"
     local t={}
@@ -68,7 +157,7 @@ function TLI:init()
 
     local t={}
     local num1=tonumber(s)
-    if num1~=nil then
+    if num1~=nil and num1==math.floor(num1) then
       t={num1}
     else
       local foo=self.string_split(s,",")
@@ -848,38 +937,38 @@ function TLI:parse_positions(lines,default_pulses)
   local elast=nil
   local entities={}
   local pulse_index=0
-  local pulses=default_pulses or 24*4 -- 24 ppqn, 4 qn per measure
-  for i,line in ipairs(lines) do
-    local ele={}
-    local er_rotation=0
+  local pulses=default_pulses or 24*4
+  for _,line in ipairs(lines) do
+    -- <line>
+    -- determine if there is a nuew number of pulses
     for w in line:gmatch("%S+") do
       local c=w:sub(1,1)
-      if string.byte(c)>string.byte("g") and string.byte(c)<=string.byte("z") then
-        if #ele>0 then
-          local mod=tonumber(w:sub(2))
-          if c=="o" and mod~=nil then
-            er_rotation=mod
-          elseif c=="p" then
-            local ok,vv=self.calc_p(w:sub(2))
-            if vv==nil or (not ok) then
-              error(string.format("bad '%s'",w))
-            end
-            pulses=vv
-          end
-          table.insert(ele[#ele].mods,{c,mod or w:sub(2)})
+      if c=="p" then
+        local ok,vv=self.calc_p(w:sub(2))
+        if vv==nil or (not ok) then
+          error(string.format("bad '%s'",w))
         end
-      else
-        table.insert(ele,{e=w,mods={}})
+        pulses=vv
       end
     end
-
-    local pos=self.er(#ele,pulses,er_rotation)
+    local pos={}
+    local ele={}
+    self.recurse_line(pos,ele,line,pulses)
+    -- s=""
+    -- for _,v in ipairs(pos) do
+    --   s=s..(v and "1" or "0")
+    -- end
+    -- print(s)
     local ei=0
     for pi,p in ipairs(pos) do
       pulse_index=pulse_index+1
       if p then
         if elast~=nil and ele[ei+1].e~="-" then
-          table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index,mods=elast.mods,line=elast.line})
+          table.insert(entities,{el=elast.el,
+            start=elast.start,
+            stop=pulse_index,
+            mods=elast.mods,
+          line=elast.line})
           mods=nil
           elast=nil
         end
@@ -889,9 +978,14 @@ function TLI:parse_positions(lines,default_pulses)
         ei=ei+1
       end
     end
+    -- </line>
   end
   if elast~=nil then
-    table.insert(entities,{el=elast.el,start=elast.start,stop=pulse_index+1,mods=elast.mods,line=elast.line})
+    table.insert(entities,{el=elast.el,
+      start=elast.start,
+      stop=pulse_index+1,
+      mods=elast.mods,
+    line=elast.line})
     elast=nil
   end
 
@@ -1131,7 +1225,7 @@ function TLI:parse_tli_(text,use_hex)
   end
   for _,line in ipairs(lines) do
     -- remove comments at end
-    if not string.sub(line,1,1)=="#" then 
+    if not string.sub(line,1,1)=="#" then
       local parts=self.string_split(line," #")
       if #parts>1 then
         line=parts[1]

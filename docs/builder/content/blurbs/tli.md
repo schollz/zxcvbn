@@ -55,6 +55,29 @@ Ties are special too, because they can continue onto the next line. If you want 
 
 
 
+<h2 class="h2under" id="subdivisions">Example 5 (subdivisions)</h2>
+
+Parentheses can be used to define subdivisions which can save space instead of entering many resets. Each enclosed set of parentheses is considered a single entity for the purposes of dividing by the number of entities per line. For example, consider the following:
+
+<p class="shiny">(c d) e</p>
+
+In this example, there are three notes, but two of the notes (`c` and `d`) are enclosed in a parentheses so they are considered a single entity. This means there are only two entities on that line (`(c d)` and `e`), and each is given half of the pulses (48 pulses). The parenthetical entity is then compiled with the remaining pulses, so that the remaining pulses are redivided, so the 48 pulses is split into 24 pulses for both the `c` and `d` notes.
+
+The above incantation can be written using rests too:
+
+<p class="shiny">c d . e</p>
+
+In this case it might be simpler to use rests. But as you add more subdivisions, things become more complicated. For example:
+
+
+<p class="shiny">((c d e f) g) a</p>
+
+This is the same as:
+
+<p class="shiny">c d e f  g . . . a . . . . . . .</p>
+
+The latter requires a lot more rests to get the same invocation.
+
 <h2 class="h2under">Allocating time in pulses</h2>
 
 In *zxcvbn*, time is discrete and allocated in **pulses**. The number of pulses per quarter-note is immutable - it is defined as **24 pulses per quarter note** (24 ppqn).
@@ -71,7 +94,7 @@ You can also change the number of pulses **per line**. So if you want the number
  c4 d4 e4 p72
 </pre>
 
-The "shortcodes" like the [pulse](#pulse) command ([*p*](#pulse)) are ignored for the purposes of counting subdivisions - only notes are counted. So in this case the first line has four notes with 96 pulses and the second line has three notes with 72 pulses, so this essentially is a 7/4 time signature.
+The "shortcodes" like the [pulse](#pulse) command ([*p*](#pulse)) are ignored for the purposes of counting subdivisions - only notes, rests, ties or parentheses-enclosed sections are counted. So in this case the first line has four notes with 96 pulses and the second line has three notes with 72 pulses, so this essentially is a 7/4 time signature.
 
 There is nothing stopping you from defining prime numbers of pulses to get oblique rhythms.
 

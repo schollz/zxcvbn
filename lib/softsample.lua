@@ -62,7 +62,7 @@ function SoftSample:get_onsets()
   self:write_wav()
 
   debounce_fn[self.id.."onsets"]={1,function()
-    os.execute(_path.code.."zxcvbn/lib/aubiogo/aubiogo --id "..self.id.." --filename "..self.path_to_save.." --num 16 --rm &")
+    os.execute(_path.code.."zxcvbn/lib/aubiogo/aubiogo --id "..self.id.." --filename '"..self.path_to_save.."' --num 16 --rm &")
   end}
 end
 

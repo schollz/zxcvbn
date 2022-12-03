@@ -17,15 +17,16 @@ MxSamplesZInstrument {
     var busNotCompressible;
     var busCompressing;
     var busReverb;
+    var busDelay;
     var busTape;
 
     *new {
-        arg serverName,folderToSamples,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape;
-        ^super.new.init(serverName,folderToSamples,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape);
+        arg serverName,folderToSamples,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape,argBusDelay;
+        ^super.new.init(serverName,folderToSamples,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape,argBusDelay);
     }
 
     init {
-        arg serverName,folderToSamples,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape;
+        arg serverName,folderToSamples,numberMaxSamples,argBusCompressible,argBusNotCompressible,argBusCompressing,argBusReverb,argBusTape,argBusDelay;
 
         server=serverName;
         folder=folderToSamples;
@@ -35,6 +36,7 @@ MxSamplesZInstrument {
         busCompressing=argBusCompressing;
         busReverb=argBusReverb;
         busTape=argBusTape;
+        busDelay=argBusDelay;
 
         buf=Dictionary.new();
         bufUsed=Dictionary.new();
@@ -79,7 +81,7 @@ MxSamplesZInstrument {
             t_trig=1,rate=1,
             attack=0.01,decay=0.1,sustain=1.0,release=0.2,gate=1,duration=30,
             compressingBus=0,compressibleBus=0,notCompressibleBus=0,reverbBus=0,
-            sendCompressible=0,sendCompressing=0,sendReverb=0,tapeBus,sendTape=0,
+            sendCompressible=0,sendCompressing=0,sendReverb=0,tapeBus,sendTape=0,delayBus,sendDelay=0,
             startPos=0;
             var snd,snd2;
             var frames1=BufFrames.ir(buf1);
@@ -96,6 +98,7 @@ MxSamplesZInstrument {
             Out.ar(notCompressibleBus,(1-sendCompressible)*snd*(1-sendReverb));
             Out.ar(reverbBus,sendReverb*snd);
             Out.ar(tapeBus,sendTape*snd);
+            Out.ar(delayBus,sendDelay*snd);
         }).send(server);
 
         SynthDef("playx1",{
@@ -104,7 +107,7 @@ MxSamplesZInstrument {
             t_trig=1,rate=1,
             attack=0.01,decay=0.1,sustain=1.0,release=0.2,gate=1,duration=30,
             compressingBus=0,compressibleBus=0,notCompressibleBus=0,reverbBus=0,
-            sendCompressible=0,sendCompressing=0,sendReverb=0,tapeBus,sendTape=0,
+            sendCompressible=0,sendCompressing=0,sendReverb=0,tapeBus,sendTape=0,delayBus,sendDelay=0,
             startPos=0;
             var snd,snd2;
             var frames1=BufFrames.ir(buf1);
@@ -121,6 +124,7 @@ MxSamplesZInstrument {
             Out.ar(notCompressibleBus,(1-sendCompressible)*snd*(1-sendReverb));
             Out.ar(reverbBus,sendReverb*snd);
             Out.ar(tapeBus,sendTape*snd);
+            Out.ar(delayBus,sendDelay*snd);
         }).send(server);
 
     }
@@ -161,7 +165,7 @@ MxSamplesZInstrument {
     }
 
     noteOn {
-        arg note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape;
+        arg note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape,sendDelay;
         var noteOriginal=note;
         var noteLoaded=note;
         var noteClosest=noteNumbers[noteNumbers.indexIn(note)];
@@ -269,7 +273,7 @@ MxSamplesZInstrument {
                 if (fileLoaded.notNil,{
                     "playing without 1+2".postln;
                     this.doPlay(noteOriginal,fileLoaded,fileLoaded,buf1mix,rateLoaded,
-                        amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape);
+                        amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape,sendDelay);
                 });
                 Buffer.read(server,PathName(folder+/+file2).fullPath,action:{ arg b1;
                     b1.postln;
@@ -281,7 +285,7 @@ MxSamplesZInstrument {
                 "playing without 1".postln;
                 if (file2.notNil,{
                     this.doPlay(noteOriginal,file2,file2,buf1mix,rate,
-                        amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape);
+                        amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape,sendDelay);
                 });
             });
             Buffer.read(server,PathName(folder+/+file1).fullPath,action:{ arg b1;
@@ -294,7 +298,7 @@ MxSamplesZInstrument {
                 // only have buf1
                 "playing without 2".postln;
                 this.doPlay(noteOriginal,file1,file1,buf1mix,rate, 
-                    amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape);
+                    amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape,sendDelay);
                 Buffer.read(server,PathName(folder+/+file2).fullPath,action:{ arg b1;
                     b1.postln;
                     buf.put(file2,b1);
@@ -304,7 +308,7 @@ MxSamplesZInstrument {
                 // play original files!
                 "playing without NONE!".postln;
                 this.doPlay(noteOriginal,file1,file2,buf1mix,rate, 
-                    amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape);
+                    amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape,sendDelay);
             });
         });
 
@@ -312,7 +316,7 @@ MxSamplesZInstrument {
 
 
     doPlay {
-        arg note,file1,file2,buf1mix,rate,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape;
+        arg note,file1,file2,buf1mix,rate,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape,sendDelay;
         var notename=1000000.rand;
         var node;
         [notename,note,amp,file1,file2,buf1mix,rate].postln;
@@ -328,10 +332,12 @@ MxSamplesZInstrument {
             \compressibleBus,busCompressible,
             \notCompressibleBus,busNotCompressible,
             \tapeBus,busTape,
+            \delayBus,busDelay,
             \sendCompressible,sendCompressible,
             \sendCompressing,sendCompressing,
             \sendReverb,sendReverb,
             \sendTape,sendTape,
+            \sendDelay,sendDelay,
             \reverbBus,busReverb,
             \amp,amp,
             \pan,pan,

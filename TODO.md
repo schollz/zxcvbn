@@ -1,22 +1,21 @@
 # To Do Now (Critical)
 
-- [ ] possible bug with midi out
-- [ ] add reverb to the melodic clade @mcpepe
-- [ ] panning in PolyPerc is bugged @hallmar
-- [ ] midi sending bad note offs?? @hallmar
-- [ ] add play all/ stop all @mcpepe
-- [ ] performance mixer @mcepe
-- [ ] filenames with spaces bugging? @mcpepe
-- [ ] DELETE key cursors to docs @mcpepe
 - [ ] octave detection doesn't work for <0 @mcpepe
 - [ ] v,y should behave ordered when given choices (so you can do things like 9 v5,0,0,5,0,0,5,0 pe)
-- [ ] y = transpose (its like note, but isn't affected by retriggers)
-- [ ] Add scale locking
-- [ ] Ctl+0 doesn't work?
-- [ ] TEST midi use a clock to decrement a duration counter for turning off notes (instead of using note_off)
-- [ ] TEST retrig/volume w/ crow
-- [ ] TEST retrig/volume w/ midi
-- [ ] TEST retrig/volume w/ melodic
+- [x] performance mixer @mcepe
+- [x] documentation for "Z" command
+- [x] hook up DX7 to modulate parameters in realtime
+- [x] Add filter to DX7
+- [x] Add DX7 names
+- [x] possible bug with midi out
+- [x] add reverb to the melodic clade @mcpepe
+- [x] panning in PolyPerc is bugged @hallmar
+- [x] midi sending bad note offs?? @hallmar
+- [x] add play all/ stop all @mcpepe
+- [x] filenames with spaces bugging? @mcpepe
+- [x] DELETE key cursors to docs @mcpepe
+- [x] Add scale locking
+- [x] Ctl+0 doesn't work?
 
 # To Do Now (Not Critical)
 
@@ -26,12 +25,15 @@
 
 # To Do Later (Not Critical)
 
+- [ ] parentheses as a subdivision @sixolet
+- [ ] non-line ops with a prefix version that is latchin @sixolet
 - [ ] slice stretch synthdef (Using WarpZ)
 - [ ] have tli keep track of originating line and highlight it
 - [ ] use blend_mode to highlight the region being played
 
 # DONE
 
+- [x] y = transpose (its like note, but isn't affected by retriggers)
 - [x] META > make bundle / load bundle (goes through and produces a shareable PSET, samples, dats, pngs, in a single file)
 - [x] option to automatically load default
 - [x] K2/K3 mute/play?

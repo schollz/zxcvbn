@@ -10,8 +10,9 @@ end
 
 function Installer:init()
   self.blinky=0
-  self.fade_in=0
   self.k3debounce=true
+  self.fade_in=0
+  show_message("v2.0.0",3000)
 end
 
 function Installer:do_install()
@@ -119,7 +120,8 @@ function Installer:redraw()
   self.fade_in=self.fade_in+1
   self.fade_in=self.fade_in>15 and 15 or self.fade_in
   local x=self.fade_in/15
-  screen.level(util.clamp(util.round(15*(math.exp(x*x*x)-1)),1,15))
+  screen_fade_in=util.clamp(util.round(15*(math.exp(x*x*x)-1)),1,15)
+  screen.level(screen_fade_in)
   screen.move(64,20)
   screen.font_face(18)
   screen.font_size(14)
