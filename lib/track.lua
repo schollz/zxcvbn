@@ -771,6 +771,9 @@ end
 function Track:parse_tli()
   print("parsing",self.id)
   local text=self.states[STATE_VTERM]:get_text()
+  if text~="" and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE and not softcut_enabled then 
+    setup_softcut()
+  end
   local tli_parsed=nil
   local is_hex=false
   is_hex=params:get(self.id.."track_type")==TYPE_SOFTSAMPLE or params:get(self.id.."track_type")==TYPE_DRUM

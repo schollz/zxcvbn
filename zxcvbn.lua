@@ -50,6 +50,7 @@ softcut_offsets={2,70,2,2,70,2}
 softcut_positions={0,0,0,0,0,0}
 softcut_renders={{},{},{}}
 softcut_rendering={false,false,false,false,false,false}
+softcut_enabled=false
 local fverb_so="/home/we/.local/share/SuperCollider/Extensions/fverb/Fverb.so"
 engine.name=util.file_exists(fverb_so) and "Zxcvbn" or nil
 
@@ -132,47 +133,6 @@ function init2()
   mx_sample_options={"none"}
   for _,v in ipairs(tli.string_split(foo)) do
     table.insert(mx_sample_options,v)
-  end
-
-  -- setup softcut
-  audio.level_adc_cut(1)
-  audio.level_eng_cut(0)
-  audio.level_tape_cut(1)
-  for i=1,3 do
-    -- enable playback head
-    softcut.buffer(i,softcut_buffers[i])
-    softcut.enable(i,1)
-    softcut.play(i,1)
-    softcut.loop(i,0)
-    softcut.fade_time(i,0.005)
-    softcut.loop_start(i,softcut_offsets[i])
-    softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
-    softcut.position(i,softcut_offsets[i]+30) -- set to the loop end for each voice, so we aren't playing anything
-    softcut.rate(i,1)
-    softcut.rate_slew_time(i,0.005)
-    softcut.pan_slew_time(i,0.005)
-    softcut.level_slew_time(i,0.005)
-    softcut.post_filter_dry(i,0)
-    softcut.post_filter_lp(i,1)
-    softcut.post_filter_fc(i,12000)
-    softcut.level(i,1)
-  end
-  for i=4,6 do
-    -- enable recording head (decoupled from playback head)
-    softcut.buffer(i,softcut_buffers[i])
-    softcut.enable(i,1)
-    softcut.play(i,1)
-    softcut.loop(i,1)
-    softcut.rec(i,1)
-    softcut.level(i,0)
-    softcut.rec_level(i,0)
-    softcut.pre_level(i,1)
-    softcut.fade_time(i,0.05)
-    softcut.loop_start(i,softcut_offsets[i])
-    softcut.level_input_cut(1,i,1)
-    softcut.level_input_cut(2,i,1)
-    softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
-    softcut.position(i,softcut_offsets[i])
   end
 
   -- add major parameters
@@ -378,23 +338,6 @@ function init2()
     end
   end)
 
-  -- start softcut polling
-  softcut.event_phase(function(i,x)
-    softcut_positions[i]=x
-  end)
-
-  softcut.event_render(function(ch,start,sec_per_sample,samples)
-    print("got render for ",ch,start,sec_per_sample)
-    for i=1,3 do
-      if ch==softcut_buffers[i] and start>=softcut_offsets[i] and start<=softcut_offsets[i]+60 then
-        print("assigned to ",i)
-        softcut_renders[i]=samples
-        softcut_rendering[i]=false
-        do return end
-      end
-    end
-  end)
-  softcut.poll_start_phase()
 
   -- setup polls
   pitch_polls={}
@@ -414,6 +357,14 @@ function init2()
     end
     pitch_polls[i].time=0.05
     pitch_polls[i]:stop()
+  end
+    
+  -- setup softcut (initially disabled)
+  audio.level_adc_cut(1)
+  audio.level_eng_cut(0)
+  audio.level_tape_cut(1)
+  for i=1,6 do 
+    softcut.enable(i,0)
   end
 
   if util.file_exists(_path.data.."zxcvbn/first") then
@@ -752,8 +703,8 @@ function redraw()
   -- show cpu usage
   if cpu_usage["scsynth"]~=nil and cpu_usage["scsynth"]>0 then
     screen.move(126,6)
-    screen.level(0)
-    screen.text_right(string.format("%d/%d%%",cpu_usage["crone"] or 0,cpu_usage["scsynth"]))
+    screen.level(math.floor(util.linlin(0,50,7,0,cpu_usage["scsynth"])))
+    screen.text_right(string.format("%d%%",cpu_usage["scsynth"]))
   end
   screen.update()
 end
@@ -897,7 +848,7 @@ function params_reverb()
   -- modulator_frequency: 1,
   -- modulator_depth: 0.1,
   local params_menu={
-    {id="reverb_on",name="on",min=0,max=1,exp=false,div=1,default=0,formatter=function(param) return param:get()==1 and "on" or "off" end},
+    {id="reverb_on",name="reverb",min=0,max=1,exp=false,div=1,default=0,formatter=function(param) return param:get()==1 and "ON" or "OFF" end},
     {id="decay",name="decay time",min=0.4,max=100,exp=false,div=0.1,default=4,unit="s"},
     {id="shimmer",name="shimmer",min=0,max=2,exp=false,div=0.01,default=0.15,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="predelay",name="predelay",min=0,max=1000,exp=false,div=1,default=20.0,unit="ms"},
@@ -1001,6 +952,64 @@ function params_midi()
       end
     end
   end
+end
+
+function setup_softcut()
+  softcut_enabled=true
+  for i=1,3 do
+    -- enable playback head
+    softcut.buffer(i,softcut_buffers[i])
+    softcut.enable(i,1)
+    softcut.play(i,1)
+    softcut.loop(i,0)
+    softcut.fade_time(i,0.005)
+    softcut.loop_start(i,softcut_offsets[i])
+    softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
+    softcut.position(i,softcut_offsets[i]+30) -- set to the loop end for each voice, so we aren't playing anything
+    softcut.rate(i,1)
+    softcut.rate_slew_time(i,0.005)
+    softcut.pan_slew_time(i,0.005)
+    softcut.level_slew_time(i,0.005)
+    softcut.post_filter_dry(i,0)
+    softcut.post_filter_lp(i,1)
+    softcut.post_filter_fc(i,12000)
+    softcut.level(i,1)
+  end
+  for i=4,6 do
+    -- enable recording head (decoupled from playback head)
+    softcut.buffer(i,softcut_buffers[i])
+    softcut.enable(i,1)
+    softcut.play(i,1)
+    softcut.loop(i,1)
+    softcut.rec(i,1)
+    softcut.level(i,0)
+    softcut.rec_level(i,0)
+    softcut.pre_level(i,1)
+    softcut.fade_time(i,0.05)
+    softcut.loop_start(i,softcut_offsets[i])
+    softcut.level_input_cut(1,i,1)
+    softcut.level_input_cut(2,i,1)
+    softcut.loop_end(i,softcut_offsets[i]+30) -- will get overridden when we load sample folders, anyway
+    softcut.position(i,softcut_offsets[i])
+  end
+
+  -- start softcut polling
+  softcut.event_phase(function(i,x)
+    softcut_positions[i]=x
+  end)
+
+  softcut.event_render(function(ch,start,sec_per_sample,samples)
+    print("got render for ",ch,start,sec_per_sample)
+    for i=1,3 do
+      if ch==softcut_buffers[i] and start>=softcut_offsets[i] and start<=softcut_offsets[i]+60 then
+        print("assigned to ",i)
+        softcut_renders[i]=samples
+        softcut_rendering[i]=false
+        do return end
+      end
+    end
+  end)
+  softcut.poll_start_phase()
 end
 
 function whatislove()
