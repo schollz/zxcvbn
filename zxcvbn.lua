@@ -252,7 +252,7 @@ function init2()
       tracks[id].loop.pos_rec=progress
     end,
     osccpu=function(args)
-      cpu_usage=tonumber(args[1])/1000.0
+      cpu_usage=math.floor(util.round(tonumber(args[1])/1000.0))
     end,
     amplitude=function(args)
       screens[3]:set_levels(args)
@@ -429,7 +429,7 @@ function init2()
   g_=grid_:new()
 
   -- DEBUG DEBUG
-  params:set("1play",1)
+  -- params:set("1play",1)
   --   params:set("4track_type",2)
   --   params:set("track",4)
   -- params:set("4play",1)
@@ -753,9 +753,11 @@ function redraw()
   -- screen.text_right("+10")
 
   -- show cpu usage
-  screen.move(126,6)
-  screen.level(0)
-  screen.text_right(string.format("%2.1f%%",cpu_usage))
+  if cpu_usage>0 then
+    screen.move(126,6)
+    screen.level(0)
+    screen.text_right(string.format("%d%%",cpu_usage))
+  end
   screen.update()
 end
 
