@@ -56,7 +56,7 @@ engine.name=util.file_exists(fverb_so) and "Zxcvbn" or nil
 debounce_fn={}
 osc_fun={}
 dx7_names={}
-cpu_usage=0
+cpu_usage={}
 
 function init()
   -- check if engine file exists
@@ -249,7 +249,7 @@ function init2()
       tracks[id].loop.pos_rec=progress
     end,
     osccpu=function(args)
-      cpu_usage=math.floor(util.round(tonumber(args[1])/1000.0))
+      cpu_usage[args[1]]=math.floor(util.round(tonumber(args[2])/1000.0))
     end,
     amplitude=function(args)
       screens[3]:set_levels(args)
@@ -750,10 +750,10 @@ function redraw()
   -- screen.text_right("+10")
 
   -- show cpu usage
-  if cpu_usage>0 then
+  if cpu_usage["scsynth"]~=nil and cpu_usage["scsynth"]>0 then
     screen.move(126,6)
     screen.level(0)
-    screen.text_right(string.format("%d%%",cpu_usage))
+    screen.text_right(string.format("%d/%d%%",cpu_usage["crone"] or 0,cpu_usage["scsynth"]))
   end
   screen.update()
 end

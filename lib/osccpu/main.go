@@ -83,6 +83,7 @@ func main() {
 			fmt.Printf("%2.3f\n", cpuUsage)
 			client := osc.NewClient(flagHost, flagPort)
 			msg := osc.NewMessage(flagAddress)
+			msg.Append(flagPName)
 			msg.Append(int32(cpuUsage * 1000))
 			err := client.Send(msg)
 			if err != nil {
