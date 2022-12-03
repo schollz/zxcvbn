@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"os/exec"
 	"strconv"
@@ -84,7 +85,7 @@ func main() {
 			client := osc.NewClient(flagHost, flagPort)
 			msg := osc.NewMessage(flagAddress)
 			msg.Append(flagPName)
-			msg.Append(int32(cpuUsage * 1000))
+			msg.Append(int32(math.Round(cpuUsage)))
 			err := client.Send(msg)
 			if err != nil {
 				log.Error(err)

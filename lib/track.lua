@@ -171,8 +171,8 @@ function Track:init()
     {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="gate_note",name="hold (h)",min=0,max=24*16,exp=false,div=1,default=0,formatter=function(param) return param:get()==0 and "full" or string.format("%d pulses",math.floor(param:get())) end},
     {id="decimate",name="decimate (m)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
-    {id="drive",name="drive",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
-    {id="compression",name="compression",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="drive",name="drive",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="compression",name="compression",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="pitch",name="note (n)",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
     {id="rate",name="rate (u)",min=-2,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()*100) end},
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
@@ -191,20 +191,7 @@ function Track:init()
       formatter=pram.formatter,
       action=function(v)
         if pram.id=="send_reverb" then 
-          if v>0 and params:get("reverb_on")==0 then 
-            params:set("reverb_on",1)
-          elseif v==0 and params:get("reverb_on")==1 then 
-            local reverb_off=true
-            for i=1,10 do 
-              if params:get(i.."send_reverb")==1 then 
-                reverb_off=false 
-                break
-              end
-            end
-            if reverb_off then 
-              params:set("reverb_on",0)
-            end
-          end
+          check_reverb()
         end
         if pram.mod then
           if params:get(self.id.."track_type")==TYPE_MXSYNTHS
@@ -270,6 +257,7 @@ function Track:init()
     else
       self:loop_toggle(false)
     end
+    check_reverb()
   end}
   params:add{type="binary",name="mute",id=self.id.."mute",behavior="toggle",action=function(v)
   end}

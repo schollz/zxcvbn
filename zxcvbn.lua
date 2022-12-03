@@ -58,6 +58,8 @@ debounce_fn={}
 osc_fun={}
 dx7_names={}
 cpu_usage={}
+screen_fade_in=0
+norns_keyboard=0
 
 function init()
   -- check if engine file exists
@@ -98,7 +100,6 @@ function init2()
   shift_on=false
   alt_on=false
   meta_on=false
-  norns_keyboard=0
 
   codes_keyboard={}
   for i,v in pairs(keyboard.codes) do
@@ -209,7 +210,7 @@ function init2()
       tracks[id].loop.pos_rec=progress
     end,
     osccpu=function(args)
-      cpu_usage[args[1]]=math.floor(util.round(tonumber(args[2])/1000.0))
+      cpu_usage[args[1]]=tonumber(args[2])
     end,
     amplitude=function(args)
       screens[3]:set_levels(args)
@@ -591,23 +592,23 @@ function draw_message()
     screen.level(0)
     screen.fill()
     screen.rect(x-w/2,y,w+2,10)
-    screen.level(15)
+    screen.level(screen_fade_in)
     screen.stroke()
     screen.move(x,y+7)
-    screen.level(10)
+    screen.level(math.floor(screen_fade_in*2/3))
     screen.text_center(show_message_text)
     if show_message_progress~=nil and show_message_progress>0 then
-      screen.update()
+      -- screen.update()
       screen.blend_mode(13)
       screen.rect(x-w/2,y,w*(show_message_progress/100)+2,9)
-      screen.level(10)
+      screen.level(math.floor(screen_fade_in*2/3))
       screen.fill()
       screen.blend_mode(0)
     else
-      screen.update()
+      -- screen.update()
       screen.blend_mode(13)
       screen.rect(x-w/2,y,w+2,9)
-      screen.level(10)
+      screen.level(math.floor(screen_fade_in*2/3))
       screen.fill()
       screen.blend_mode(0)
       screen.level(0)
@@ -832,6 +833,25 @@ function params_audioin()
   end
   params:set("audioinpanR",1)
   params:set("audioinpanL",-1)
+end
+
+
+function check_reverb()
+  local reverb_should_be_on=false
+  for i=1,10 do 
+    if params:get(i.."play")==1 and params:get(i.."send_reverb")>0 then 
+      reverb_should_be_on=true
+      break
+    end
+  end
+  print("reverb_should_be_on",reverb_should_be_on)
+  if params:get("reverb_on")==0 and reverb_should_be_on then  
+    print("check_reverb on")
+    params:set("reverb_on",1)
+  elseif params:get("reverb_on")==1 and not reverb_should_be_on then 
+    print("check_reverb off")
+    params:set("reverb_on",0)
+  end
 end
 
 function params_reverb()
