@@ -252,7 +252,7 @@ function init2()
       tracks[id].loop.pos_rec=progress
     end,
     osccpu=function(args)
-	    cpu_usage=tonumber(args[1])
+      cpu_usage=tonumber(args[1])/1000.0
     end,
     amplitude=function(args)
       screens[3]:set_levels(args)
@@ -753,9 +753,9 @@ function redraw()
   -- screen.text_right("+10")
 
   -- show cpu usage
-screen.move(126,8)
-screen.level(0)
-screen.text_right(string.format("%2.1f%%",cpu_usage))
+  screen.move(126,6)
+  screen.level(0)
+  screen.text_right(string.format("%2.1f%%",cpu_usage))
   screen.update()
 end
 
