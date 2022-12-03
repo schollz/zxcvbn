@@ -190,6 +190,22 @@ function Track:init()
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,
       action=function(v)
+        if pram.id=="send_reverb" then 
+          if v>0 and params:get("reverb_on")==0 then 
+            params:set("reverb_on",1)
+          elseif v==0 and params:get("reverb_on")==1 then 
+            local reverb_off=true
+            for i=1,10 do 
+              if params:get(i.."send_reverb")==1 then 
+                reverb_off=false 
+                break
+              end
+            end
+            if reverb_off then 
+              params:set("reverb_on",0)
+            end
+          end
+        end
         if pram.mod then
           if params:get(self.id.."track_type")==TYPE_MXSYNTHS
             or params:get(self.id.."track_type")==TYPE_INFINITEPAD

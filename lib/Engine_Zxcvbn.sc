@@ -46,6 +46,23 @@ Engine_Zxcvbn : CroneEngine {
         });
     }
 
+    reverbOn {
+        arg on; // on = 0 or 1
+        var oldSyn = syns.at("reverb");
+        ["reverbOn","reverb"++on.asInteger].postln;
+        syns.put("reverb", Synth.new("reverb"++on.asInteger, [
+            out: buses.at("busCompressible"),
+            outsc: buses.at("busCompressing"),
+            outnsc: buses.at("busNotCompressible"),
+            compressible: 1,
+            compressing: 0,
+            in: buses.at("busReverb"), gate: 0], syns.at("main"), \addBefore));
+        NodeWatcher.register(syns.at("reverb"));
+        if (oldSyn.notNil,{
+            oldSyn.free;
+        });
+    }
+
     alloc {
         // Zxcvbn specific v0.0.1
         var s=context.server;
@@ -995,7 +1012,11 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).send(context.server);
 
-        SynthDef(\padFx, {
+        SynthDef("reverb0", {
+            Out.ar(0,Silent.ar());
+        }).send(context.server);
+
+        SynthDef("reverb1", {
             arg shimmer=1,predelay=20,input_amount=100,input_lowpass_cutoff=10000,
             input_highpass_cutoff=100,input_diffusion_1=75,input_diffusion_2=62.5,
             tail_density=70,decay=50,damping=5500,modulator_frequency=1,modulator_depth=0.1;
@@ -1128,14 +1149,7 @@ Engine_Zxcvbn : CroneEngine {
         syns.put("main",Synth.new(\main,[\tapeBuf,bufs.at("tape"),\outBus,0,\sidechain_mult,8,\inBus,buses.at("busCompressible"),\inBusNSC,buses.at("busNotCompressible"),\inSC,buses.at("busCompressing"),\delay_bufs,bufsDelay,\inDelay,buses.at("busDelay")]));
         NodeWatcher.register(syns.at("main"));
         context.server.sync;
-        syns.put("reverb", Synth.new(\padFx, [
-            out: buses.at("busCompressible"),
-            outsc: buses.at("busCompressing"),
-            outnsc: buses.at("busNotCompressible"),
-            compressible: 1,
-            compressing: 0,
-            in: buses.at("busReverb"), gate: 0], syns.at("main"), \addBefore));
-        NodeWatcher.register(syns.at("reverb"));
+        this.reverbOn(0);
         context.server.sync;
         ouroboro=Ouroboro.new(context.server,buses.at("busTape"),syns.at("main"));
         context.server.sync;
@@ -1845,6 +1859,10 @@ Engine_Zxcvbn : CroneEngine {
 
         this.addCommand("dx7_set","sf", { arg msg;
             dx7syn.value(1,msg[1],msg[2]);
+        });
+
+        this.addCommand("reverb","f", { arg msg;
+            this.reverbOn(msg[1]);
         });
 
 

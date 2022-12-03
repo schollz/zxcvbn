@@ -59,9 +59,6 @@ dx7_names={}
 cpu_usage=0
 
 function init()
-  -- turn reverb off
-  params:set("reverb",1)
-
   -- check if engine file exists
   Needs_Restart=false
   if not util.file_exists(fverb_so) then
@@ -900,6 +897,7 @@ function params_reverb()
   -- modulator_frequency: 1,
   -- modulator_depth: 0.1,
   local params_menu={
+    {id="reverb_on",name="on",min=0,max=1,exp=false,div=1,default=0,formatter=function(param) return param:get()==1 and "on" or "off" end},
     {id="decay",name="decay time",min=0.4,max=100,exp=false,div=0.1,default=4,unit="s"},
     {id="shimmer",name="shimmer",min=0,max=2,exp=false,div=0.01,default=0.15,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="predelay",name="predelay",min=0,max=1000,exp=false,div=1,default=20.0,unit="ms"},
@@ -924,10 +922,24 @@ function params_reverb()
       formatter=pram.formatter,
     }
     params:set_action(pram.id,function(v)
-      if pram.id=="decay" then
-        v=util.clamp(100*math.exp(-1.1/v),0,100)
+      if pram.id=="reverb_on" then
+        engine.reverb(v)
+        if v==1 then 
+          for _, ppram in ipairs(params_menu) do 
+            v=params:get(ppram.id)
+            if ppram.id=="decay" then
+              v=util.clamp(100*math.exp(-1.1/v),0,100)
+            end
+            engine.reverb_set(ppram.id,v)
+          end
+        end
+        do return end 
+      elseif params:get("reverb_on")==1 then 
+        if pram.id=="decay" then
+          v=util.clamp(100*math.exp(-1.1/v),0,100)
+        end
+        engine.reverb_set(pram.id,v)
       end
-      engine.reverb_set(pram.id,v)
     end)
   end
 end

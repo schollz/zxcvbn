@@ -5,6 +5,7 @@ luac.out
 lib/audiowaveform
 lib/acrostic/acrostic
 lib/aubiogo/aubiogo
+lib/osccpu/osccpu
 # luarocks build files
 *.src.rock
 *.zip
