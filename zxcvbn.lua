@@ -188,12 +188,21 @@ function init2()
   end
 
   -- bang params
+  params:bang()
+
   if util.file_exists(_path.data.."zxcvbn/meta/load_default") then
-    print("zxcvbn: loading default")
-    params:default()
-    params:set("load_default",3)
-  else
-    params:bang()
+    print(_path.data.."zxcvbn/pset-last.txt")
+    local f = io.open(_path.data.."zxcvbn/pset-last.txt", "rb")
+    local content=f:read("*all")
+    f:close()
+    print(content)
+    if content~=nil and tonumber(content)~=nil then 
+      print("zxcvbn: loading default")
+      local default_file=string.format("%szxcvbn/zxcvbn-%02d.pset",_path.data,tonumber(content))
+      print("default loading: "..default_file)
+      params:read(default_file)
+      params:set("load_default",3)  
+    end
   end
 
   -- setup osc
