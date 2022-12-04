@@ -267,18 +267,22 @@ function init2()
       end
     end,
     requestsync=function(args)
-      for _,addr in ipairs(other_norns) do
-        osc.send({addr,10111},"/pulsesync",{clock_pulse,clock.get_tempo()})
+      if params:get("norns_sync")>1 then 
+        for _,addr in ipairs(other_norns) do
+          osc.send({addr,10111},"/pulsesync",{clock_pulse,clock.get_tempo()})
+        end
       end
     end,
     pulsesync=function(args)
       print("incoming pulse: "..args[1])
-      clock_pulse=tonumber(args[1])
-      local tempo=tonumber(args[2])
-      if tempo~=clock.get_tempo() then
-        params:set("clock_tempo",tempo)
+      if params:get("norns_sync")<3 then 
+        clock_pulse=tonumber(args[1])
+        local tempo=tonumber(args[2])
+        if tempo~=clock.get_tempo() then
+          params:set("clock_tempo",tempo)
+        end
+        debounce_fn["pulsesync"]={15,function()end}
       end
-      debounce_fn["pulsesync"]={15,function()end}
     end,
     oscpage=function(args)
       local path=args[1]
@@ -336,7 +340,8 @@ function init2()
         -- if (clock_pulse-1)%24==0 then
         --   print("beat",(clock_pulse-1)/24)
         -- end
-        if debounce_fn["pulsesync"]==nil and (clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo() or clock_pulse==1) then
+        if debounce_fn["pulsesync"]==nil and (clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo() or clock_pulse==1) and
+          params:get("norns_sync")>1 then
           current_tempo=clock.get_tempo()
           for _,addr in ipairs(other_norns) do
             osc.send({addr,10111},"/pulsesync",{clock_pulse,current_tempo})
@@ -794,7 +799,8 @@ function params_kick()
 end
 
 function params_meta()
-  params:add_group("META",5)
+  params:add_group("META",6)
+  params:add_option("norns_sync","norns sync",{"follower","follower+leader","leader"},2)
   params:add_option("ambisonics","loop ambisonics",{"no","yes"},1)
   params:add_option("load_default","load default on startup",{"n/a","no","yes"},1)
   params:set_action("load_default",function(x)
