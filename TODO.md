@@ -1,7 +1,26 @@
 # To Do Now (Critical)
 
+
+# To Do Now (Not Critical)
+
+
+# To Do Later (Critical)
+
 - [ ] octave detection doesn't work for <0 @mcpepe
-- [ ] v,y should behave ordered when given choices (so you can do things like 9 v5,0,0,5,0,0,5,0 pe)
+
+# To Do Later (Not Critical)
+
+- [ ] allow chains to playthrough only once
+- [ ] a way to “synchronize” playing a track, so that I can have it start from the top at the next nth division of pulses
+- [ ] third row of keys in mixer should stop/start tracks
+- [ ] non-line ops with a prefix version that is latchin @sixolet
+- [ ] slice stretch synthdef (Using WarpZ)
+- [ ] have tli keep track of originating line and highlight it
+- [ ] use blend_mode to highlight the region being played
+
+# DONE
+
+- [x] v,y should behave ordered when given choices (so you can do things like 9 v5,0,0,5,0,0,5,0 pe)
 - [x] performance mixer @mcepe
 - [x] documentation for "Z" command
 - [x] hook up DX7 to modulate parameters in realtime
@@ -16,23 +35,7 @@
 - [x] DELETE key cursors to docs @mcpepe
 - [x] Add scale locking
 - [x] Ctl+0 doesn't work?
-
-# To Do Now (Not Critical)
-
-- [ ] allow chains to playthrough only once
-
-# To Do Later (Critical)
-
-# To Do Later (Not Critical)
-
-- [ ] parentheses as a subdivision @sixolet
-- [ ] non-line ops with a prefix version that is latchin @sixolet
-- [ ] slice stretch synthdef (Using WarpZ)
-- [ ] have tli keep track of originating line and highlight it
-- [ ] use blend_mode to highlight the region being played
-
-# DONE
-
+- [x] parentheses as a subdivision @sixolet
 - [x] y = transpose (its like note, but isn't affected by retriggers)
 - [x] META > make bundle / load bundle (goes through and produces a shareable PSET, samples, dats, pngs, in a single file)
 - [x] option to automatically load default
