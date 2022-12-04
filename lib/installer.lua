@@ -12,7 +12,7 @@ function Installer:init()
   self.blinky=0
   self.k3debounce=true
   self.fade_in=0
-  show_message("v2.0.0",3000)
+  show_message("v2.0.1",3000)
 end
 
 function Installer:do_install()
