@@ -185,11 +185,8 @@ Engine_Zxcvbn : CroneEngine {
                 snd[1]=SelectX.ar(((pan<0)*pan.abs),[snd[1],DelayN.ar(snd[1],0.03,0.03)]);
                 snd=Balance2.ar(snd[0],snd[1],pan3,amp);
 
-                SendReply.kr(Impulse.kr(10),"/loopPosition",[id,pos/frames]);
-                Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
-                Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+                SendReply.kr(Impulse.kr(5),"/loopPosition",[id,pos/frames]);
                 Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
-                Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
             }).add;
         });
 
@@ -1780,10 +1777,7 @@ Engine_Zxcvbn : CroneEngine {
                     id:id,
                     frames: bufs.at(key).numFrames,
                     bufnum: bufs.at(key),
-                    out: buses.at("busCompressible"),
-                    outsc: buses.at("busCompressing"),
                     outnsc: buses.at("busNotCompressible"),
-                    outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
                 ],syns.at("reverb"),\addBefore).onFree({"freed"+key}));
                 NodeWatcher.register(syns.at(key));
             },{
