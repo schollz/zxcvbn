@@ -41,9 +41,9 @@ end
 
 function Mixer:enc(k,d)
   if k==2 then
-    params:set("mixer_param",d)
+    params:delta("mixer_param",d)
   elseif k==3 then
-    params:set("mixer_factor",d)
+    params:delta("mixer_factor",d)
   end
 end
 
