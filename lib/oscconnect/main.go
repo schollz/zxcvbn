@@ -104,7 +104,7 @@ func server() {
 			return
 		}
 		log.Tracef("recv: %+v", m)
-		log.Tracef("to-and-from time: %+v", time.Since(m.OriginStart))
+		log.Infof("to-and-from time: %+v", time.Since(m.OriginStart))
 	})
 	server := &osc.Server{
 		Addr:       fmt.Sprintf("0.0.0.0:%d", flagRecvPort),
@@ -148,7 +148,7 @@ func main() {
 			}
 
 			// determine the round-trip time
-			for i := 0; i < 10; i++ {
+			for i := 0; i < 20; i++ {
 				sendSync1(d.Address)
 				time.Sleep(500 * time.Millisecond)
 			}
