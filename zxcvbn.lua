@@ -287,7 +287,6 @@ function init2()
     end,
     pulsesync=function(args)
       -- as follower, received final out-and-back to sync up
-      print("incoming pulse: "..args[1])
       if params:get("norns_sync")<3 then
         local original_clock_pulse=tonumber(args[1])
         local other_clock_pulse=tonumber(args[2])
@@ -296,7 +295,7 @@ function init2()
           params:set("clock_tempo",tempo)
         end
         new_clock_pulse=util.round(other_clock_pulse+(clock_pulse-original_clock_pulse)/2)
-        print(string.format("other norns clock: %d, rtt: %d pulses,setting current pulse%d->%d",other_clock_pulse,clock_pulse-original_clock_pulse,clock_pulse,new_clock_pulse))
+        print(string.format("other norns clock: %d @ %d bpm, rtt: %d pulses,setting current pulse%d->%d",other_clock_pulse,tempo,clock_pulse-original_clock_pulse,clock_pulse,new_clock_pulse))
         debounce_fn["dopulsesync"]={15,function()end}
       end
     end,
