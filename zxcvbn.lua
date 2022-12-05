@@ -208,6 +208,7 @@ function init2()
   -- setup osc
   other_norns={}
   clock_pulse=0
+  new_clock_pulse=-1
   osc_fun={
     keyboard=function(args)
       keyboard.code(args[1],tonumber(args[2]))
@@ -263,25 +264,41 @@ function init2()
       print("discovered other norns; "..args[1])
       table.insert(other_norns,args[1])
       for _,addr in ipairs(other_norns) do
-        osc.send({addr,10111},"/requestsync",{})
+        osc.send({addr,10111},"/requestsync",{clock_pulse})
       end
     end,
     requestsync=function(args)
+      -- as leader, send back the current pulse and tempo, along with
+      -- original pulse to offset with christian's algorithm
       if params:get("norns_sync")>1 then 
         for _,addr in ipairs(other_norns) do
-          osc.send({addr,10111},"/pulsesync",{clock_pulse,clock.get_tempo()})
+          osc.send({addr,10111},"/pulsesync",{args[1],clock_pulse,clock.get_tempo()})
+        end
+      end
+    end,
+    dopulsesync=function(args)
+      -- as follower, received request from leader to sync up
+      -- send out the current pulse to use with christian's algorithm
+      if params:get("norns_sync")<3 then 
+        for _,addr in ipairs(other_norns) do
+          osc.send({addr,10111},"/requestsync",{clock_pulse})
         end
       end
     end,
     pulsesync=function(args)
+      -- as follower, received final out-and-back to sync up
       print("incoming pulse: "..args[1])
       if params:get("norns_sync")<3 then 
-        clock_pulse=tonumber(args[1])
-        local tempo=tonumber(args[2])
+        local original_clock_pulse=tonumber(args[1])
+        local other_clock_pulse=tonumber(args[2])
+        local tempo=tonumber(args[3])
         if tempo~=clock.get_tempo() then
           params:set("clock_tempo",tempo)
         end
-        debounce_fn["pulsesync"]={15,function()end}
+        new_clock_pulse=util.round(other_clock_pulse+(clock_pulse-original_clock_pulse)/2)
+        print(string.format("other norns clock: %d, rtt: %d pulses", setting current pulse %d -> %d",
+          other_clock_pulse, clock_pulse-original_clock_pulse, clock_pulse, new_clock_pulse)
+        debounce_fn["dopulsesync"]={15,function()end}
       end
     end,
     oscpage=function(args)
@@ -332,6 +349,10 @@ function init2()
   clock.run(function()
     while true do
       clock_pulse=clock_pulse+1
+      if new_clock_pulse>0 then 
+        clock_pulse=new_clock_pulse
+        new_clock_pulse=-1
+      end
       for _,track in ipairs(tracks) do
         track:emit(clock_pulse)
       end
@@ -340,11 +361,12 @@ function init2()
         -- if (clock_pulse-1)%24==0 then
         --   print("beat",(clock_pulse-1)/24)
         -- end
-        if debounce_fn["pulsesync"]==nil and (clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo() or clock_pulse==1) and
+        if debounce_fn["dopulsesync"]==nil and (clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo() or clock_pulse==1) and
           params:get("norns_sync")>1 then
           current_tempo=clock.get_tempo()
+          -- leader tells other norns to sync up
           for _,addr in ipairs(other_norns) do
-            osc.send({addr,10111},"/pulsesync",{clock_pulse,current_tempo})
+            osc.send({addr,10111},"/dopulsesync",{})
           end
           clock_pulse_sync=math.random(24*12,24*48)
         end
