@@ -22,6 +22,18 @@ func init() {
 	flag.StringVar(&flagAddress, "addr", "/oscdiscover", "osc address")
 }
 
+func server() {
+	d := osc.NewStandardDispatcher()
+	d.AddMsgHandler("/sync1", func(msg *osc.Message) {
+		osc.PrintMessage(msg)
+	})
+	server := &osc.Server{
+		Addr:       "0.0.0.0:8765",
+		Dispatcher: d,
+	}
+	server.ListenAndServer()
+}
+
 func main() {
 	flag.Parse()
 	log.SetLevel("info")
