@@ -233,8 +233,12 @@ function VTerm:change_octave_in_line(str,octave_change)
   for i=2,#str do
     local c1=str:sub(i,i)
     local c0=str:sub(i-1,i-1)
-    if tonumber(c1)~=nil and (c0==";" or (string.byte(c0)>=string.byte("a") and string.byte(c0)<=string.byte("g")) or c0=="#") then
-      str=str:sub(1,i-1)..(tonumber(c1)+octave_change)..str:sub(i+1)
+    local c1neg=str:sub(i-2,i-2)
+    if tonumber(c1)~=nil and 
+      (c0==";" or  (string.byte(c0)>=string.byte("a") and string.byte(c0)<=string.byte("g")) or c0=="#") then
+      str=str:sub(1,i-1)..math.floor(tonumber(c1)+octave_change)..str:sub(i+1)
+    elseif tonumber(c1)~=nil and c0=="-" and (c1neg==";" or  (string.byte(c1neg)>=string.byte("a") and string.byte(c1neg)<=string.byte("g")) or c1neg=="#")  then 
+        str=str:sub(1,i-2)..math.floor(tonumber(c0..c1)+octave_change)..str:sub(i+1)
     end
   end
   return str
