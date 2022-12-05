@@ -294,8 +294,11 @@ function init2()
         if tempo~=clock.get_tempo() then
           params:set("clock_tempo",tempo)
         end
-        new_clock_pulse=util.round(other_clock_pulse+(clock_pulse-original_clock_pulse)/2)
-        print(string.format("other norns clock: %d @ %d bpm, rtt: %d pulses,setting current pulse%d->%d",other_clock_pulse,tempo,clock_pulse-original_clock_pulse,clock_pulse,new_clock_pulse))
+        local new_clock_pulse1=util.round(other_clock_pulse+(clock_pulse-original_clock_pulse)/2)
+        if math.abs(new_clock_pulse1-clock_pulse)>1 then
+          print(string.format("other norns clock: %d @ %d bpm, rtt: %d pulses,setting current pulse%d->%d",other_clock_pulse,tempo,clock_pulse-original_clock_pulse,clock_pulse,new_clock_pulse1))
+          new_clock_pulse=new_clock_pulse1
+        end
         debounce_fn["dopulsesync"]={15,function()end}
       end
     end,
