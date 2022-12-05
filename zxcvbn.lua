@@ -296,8 +296,7 @@ function init2()
           params:set("clock_tempo",tempo)
         end
         new_clock_pulse=util.round(other_clock_pulse+(clock_pulse-original_clock_pulse)/2)
-        print(string.format("other norns clock: %d, rtt: %d pulses",setting current pulse%d->%d",
-          other_clock_pulse, clock_pulse-original_clock_pulse, clock_pulse, new_clock_pulse))
+        print(string.format("other norns clock: %d, rtt: %d pulses,setting current pulse%d->%d",other_clock_pulse,clock_pulse-original_clock_pulse,clock_pulse,new_clock_pulse))
         debounce_fn["dopulsesync"]={15,function()end}
       end
     end,
@@ -349,7 +348,7 @@ function init2()
   clock.run(function()
     while true do
       clock_pulse=clock_pulse+1
-      if new_clock_pulse>0 then 
+      if new_clock_pulse>0 then
         clock_pulse=new_clock_pulse
         new_clock_pulse=-1
       end
@@ -1238,4 +1237,4 @@ F;2 rtud t6 s7
   ]])
 end
 
-         
+
