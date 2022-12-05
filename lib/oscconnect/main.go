@@ -117,6 +117,8 @@ func main() {
 	flag.Parse()
 	log.SetLevel("info")
 
+	go server()
+
 	// discover peers
 	discovered := make(map[string]struct{})
 	_, err := peerdiscovery.Discover(peerdiscovery.Settings{
