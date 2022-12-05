@@ -301,8 +301,8 @@ func processPattern(texts []string, pattern Pattern) (texts2 []string, err error
 	}
 
 	mMinNum, mMaxNum := rearrangeMatrix(m)
-	mMin := assignNotes(mMinNum, []int{0, 1, 2})
-	mMax := assignNotes(mMaxNum, []int{2, 3, 3})
+	mMin := assignNotes(mMinNum, []int{2, 3, 3})
+	mMax := assignNotes(mMaxNum, []int{4, 4, 5})
 	log.Tracef("els: %+v", els)
 	log.Tracef("mMin:\n%s", printMatrixS(mMin))
 	printMatrixS(mMax)
