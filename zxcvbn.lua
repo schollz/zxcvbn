@@ -192,22 +192,23 @@ function init2()
 
   if util.file_exists(_path.data.."zxcvbn/meta/load_default") then
     print(_path.data.."zxcvbn/pset-last.txt")
-    local f = io.open(_path.data.."zxcvbn/pset-last.txt", "rb")
+    local f=io.open(_path.data.."zxcvbn/pset-last.txt","rb")
     local content=f:read("*all")
     f:close()
     print(content)
-    if content~=nil and tonumber(content)~=nil then 
+    if content~=nil and tonumber(content)~=nil then
       print("zxcvbn: loading default")
       local default_file=string.format("%szxcvbn/zxcvbn-%02d.pset",_path.data,tonumber(content))
       print("default loading: "..default_file)
       params:read(default_file)
-      params:set("load_default",3)  
+      params:set("load_default",3)
     end
   end
 
   -- setup osc
   other_norns={}
   clock_pulse=0
+  new_clock_pulse=-1
   osc_fun={
     keyboard=function(args)
       keyboard.code(args[1],tonumber(args[2]))
@@ -263,25 +264,42 @@ function init2()
       print("discovered other norns; "..args[1])
       table.insert(other_norns,args[1])
       for _,addr in ipairs(other_norns) do
-        osc.send({addr,10111},"/requestsync",{})
+        osc.send({addr,10111},"/requestsync",{clock_pulse})
       end
     end,
     requestsync=function(args)
-      if params:get("norns_sync")>1 then 
+      -- as leader, send back the current pulse and tempo, along with
+      -- original pulse to offset with christian's algorithm
+      if params:get("norns_sync")>1 then
         for _,addr in ipairs(other_norns) do
-          osc.send({addr,10111},"/pulsesync",{clock_pulse,clock.get_tempo()})
+          osc.send({addr,10111},"/pulsesync",{args[1],clock_pulse,clock.get_tempo()})
+        end
+      end
+    end,
+    dopulsesync=function(args)
+      -- as follower, received request from leader to sync up
+      -- send out the current pulse to use with christian's algorithm
+      if params:get("norns_sync")<3 then
+        for _,addr in ipairs(other_norns) do
+          osc.send({addr,10111},"/requestsync",{clock_pulse})
         end
       end
     end,
     pulsesync=function(args)
-      print("incoming pulse: "..args[1])
-      if params:get("norns_sync")<3 then 
-        clock_pulse=tonumber(args[1])
-        local tempo=tonumber(args[2])
+      -- as follower, received final out-and-back to sync up
+      if params:get("norns_sync")<3 then
+        local original_clock_pulse=tonumber(args[1])
+        local other_clock_pulse=tonumber(args[2])
+        local tempo=tonumber(args[3])
         if tempo~=clock.get_tempo() then
           params:set("clock_tempo",tempo)
         end
-        debounce_fn["pulsesync"]={15,function()end}
+        local new_clock_pulse1=util.round(other_clock_pulse+(clock_pulse-original_clock_pulse)/2)
+        if math.abs(new_clock_pulse1-clock_pulse)>1 then
+          print(string.format("other norns clock: %d @ %d bpm, rtt: %d pulses,setting current pulse%d->%d",other_clock_pulse,tempo,clock_pulse-original_clock_pulse,clock_pulse,new_clock_pulse1))
+          new_clock_pulse=new_clock_pulse1
+        end
+        debounce_fn["dopulsesync"]={15,function()end}
       end
     end,
     oscpage=function(args)
@@ -332,6 +350,10 @@ function init2()
   clock.run(function()
     while true do
       clock_pulse=clock_pulse+1
+      if new_clock_pulse>0 then
+        clock_pulse=new_clock_pulse
+        new_clock_pulse=-1
+      end
       for _,track in ipairs(tracks) do
         track:emit(clock_pulse)
       end
@@ -340,11 +362,12 @@ function init2()
         -- if (clock_pulse-1)%24==0 then
         --   print("beat",(clock_pulse-1)/24)
         -- end
-        if debounce_fn["pulsesync"]==nil and (clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo() or clock_pulse==1) and
+        if debounce_fn["dopulsesync"]==nil and (clock_pulse%clock_pulse_sync==0 or current_tempo~=clock.get_tempo() or clock_pulse==1) and
           params:get("norns_sync")>1 then
           current_tempo=clock.get_tempo()
+          -- leader tells other norns to sync up
           for _,addr in ipairs(other_norns) do
-            osc.send({addr,10111},"/pulsesync",{clock_pulse,current_tempo})
+            osc.send({addr,10111},"/dopulsesync",{})
           end
           clock_pulse_sync=math.random(24*12,24*48)
         end
@@ -384,7 +407,7 @@ function init2()
 
   if util.file_exists(_path.data.."zxcvbn/first") then
     params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
-    os.execute("rm -f ".._path.data.."zxcvbn/first")
+    os.execute("rm-f ".._path.data.."zxcvbn/first")
     params:set("clock_tempo",150)
   end
 
@@ -434,7 +457,7 @@ function rerun()
 end
 
 function cleanup()
-  os.execute("pkill -f oscnotify")
+  os.execute("pkill-f oscnotify")
 end
 
 function reset_clocks()
@@ -469,12 +492,12 @@ function keyboard.code(k,v)
   if meta_on and tonumber(k)~=nil and tonumber(k)>=0 and tonumber(k)<=9 then
     norns_keyboard=tonumber(k)-1
     if norns_keyboard==0 then
-      show_message("keyboard -> local",3)
+      show_message("keyboard->local",3)
     else
       if norns_keyboard>#other_norns then
         norns_keyboard=0
       else
-        show_message("keyboard -> "..other_norns[norns_keyboard],3)
+        show_message("keyboard->"..other_norns[norns_keyboard],3)
       end
     end
     do return end
@@ -1215,3 +1238,5 @@ Dm;2 rtu t6 s9
 F;2 rtud t6 s7
   ]])
 end
+
+
