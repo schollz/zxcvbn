@@ -783,11 +783,11 @@ function Track:parse_tli()
   -- update the meta
   if self.tli.meta~=nil then
     for k,v in pairs(self.tli.meta) do
-      if params.name_to_id[k]~=nil then
-        local id=params.name_to_id[k]
+      local id=params.name_to_id[k]
+      if id~=nil then 
         id = id:gsub('%d','')
-        print("META"..id)
-        if params.id_to_name[self.id..id]~=nil then 
+      end
+      if params.name_to_id[k]~=nil and params.id_to_name[self.id..id]~=nil then 
           local ok,err=pcall(function()
             print("setting "..self.id..id.." = "..v)
             params:set(self.id..id,v)
@@ -795,7 +795,6 @@ function Track:parse_tli()
           if not ok then
             show_message("error setting "..params.id_to_name[self.id..id])
           end
-        end
       elseif params.id_to_name[k]~=nil then
         local ok,err=pcall(function()
           print("setting "..k.." = "..v)
