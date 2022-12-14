@@ -10,6 +10,8 @@
 
 # To Do Later (Not Critical)
 
+- [ ] sometimes saving a song goes to track 1
+- [ ] ctrl+space doesn't toggle mixer @mcpepe
 - [ ] allow chains to playthrough only once
 - [ ] a way to “synchronize” playing a track, so that I can have it start from the top at the next nth division of pulses
 - [ ] third row of keys in mixer should stop/start tracks
