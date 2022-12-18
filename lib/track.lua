@@ -531,7 +531,7 @@ self.play_fn[TYPE_SOFTSAMPLE]={
 self.play_fn[TYPE_CROW]={
   note_off=function(d,mods)
     local i=(params:get(self.id.."crow_type")-1)*2+1
-    local crow_asl=string.format("{to(0,%3.3f)}",params:get(self.id.."release")/1000)
+    local crow_asl=string.format("{to(0.001,%3.3f,exponential)}",params:get(self.id.."release")/1000)
     print(crow_asl)
     crow.output[i+1].action=crow_asl
     crow.output[i+1]()
@@ -544,7 +544,7 @@ self.play_fn[TYPE_CROW]={
     duration=duration>0 and duration or d.duration_scaled
     if level>0 then
       -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
-      local crow_asl=string.format("{to(%3.3f,%3.3f), to(%3.3f,%3.3f), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,params:get(self.id.."crow_sustain"),duration,params:get(self.id.."release")/1000)
+      local crow_asl=string.format("{to(%3.3f,%3.3f,logarithmic), to(%3.3f,%3.3f,exponential), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,params:get(self.id.."crow_sustain"),duration,params:get(self.id.."release")/1000)
       print(i+1,note,crow_asl)
       crow.output[i+1].action=crow_asl
       crow.output[i].volts=(note-24)/12
