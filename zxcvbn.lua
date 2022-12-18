@@ -822,7 +822,7 @@ function params_kick()
 end
 
 function params_meta()
-  params:add_group("META",6)
+  params:add_group("META",7)
   params:add_option("norns_sync","norns sync",{"follower","follower+leader","leader"},2)
   params:add_option("ambisonics","loop ambisonics",{"no","yes"},1)
   params:add_option("load_default","load default on startup",{"n/a","no","yes"},1)
@@ -834,6 +834,7 @@ function params_meta()
     end
   end)
   archive_:new()
+  params:add_option("grid_mono","grid mono",{"no","yes"},2)
 end
 
 function params_audioin()

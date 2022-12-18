@@ -45,7 +45,6 @@ function GGrid:new(args)
   m.grid_refresh:start()
 
   self.pressed_buttons={}
-
   return m
 end
 
@@ -70,8 +69,12 @@ function GGrid:key_press(row,col,on)
   print(note)
   if on then 
     play_fn.note_on({duration_scaled=10,note_to_emit=note},{})
-  elseif play_fn.note_off~=nil then  
-    play_fn.note_off({note_to_emit=note})
+                                                                         elseif play_fn.note_off~=nil then  
+    if params:get("grid_mono")==2 and next(self.pressed_buttons)~=nil then 
+      -- do not do note off
+    else
+      play_fn.note_off({note_to_emit=note})
+    end
   end
 end
 
