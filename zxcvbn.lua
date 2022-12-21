@@ -35,6 +35,7 @@ installer_=include("lib/installer")
 tracker_=include("lib/tracker")
 mixer_=include("lib/mixer")
 softsample_=include("lib/softsample")
+lseq_=include("lib/lseq")
 grid_=include("lib/ggrid")
 tli_=include("lib/tli")
 archive_=include("lib/archive")
@@ -375,7 +376,6 @@ function init2()
       clock.sync(1/24)
     end
   end)
-
 
   -- setup polls
   pitch_polls={}
@@ -874,7 +874,6 @@ function params_audioin()
   params:set("audioinpanL",-1)
 end
 
-
 function check_reverb()
   local reverb_should_be_on=false
   for i=1,10 do
@@ -1239,5 +1238,3 @@ Dm;2 rtu t6 s9
 F;2 rtud t6 s7
   ]])
 end
-
-

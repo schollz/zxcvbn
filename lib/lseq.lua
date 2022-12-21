@@ -18,6 +18,7 @@ function Lseq:init()
     64,64,64,64,64,64,64,
   }
   self.current_step=0
+  self.current_places={}
 
   for i=1,15 do
     self.d.steps[i]={
@@ -43,13 +44,13 @@ function Lseq:update()
         local note_ind=((9-row)+(4*(col-1))-1)%#tracks[self.id].scale_notes+1
         local note=tracks[self.id].scale_notes[note_ind]
         if step.arp then
-          table.insert(seqs,{pulse=1+total_pulses+(j-1)*math.floor(pulses/#step.places),notes={note}})
+          table.insert(seqs,{pulse=1+total_pulses+(j-1)*math.floor(pulses/#step.places),notes={note},places={rowcol}})
         else
           table.insert(notes,note)
         end
       end
       if not step.arp then
-        table.insert(seqs,{pulses=1+total_pulses,notes=notes,step=i})
+        table.insert(seqs,{pulses=1+total_pulses,notes=notes,step=i,places=step.places})
       end
       total_pulses=total_pulses+pulses
     end
@@ -57,7 +58,7 @@ function Lseq:update()
   self.d.pulses=total_pulses
   self.d.seq={}
   for _,v in ipairs(seqs) do
-    self.d.seq[v.pulses]={pulses=v.pulses,notes=v.notes,step=v.step}
+    self.d.seq[v.pulses]={pulses=v.pulses,notes=v.notes,step=v.step,places=step.places}
   end
 end
 
@@ -87,6 +88,20 @@ end
 
 function Lseq:get_play()
   return self.d.play
+end
+
+function Lseq:get_current_step()
+  if not self.play then
+    do return end
+  end
+  return self.current_step
+end
+
+function Lseq:get_current_places()
+  if not self.play then
+    do return end
+  end
+  return self.current_places
 end
 
 ------------------------------------------------
@@ -151,6 +166,7 @@ function Lseq:emit(beat)
     do return end
   end
   self.current_step=d.seq[i].step
+  self.current_places=dseq[i].places
   for _,note in ipairs(self.d.seq[i].notes) do
     local d={duration=i}
     d.duration_scaled=d.duration*(clock.get_beat_sec()/24)
@@ -159,7 +175,7 @@ function Lseq:emit(beat)
       -- add transposition to note before getting scale
       note_to_emit=track[self.id]:note_in_scale(note_to_emit+params:get(self.id.."transpose"))
     end
-    if note_to_emit==nil or params:get(self.id.."mute")==1 then
+    if note_to_emit==nil then
       do return end
     end
     if math.random(0,100)<=params:get(self.id.."probability") then

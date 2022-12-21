@@ -49,6 +49,8 @@ function Track:init()
 
   self.loop={pos_play=-1,pos_rec=-1,arm_play=false,arm_rec=false,send_tape=0}
 
+  self.lseq=lseq_:new{id=self.id}
+
   self.track_type_options={"mx.synths","dx7","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
 
@@ -190,7 +192,7 @@ function Track:init()
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,
       action=function(v)
-        if pram.id=="send_reverb" then 
+        if pram.id=="send_reverb" then
           check_reverb()
         end
         if pram.mod then
@@ -722,6 +724,7 @@ function Track:dumps()
     end
   end
   data.state=self.state
+  data.lseq=self.lseq.d
   engine.loop_save(self.id,_path.data.."zxcvbn/tapes/"..params:get("random_string").."_")
   return json.encode(data)
 end
@@ -741,6 +744,9 @@ function Track:loads(s)
   end
   engine.loop_load(self.id,_path.data.."zxcvbn/tapes/"..params:get("random_string").."_")
   self.state=data.state
+  if data.lseq~=nil then
+    self.lseq.d=data.lseq
+  end
 end
 
 function Track:load_text(text)
@@ -759,7 +765,7 @@ end
 function Track:parse_tli()
   print("parsing",self.id)
   local text=self.states[STATE_VTERM]:get_text()
-  if text~="" and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE and not softcut_enabled then 
+  if text~="" and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE and not softcut_enabled then
     setup_softcut()
   end
   local tli_parsed=nil
@@ -784,17 +790,17 @@ function Track:parse_tli()
   if self.tli.meta~=nil then
     for k,v in pairs(self.tli.meta) do
       local id=params.name_to_id[k]
-      if id~=nil then 
-        id = id:gsub('%d','')
+      if id~=nil then
+        id=id:gsub('%d','')
       end
-      if params.name_to_id[k]~=nil and params.id_to_name[self.id..id]~=nil then 
-          local ok,err=pcall(function()
-            print("setting "..self.id..id.." = "..v)
-            params:set(self.id..id,v)
-          end)
-          if not ok then
-            show_message("error setting "..params.id_to_name[self.id..id])
-          end
+      if params.name_to_id[k]~=nil and params.id_to_name[self.id..id]~=nil then
+        local ok,err=pcall(function()
+          print("setting "..self.id..id.." = "..v)
+          params:set(self.id..id,v)
+        end)
+        if not ok then
+          show_message("error setting "..params.id_to_name[self.id..id])
+        end
       elseif params.id_to_name[k]~=nil then
         local ok,err=pcall(function()
           print("setting "..k.." = "..v)
@@ -821,6 +827,9 @@ function Track:parse_tli()
 end
 
 function Track:emit(beat)
+  -- activate any lseq notes
+  self.lseq:emit(beat)
+
   -- turn off any midi notes
   if next(self.midi_notes)~=nil then
     local to_remove={}

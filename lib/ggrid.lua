@@ -44,8 +44,9 @@ function GGrid:new(args)
   end
   m.grid_refresh:start()
 
-  self.step=1
-  self.pressed_buttons={}
+  m.step=1
+  m.pressed_buttons={}
+  m.blinky={15,15,7}
   return m
 end
 
@@ -116,10 +117,16 @@ function GGrid:key_press(row,col,on)
 end
 
 function GGrid:get_visual()
+  self.blinky[1]=self.blinky[1]-1
+  if self.blinky[1]==0 then
+    self.blinky[1]=self.blinky[2]
+  end
+
+  local lseq=tracks[params:get("track")].lseq
   -- clear visual
   for row=1,8 do
     for col=1,self.grid_width do
-      if self.visualf[row][col]>0 and self.pressed_buttons[row..","..col]==nil then
+      if row<8 and col>1 and self.visualf[row][col]>0 and self.pressed_buttons[row..","..col]==nil then
         local release=params:get(params:get("track").."monophonic_release")>0 and params:get(params:get("track").."monophonic_release") or params:get(params:get("track").."release")
         release=release/1000
         self.visualf[row][col]=self.visualf[row][col]-15/(release/self.grid_refresh.time)
@@ -127,7 +134,7 @@ function GGrid:get_visual()
           self.visualf[row][col]=0
         end
       end
-      if self.visualf[row][col]>0 then
+      if row<8 and col>1 and self.visualf[row][col]>0 then
         self.visual[row][col]=util.round(self.visualf[row][col])
       else
         self.visual[row][col]=0
@@ -135,13 +142,51 @@ function GGrid:get_visual()
     end
   end
 
+  -- illuminate the steps
+  for col=2,16 do
+    local level=2
+    if lseq.d.steps[col-1].active then
+      level=level+5
+    end
+    if lseq.current_step==col-1 then
+      level=level+7
+    end
+    self.visual[8][col]=level
+  end
+
+  -- illuminate the meters
+  for row=1,7 do
+    local level=2
+    if lseq.d.steps[self.step].ppm==row then
+      level=level+6
+    end
+    if lseq.d.steps[self.step].arp then
+      level=level+(self.blinky[1]>self.blinky[3] and 7 or 0)
+    end
+    self.visual[row][1]=level
+  end
+
+  -- visualize the playing
+  self.visual[8][1]=lseq.play and 15 or 0
+
+  -- illuminate playing notes
+  if lseq.play then
+    for _,rowcol in ipairs(lseq.current_places) do
+      self.visual[rowcol[1]][rowcol[2]]=10
+    end
+  end
+
   -- illuminate currently pressed button
   for k,_ in pairs(self.pressed_buttons) do
     local row,col=k:match("(%d+),(%d+)")
-    if self.visualf[tonumber(row)][tonumber(col)]<15 then
-      self.visualf[tonumber(row)][tonumber(col)]=self.visualf[tonumber(row)][tonumber(col)]+15/(params:get(params:get("track").."attack")/1000/self.grid_refresh.time)
-      if self.visualf[tonumber(row)][tonumber(col)]>15 then
-        self.visualf[tonumber(row)][tonumber(col)]=15
+    row=tonumber(row)
+    col=tonumber(col)
+    if row<8 and col>1 then
+      if self.visualf[row][col]<15 then
+        self.visualf[row][col]=self.visualf[row][col]+15/(params:get(params:get("track").."attack")/1000/self.grid_refresh.time)
+        if self.visualf[row][col]>15 then
+          self.visualf[row][col]=15
+        end
       end
     end
   end
