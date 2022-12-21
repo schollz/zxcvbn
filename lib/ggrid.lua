@@ -63,12 +63,14 @@ function GGrid:key_press(row,col,on)
     hold_time=ct-self.pressed_buttons[row..","..col]
     self.pressed_buttons[row..","..col]=nil
   end
-  local track=params:get("track")
+  local track=col<9 and params:get("track") or (params:get("track")+1)
+  if track>10 then
+    track=1
+  end
   local colnote=col<9 and col or col-8
-  local play_fn=tracks[params:get("track")].play_fn[params:get(params:get("track").."track_type")]
-  local note_ind=((9-row)+(4*(colnote-1))-1)%#tracks[params:get("track")].scale_notes+1
-  local note=tracks[params:get("track")].scale_notes[note_ind]
-  print(note)
+  local play_fn=tracks[track].play_fn[params:get(track.."track_type")]
+  local note_ind=((9-row)+(4*(colnote-1))-1)%#tracks[track].scale_notes+1
+  local note=tracks[track].scale_notes[note_ind]
   if on then
     play_fn.note_on({duration_scaled=10,note_to_emit=note},{})
   elseif play_fn.note_off~=nil then
@@ -85,7 +87,11 @@ function GGrid:get_visual()
   for row=1,8 do
     for col=1,self.grid_width do
       if self.visualf[row][col]>0 and self.pressed_buttons[row..","..col]==nil then
-        local release=params:get(params:get("track").."monophonic_release")>0 and params:get(params:get("track").."monophonic_release") or params:get(params:get("track").."release")
+        local track=col<9 and params:get("track") or (params:get("track")+1)
+        if track>10 then
+          track=1
+        end
+        local release=params:get(track.."monophonic_release")>0 and params:get(track.."monophonic_release") or params:get(track.."release")
         release=release/1000
         self.visualf[row][col]=self.visualf[row][col]-15/(release/self.grid_refresh.time)
         if self.visualf[row][col]<0 then
@@ -104,7 +110,11 @@ function GGrid:get_visual()
   for k,_ in pairs(self.pressed_buttons) do
     local row,col=k:match("(%d+),(%d+)")
     if self.visualf[tonumber(row)][tonumber(col)]<15 then
-      self.visualf[tonumber(row)][tonumber(col)]=self.visualf[tonumber(row)][tonumber(col)]+15/(params:get(params:get("track").."attack")/1000/self.grid_refresh.time)
+      local track=col<9 and params:get("track") or (params:get("track")+1)
+      if track>10 then
+        track=1
+      end
+      self.visualf[tonumber(row)][tonumber(col)]=self.visualf[tonumber(row)][tonumber(col)]+15/(params:get(track.."attack")/1000/self.grid_refresh.time)
       if self.visualf[tonumber(row)][tonumber(col)]>15 then
         self.visualf[tonumber(row)][tonumber(col)]=15
       end
