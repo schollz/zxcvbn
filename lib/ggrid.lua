@@ -69,7 +69,9 @@ function GGrid:key_press(row,col,on)
     -- update lseq    --
     --------------------
 
-    tracks[params:get("track")].lseq:toggle_note(self.step,row,col)
+    if on then 
+      tracks[params:get("track")].lseq:toggle_note(self.step,row,col)
+    end
 
     --------------------
     -- play the note  --
@@ -80,18 +82,22 @@ function GGrid:key_press(row,col,on)
     if on then
       play_fn.note_on({duration_scaled=10,note_to_emit=note},{})
     elseif play_fn.note_off~=nil then
-      if params:get("grid_mono")==2 and next(self.pressed_buttons)~=nil then
-        -- do not do note off
-      else
         play_fn.note_off({note_to_emit=note})
-      end
     end
   elseif row==8 and col==1 then
     --------------------
     -- toggle play    --
     --------------------
-    tracks[params:get("track")].lseq:toggle_play()
+    if on then 
+      tracks[params:get("track")].lseq:toggle_play()
+    end
+    if hold_time>2 then 
+      tracks[params:get("track")].lseq:clear()      
+    end
   elseif row==8 and col>1 then
+    if on then 
+      do return end 
+    end
     --------------------
     -- change step    --
     --------------------
@@ -103,12 +109,15 @@ function GGrid:key_press(row,col,on)
       self.step=col-1
     end
   elseif col==1 and row<8 then
+    if on then 
+      do return end 
+    end
     --------------------
     -- pulses/arp     --
     --------------------
     if hold_time<0.3 then
       -- short press changes the pulses per measure
-      tracks[params:get("track")].lseq:set_ppm(self.step)
+      tracks[params:get("track")].lseq:set_ppm(self.step,row)
     else
       -- long press changes arp type
       tracks[params:get("track")].lseq:toggle_arp(self.step)
@@ -146,10 +155,13 @@ function GGrid:get_visual()
   for col=2,16 do
     local level=2
     if lseq.d.steps[col-1].active then
-      level=level+5
+      level=level+3
     end
-    if lseq.current_step==col-1 then
-      level=level+7
+    if lseq.d.play and lseq.current_step==col-1 then
+      level=level+4
+    end
+    if col-1==self.step then
+      level=level+(self.blinky[1]>self.blinky[3] and level or 2)
     end
     self.visual[8][col]=level
   end
@@ -159,21 +171,26 @@ function GGrid:get_visual()
     local level=2
     if lseq.d.steps[self.step].ppm==row then
       level=level+6
-    end
-    if lseq.d.steps[self.step].arp then
-      level=level+(self.blinky[1]>self.blinky[3] and 7 or 0)
+      if lseq.d.steps[self.step].arp then
+        level=level+(self.blinky[1]>self.blinky[3] and 7 or 0)
+      end
     end
     self.visual[row][1]=level
   end
 
   -- visualize the playing
-  self.visual[8][1]=lseq.play and 15 or 0
+  self.visual[8][1]=lseq.d.play and 15 or 0
 
   -- illuminate playing notes
-  if lseq.play then
+  if lseq.d.play then
     for _,rowcol in ipairs(lseq.current_places) do
       self.visual[rowcol[1]][rowcol[2]]=10
     end
+  end
+
+  -- illuminate added notes 
+  for _, rowcol in ipairs(lseq.d.steps[self.step].places) do 
+    self.visual[rowcol[1]][rowcol[2]]=self.visual[rowcol[1]][rowcol[2]]+2
   end
 
   -- illuminate currently pressed button

@@ -6,6 +6,7 @@ Engine_Zxcvbn : CroneEngine {
     // Zxcvbn specific v0.1.0
     var buses;
     var syns;
+    var nons; // notes on
     var mods;
     var im;
     var bufs; 
@@ -74,6 +75,7 @@ Engine_Zxcvbn : CroneEngine {
         oscs = Dictionary.new();
         mods = Dictionary.new();
         im = Dictionary.new();
+        nons = Dictionary.new();
         bufsDelay = Buffer.allocConsecutive(2,context.server,48000*4,1);
         
 
@@ -1662,6 +1664,7 @@ Engine_Zxcvbn : CroneEngine {
                 pan: pan,
                 attack: attack,
                 release: release,
+                gate_release: release,
                 mod1: mod1,
                 mod2: mod2,
                 mod3: mod3,
@@ -1693,6 +1696,7 @@ Engine_Zxcvbn : CroneEngine {
                                 pan: pan,
                                 attack: attack,
                                 release: release,
+                                gate_release: release,
                                 mod1: mod1,
                                 mod2: mod2,
                                 mod3: mod3,
@@ -1718,8 +1722,21 @@ Engine_Zxcvbn : CroneEngine {
             if (monophonic_release>0,{
                 syns.put(id,syn);
             });
+            nons.put(id++note.floor,syn);
             this.synthWatch(id,syn);
         });
+
+        this.addCommand("mx_synths_note_off","sf", { arg msg;
+            var key=msg[1]++(msg[2].asFloat.floor);
+            // ["mx_synths_note_off",key].postln;
+            if (nons.at(key).notNil,{
+                // ["mx_synths_note_off",key,"notNil"].postln;
+                if (nons.at(key).isRunning,{
+                    // ["mx_synths_note_off",key,"notNil","isRunning"].postln;
+                    nons.at(key).set("gate_done",1);
+                });
+            });
+        }); 
 
         // ^ Zxcvbn specific
 

@@ -458,6 +458,10 @@ self.play_fn[TYPE_MXSAMPLES]={
 }
 -- mx.synths
 self.play_fn[TYPE_MXSYNTHS]={
+  note_off=function(d)
+    local note=d.note_to_emit+params:get(self.id.."pitch")
+    engine.mx_synths_note_off(self.id,note)
+  end,
   note_on=function(d,mods)
     local synth=params:string(self.id.."mx_synths")
     local note=d.note_to_emit+params:get(self.id.."pitch")
@@ -531,7 +535,12 @@ self.play_fn[TYPE_SOFTSAMPLE]={
 }
 -- crow
 self.play_fn[TYPE_CROW]={
+  last_note=0,
   note_off=function(d,mods)
+    local note=d.note_to_emit+params:get(self.id.."pitch")
+    if self.play_fn[TYPE_CROW].last_note~=note then 
+      do return end 
+    end
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local crow_asl=string.format("{to(0.001,%3.3f,exponential)}",params:get(self.id.."release")/1000)
     print(crow_asl)
@@ -542,6 +551,7 @@ self.play_fn[TYPE_CROW]={
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
     local note=d.note_to_emit+params:get(self.id.."pitch")
+    self.play_fn[TYPE_CROW].last_note=note
     local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     duration=duration>0 and duration or d.duration_scaled
     if level>0 then
