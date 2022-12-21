@@ -188,6 +188,8 @@ function GGrid:get_visual()
     end
   end
 
+  -- TODO: self.step should be the lseq state
+  
   -- illuminate added notes 
   for _, rowcol in ipairs(lseq.d.steps[self.step].places) do 
     self.visual[rowcol[1]][rowcol[2]]=self.visual[rowcol[1]][rowcol[2]]+2
