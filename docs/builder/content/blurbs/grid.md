@@ -23,3 +23,18 @@ There are six actions:
 - Clear all the notes from a measure by holding the bottomost leftmost button for one second. Clear everything by holding the same button for more than three seconds.
 
 The sequences from the grid are synchronized with the zxcvbn tracks but they do not share mutes/plays. The grid sequences can only be started or stopped with the bottomost left grid button.
+
+
+[grid station](https://tyleretters.github.io/GridStation/)
+
+```
+16 8 #bbbbbb #fcb400 #ffffff #000000 20 20 4 1 1
+a 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0
+5 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0
+5 0 0 2 0 0 0 0 0 0 0 5 f 0 0 0
+5 0 0 2 0 0 0 0 5 5 0 0 0 0 0 0
+5 0 0 2 0 0 5 0 0 0 0 f 0 0 0 0
+5 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0
+5 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0
+d 5 e e 5 e 5 5 5 5 5 5 5 5 5 5
+```
