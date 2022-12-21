@@ -596,7 +596,6 @@ function Sample:redraw()
   screen.move(6+x,6)
   screen.text_right(self.dec_to_hex[self.ci])
 
-  -- TODO make this appear and dissappear
   if self.kick_change>0 then
     self.kick_change=self.kick_change-1
     screen.move(128,15)

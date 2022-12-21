@@ -436,7 +436,7 @@ function SoftSample:redraw()
   end
   self:debounce()
 
-  -- TODO if recording and no debounce is set, then setup a debounce to render
+  -- if recording and no debounce is set, then setup a debounce to render
   if self.debounce_fn[params:get(self.id.."sc").."render"]==nil and params:get(self.id.."sc_rec_level")>0 then
     self.debounce_fn[params:get(self.id.."sc").."render"]={5,function() self:do_render() end}
   end

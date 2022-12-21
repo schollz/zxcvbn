@@ -562,7 +562,6 @@ self.play_fn[TYPE_CROW]={
       crow.output[i].volts=(note-24)/12
       crow.output[i+1]()
     end
-    -- TODO use debounce_fn
     if mods.x~=nil and mods.x>1 then
       clock.run(function()
         for i=1,mods.x do

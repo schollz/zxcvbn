@@ -242,7 +242,6 @@ MxSamplesZInstrument {
         },{
             var rr1,rr2;
             // gather the velocity indices that are available
-            // TODO: make this specific to a single note?
             vels=[velIndices[velIndex],velIndices[velIndex+1]];
             buf1mix=(1-((velocity-vels[0])/(vels[1]-vels[0])));
             // add dynamic

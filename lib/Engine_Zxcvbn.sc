@@ -971,7 +971,6 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\pad0, {
-            // TODO: add filter pan 
             var snd;
             snd = Saw.ar(\freq.kr(440) * ((-3..3) * 0.05).midiratio * [1, 2, 1, 4, 1, 2, 1]);
             snd = RLPF.ar(snd, LFNoise2.kr(0.3 ! snd.size).linexp(-1, 1, 100, 8000), 0.3);
