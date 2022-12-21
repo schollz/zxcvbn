@@ -70,7 +70,7 @@ function GGrid:key_press(row,col,on)
     --------------------
 
     if on then 
-      tracks[params:get("track")].lseq:toggle_note(self.step,row,col)
+      tracks[params:get("track")].lseq:toggle_note(row,col)
     end
 
     --------------------
@@ -103,8 +103,8 @@ function GGrid:key_press(row,col,on)
     --------------------
     if hold_time<0.3 then
       -- short press changes to that step
-      self.step=col-1
-    else
+      tracks[params:get("track")].lseq.step=col-1
+\    else
       -- long press toggles active
       tracks[params:get("track")].lseq:toggle_active(col-1)
     end
@@ -117,10 +117,10 @@ function GGrid:key_press(row,col,on)
     --------------------
     if hold_time<0.3 then
       -- short press changes the pulses per measure
-      tracks[params:get("track")].lseq:set_ppm(self.step,row)
+      tracks[params:get("track")].lseq:set_ppm(row)
     else
       -- long press changes arp type
-      tracks[params:get("track")].lseq:toggle_arp(self.step)
+      tracks[params:get("track")].lseq:toggle_arp()
     end
   end
 end
@@ -132,6 +132,7 @@ function GGrid:get_visual()
   end
 
   local lseq=tracks[params:get("track")].lseq
+
   -- clear visual
   for row=1,8 do
     for col=1,self.grid_width do
@@ -160,7 +161,7 @@ function GGrid:get_visual()
     -- if lseq.d.play and lseq.current_step==col-1 then
     --   level=level+4
     -- end
-    if col-1==self.step then
+    if col-1==lseq.step then
       level=self.blinky[1]>self.blinky[3] and level+2 or level
     end
     self.visual[8][col]=level
@@ -169,9 +170,9 @@ function GGrid:get_visual()
   -- illuminate the meters
   for row=1,7 do
     local level=2
-    if lseq.d.steps[self.step].ppm==row then
+    if lseq.d.steps[lseq.step].ppm==row then
       level=level+6
-      if lseq.d.steps[self.step].arp then
+      if lseq.d.steps[lseq.step].arp then
         level=level+(self.blinky[1]>self.blinky[3] and 7 or 0)
       end
     end
@@ -188,10 +189,11 @@ function GGrid:get_visual()
     end
   end
 
-  -- TODO: self.step should be the lseq state
+  -- TODO: lseq.step should be the lseq state
+
   
   -- illuminate added notes 
-  for _, rowcol in ipairs(lseq.d.steps[self.step].places) do 
+  for _, rowcol in ipairs(lseq.d.steps[lseq.step].places) do 
     self.visual[rowcol[1]][rowcol[2]]=self.visual[rowcol[1]][rowcol[2]]+2
   end
 

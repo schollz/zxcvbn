@@ -19,6 +19,7 @@ function Lseq:init()
   }
   self.current_step=1
   self.current_places={}
+  self.step=1
 
   for i=1,15 do
     self.d.steps[i]={
@@ -117,12 +118,14 @@ function Lseq:clear()
   self:update()
 end
 
-function Lseq:set_ppm(i,x)
+function Lseq:set_ppm(x)
+  local i=self.step
   self.d.steps[i].ppm=x
   self:update()
 end
 
-function Lseq:toggle_arp(i)
+function Lseq:toggle_arp()
+  local i=self.step
   self.d.steps[i].arp=not self.d.steps[i].arp
   self:update()
 end
@@ -132,7 +135,8 @@ function Lseq:toggle_active(i)
   self:update()
 end
 
-function Lseq:toggle_note(i,row,col)
+function Lseq:toggle_note(row,col)
+  local i=self.step
   for _,v in ipairs(self.d.steps[i].places) do
     if v[1]==row and v[2]==col then
       self:remove(i,row,col)
