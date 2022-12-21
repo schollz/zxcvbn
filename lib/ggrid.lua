@@ -26,8 +26,8 @@ function GGrid:new(args)
     m.visual[i]={}
     m.visualf[i]={}
     for j=1,16 do
-        m.visual[i][j]=0
-        m.visualf[i][j]=0
+      m.visual[i][j]=0
+      m.visualf[i][j]=0
     end
   end
 
@@ -63,14 +63,16 @@ function GGrid:key_press(row,col,on)
     hold_time=ct-self.pressed_buttons[row..","..col]
     self.pressed_buttons[row..","..col]=nil
   end
+  local track=params:get("track")
+  local colnote=col<9 and col or col-8
   local play_fn=tracks[params:get("track")].play_fn[params:get(params:get("track").."track_type")]
-  local note_ind=((9-row)+(4*(col-1))-1)%#tracks[params:get("track")].scale_notes+1
+  local note_ind=((9-row)+(4*(colnote-1))-1)%#tracks[params:get("track")].scale_notes+1
   local note=tracks[params:get("track")].scale_notes[note_ind]
   print(note)
-  if on then 
+  if on then
     play_fn.note_on({duration_scaled=10,note_to_emit=note},{})
-                                                                         elseif play_fn.note_off~=nil then  
-    if params:get("grid_mono")==2 and next(self.pressed_buttons)~=nil then 
+  elseif play_fn.note_off~=nil then
+    if params:get("grid_mono")==2 and next(self.pressed_buttons)~=nil then
       -- do not do note off
     else
       play_fn.note_off({note_to_emit=note})
@@ -78,35 +80,34 @@ function GGrid:key_press(row,col,on)
   end
 end
 
-
 function GGrid:get_visual()
   -- clear visual
   for row=1,8 do
     for col=1,self.grid_width do
-        if self.visualf[row][col]>0 and self.pressed_buttons[row..","..col]==nil then 
-            local release=params:get(params:get("track").."monophonic_release")>0 and params:get(params:get("track").."monophonic_release") or params:get(params:get("track").."release")
-            release=release/1000
-            self.visualf[row][col]=self.visualf[row][col]-15/(release/self.grid_refresh.time)
-            if self.visualf[row][col]<0 then 
-                self.visualf[row][col]=0
-            end
+      if self.visualf[row][col]>0 and self.pressed_buttons[row..","..col]==nil then
+        local release=params:get(params:get("track").."monophonic_release")>0 and params:get(params:get("track").."monophonic_release") or params:get(params:get("track").."release")
+        release=release/1000
+        self.visualf[row][col]=self.visualf[row][col]-15/(release/self.grid_refresh.time)
+        if self.visualf[row][col]<0 then
+          self.visualf[row][col]=0
         end
-        if self.visualf[row][col]>0 then
-            self.visual[row][col]=util.round(self.visualf[row][col])
-        else
-            self.visual[row][col]=0
-        end
+      end
+      if self.visualf[row][col]>0 then
+        self.visual[row][col]=util.round(self.visualf[row][col])
+      else
+        self.visual[row][col]=0
+      end
     end
   end
 
   -- illuminate currently pressed button
   for k,_ in pairs(self.pressed_buttons) do
     local row,col=k:match("(%d+),(%d+)")
-    if self.visualf[tonumber(row)][tonumber(col)]<15 then 
-        self.visualf[tonumber(row)][tonumber(col)]=self.visualf[tonumber(row)][tonumber(col)]+15/(params:get(params:get("track").."attack")/1000/self.grid_refresh.time)
-        if self.visualf[tonumber(row)][tonumber(col)]>15 then 
-            self.visualf[tonumber(row)][tonumber(col)]=15
-        end
+    if self.visualf[tonumber(row)][tonumber(col)]<15 then
+      self.visualf[tonumber(row)][tonumber(col)]=self.visualf[tonumber(row)][tonumber(col)]+15/(params:get(params:get("track").."attack")/1000/self.grid_refresh.time)
+      if self.visualf[tonumber(row)][tonumber(col)]>15 then
+        self.visualf[tonumber(row)][tonumber(col)]=15
+      end
     end
   end
 
