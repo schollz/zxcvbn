@@ -20,5 +20,6 @@ There are six actions:
 - Play notes by pressing the bottomost-left button. This will play through all the notes in each of the activated measures.
 - Activate a measure by hold on the specified bottom note for more than 1 second.
 - Change to a different measure by quickly pressing any bottom note. 
+- Clear all the notes from a measure by holding the bottomost leftmost button for one second. Clear everything by holding the same button for more than three seconds.
 
 The sequences from the grid are synchronized with the zxcvbn tracks but they do not share mutes/plays. The grid sequences can only be started or stopped with the bottomost left grid button.
