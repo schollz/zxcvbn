@@ -91,8 +91,10 @@ function GGrid:key_press(row,col,on)
     if on then 
       tracks[params:get("track")].lseq:toggle_play()
     end
-    if hold_time>2 then 
-      tracks[params:get("track")].lseq:clear()      
+    if hold_time>3 then 
+      tracks[params:get("track")].lseq:clear(true)
+    elseif hold_time>1 then       
+      tracks[params:get("track")].lseq:clear()
     end
   elseif row==8 and col>1 then
     if on then 

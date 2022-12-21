@@ -113,8 +113,12 @@ function Lseq:toggle_play()
   self.d.play=not self.d.play
 end
 
-function Lseq:clear()
-  self:init()
+function Lseq:clear(all)
+  if all then 
+    self:init()
+  else
+    self.d.steps[self.step].places={}
+  end
   self:update()
 end
 
