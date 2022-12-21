@@ -160,13 +160,17 @@ function GGrid:get_visual()
     if lseq.d.steps[col-1].active then
       level=level+4
     end
-    if lseq.d.play and lseq.current_step==col-1 then
-      level=level+4
-    end
     if col-1==lseq.step then
       level=self.blinky[1]>self.blinky[3] and level+2 or level
     end
     self.visual[8][col]=level
+  end
+
+  -- illuminate the current step being played with a column
+  if lseq.d.play  then 
+    for row=1,7 do 
+      self.visual[row][lseq.current_step]=self.visual[row][lseq.current_step]+1
+    end
   end
 
   -- illuminate the meters
