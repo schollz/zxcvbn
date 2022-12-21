@@ -114,10 +114,12 @@ end
 
 function Lseq:clear()
   self:init()
+  self:update()
 end
 
 function Lseq:set_ppm(i,x)
   self.d.steps[i].ppm=x
+  self:update()
 end
 
 function Lseq:toggle_arp(i)

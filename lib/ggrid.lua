@@ -102,11 +102,11 @@ function GGrid:key_press(row,col,on)
     -- change step    --
     --------------------
     if hold_time<0.3 then
-      -- short press toggles active
-      tracks[params:get("track")].lseq:toggle_active(col-1)
-    else
-      -- long press changes to that note
+      -- short press changes to that step
       self.step=col-1
+    else
+      -- long press toggles active
+      tracks[params:get("track")].lseq:toggle_active(col-1)
     end
   elseif col==1 and row<8 then
     if on then 
@@ -155,13 +155,13 @@ function GGrid:get_visual()
   for col=2,16 do
     local level=2
     if lseq.d.steps[col-1].active then
-      level=level+3
-    end
-    if lseq.d.play and lseq.current_step==col-1 then
       level=level+4
     end
+    -- if lseq.d.play and lseq.current_step==col-1 then
+    --   level=level+4
+    -- end
     if col-1==self.step then
-      level=level+(self.blinky[1]>self.blinky[3] and level or 2)
+      level=self.blinky[1]>self.blinky[3] and level+2 or level
     end
     self.visual[8][col]=level
   end
@@ -184,7 +184,7 @@ function GGrid:get_visual()
   -- illuminate playing notes
   if lseq.d.play then
     for _,rowcol in ipairs(lseq.current_places) do
-      self.visual[rowcol[1]][rowcol[2]]=10
+      self.visual[rowcol[1]][rowcol[2]]=self.visual[rowcol[1]][rowcol[2]]+2
     end
   end
 
