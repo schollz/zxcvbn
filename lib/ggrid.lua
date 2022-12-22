@@ -73,7 +73,7 @@ function GGrid:check_hold_times()
         tracks[params:get("track")].lseq:clear()
         self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
       end
-    elseif row==8 and col>1 then
+    elseif row==1 and col>2 then
       --------------------
       -- change step    --
       --------------------
@@ -112,7 +112,7 @@ function GGrid:key_press(row,col,on)
     hold_time=ct-self.pressed_buttons[row..","..col][1]
     self.pressed_buttons[row..","..col]=nil
   end
-  if row<8 and col>2 then
+  if row>1 and col>2 then
     --------------------
     -- update lseq    --
     --------------------
@@ -182,18 +182,18 @@ function GGrid:get_visual()
     if lseq.d.steps[col-2].active then
       level=level+4
     end
-    self.visual[8][col]=level
+    self.visual[1][col]=level
   end
 
   -- illuminate the current step being played with a column
   if lseq.d.play  then 
-    for row=1,7 do 
+    for row=2,8 do 
       self.visual[row][lseq.current_step+2]=self.visual[row][lseq.current_step+2]+1  
     end
   end
 
   -- illuminate the current step
-  for row=1,7 do 
+  for row=2,8 do 
     self.visual[row][lseq.step+2]=self.visual[row][lseq.step+2]+2
   end
 
