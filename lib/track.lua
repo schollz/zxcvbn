@@ -460,7 +460,7 @@ self.play_fn[TYPE_MXSAMPLES]={
 self.play_fn[TYPE_MXSYNTHS]={
   note_off=function(d)
     local note=d.note_to_emit+params:get(self.id.."pitch")
-    engine.mx_synths_note_off(self.id,note)
+    engine.note_off(self.id,note)
   end,
   note_on=function(d,mods)
     local synth=params:string(self.id.."mx_synths")

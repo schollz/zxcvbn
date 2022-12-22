@@ -1527,18 +1527,7 @@ Engine_Zxcvbn : CroneEngine {
                 syns.at("reverb"),\addBefore));
                 NodeWatcher.register(syns.at(id));
                 this.synthWatch(track_id,syns.at(id));
-            };
-        });
-
-        this.addCommand("note_off","f",{ arg msg;
-            var note=msg[1];
-            2.do{ arg i;
-                var id=note.asString++"_"++i;
-                if (syns.at(id).notNil,{
-                    if (syns.at(id).isRunning,{
-                        syns.at(id).set(\gate,0);
-                    });
-                });
+                nons.put(track_id++note.floor,syn);
             };
         });
 
@@ -1721,11 +1710,11 @@ Engine_Zxcvbn : CroneEngine {
             if (monophonic_release>0,{
                 syns.put(id,syn);
             });
-            nons.put(id++note.floor,syn);
             this.synthWatch(id,syn);
+            nons.put(id++note.floor,syn);
         });
 
-        this.addCommand("mx_synths_note_off","sf", { arg msg;
+        this.addCommand("note_off","sf", { arg msg;
             var key=msg[1]++(msg[2].asFloat.floor);
             // ["mx_synths_note_off",key].postln;
             if (nons.at(key).notNil,{
