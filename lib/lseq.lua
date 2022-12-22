@@ -45,7 +45,7 @@ function Lseq:update()
         local note_ind=((9-row)+(4*(col-1))-1)%#tracks[self.id].scale_notes+1
         local note=tracks[self.id].scale_notes[note_ind]
         if step.arp then
-          table.insert(seqs,{duration=math.floor(pulses/#step.places),pulses=1+total_pulses+(j-1)*math.floor(pulses/#step.places),notes={note},places={rowcol}})
+          table.insert(seqs,{duration=math.floor(pulses/#step.places),pulses=1+total_pulses+(j-1)*math.floor(pulses/#step.places),notes={note},step=i,places={rowcol}})
         else
           table.insert(notes,note)
         end
@@ -111,6 +111,8 @@ end
 
 function Lseq:toggle_play()
   self.d.play=not self.d.play
+  self.current_step=1
+  self.current_places={}
 end
 
 function Lseq:clear(all)
@@ -146,6 +148,9 @@ function Lseq:toggle_note(row,col)
       self:remove(i,row,col)
       do return end
     end
+  end
+  if next(self.d.steps[i].places)==nil then 
+    self.d.steps[i].active=true 
   end
   self:add(i,row,col)
 end

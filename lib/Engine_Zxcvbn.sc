@@ -1527,7 +1527,7 @@ Engine_Zxcvbn : CroneEngine {
                 syns.at("reverb"),\addBefore));
                 NodeWatcher.register(syns.at(id));
                 this.synthWatch(track_id,syns.at(id));
-                nons.put(track_id++note.floor,syn);
+                nons.put(track_id++note.floor,syns.at(id));
             };
         });
 

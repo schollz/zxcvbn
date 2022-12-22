@@ -46,7 +46,7 @@ function GGrid:new(args)
 
   m.step=1
   m.pressed_buttons={}
-  m.blinky={15,15,7}
+  m.blinky={8,8,4}
   return m
 end
 
@@ -55,13 +55,61 @@ function GGrid:grid_key(x,y,z)
   self:grid_redraw()
 end
 
+function GGrid:check_hold_times()
+  local ct=clock.get_beats()*clock.get_beat_sec()
+  for k,v in pairs(self.pressed_buttons) do
+    local row,col=k:match("(%d+),(%d+)")
+    row=tonumber(row)
+    col=tonumber(col)
+    local hold_time=ct-v[1]
+    if row==8 and col==1 then
+      --------------------
+      -- toggle play    --
+      --------------------
+      if hold_time>3 and v[2]==1 then 
+        tracks[params:get("track")].lseq:clear(true)
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      elseif hold_time>1 and v[2]==0 then       
+        tracks[params:get("track")].lseq:clear()
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      end
+    elseif row==8 and col>1 then
+      --------------------
+      -- change step    --
+      --------------------
+      if hold_time>0.01 and v[2]==0 then
+        -- short press changes to that step
+        tracks[params:get("track")].lseq.step=col-1
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      elseif hold_time>0.25 and v[2]==1 then
+        -- long press toggles active
+        tracks[params:get("track")].lseq:toggle_active(col-1)
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      end  
+    elseif col==1 and row<8 then
+      --------------------
+      -- pulses/arp     --
+      --------------------
+      if hold_time>0.01 and v[2]==0 then
+        -- short press changes the pulses per measure
+        tracks[params:get("track")].lseq:set_ppm(row)
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      elseif hold_time>0.25 and v[2]==1 then
+        -- long press changes arp type
+        tracks[params:get("track")].lseq:toggle_arp()
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      end
+    end  
+  end
+end
+
 function GGrid:key_press(row,col,on)
   local ct=clock.get_beats()*clock.get_beat_sec()
   hold_time=0
   if on then
-    self.pressed_buttons[row..","..col]=ct
+    self.pressed_buttons[row..","..col]={ct,0}
   else
-    hold_time=ct-self.pressed_buttons[row..","..col]
+    hold_time=ct-self.pressed_buttons[row..","..col][1]
     self.pressed_buttons[row..","..col]=nil
   end
   if row<8 and col>1 then
@@ -90,39 +138,6 @@ function GGrid:key_press(row,col,on)
     --------------------
     if on then 
       tracks[params:get("track")].lseq:toggle_play()
-    end
-    if hold_time>3 then 
-      tracks[params:get("track")].lseq:clear(true)
-    elseif hold_time>1 then       
-      tracks[params:get("track")].lseq:clear()
-    end
-  elseif row==8 and col>1 then
-    if on then 
-      do return end 
-    end
-    --------------------
-    -- change step    --
-    --------------------
-    if hold_time<0.3 then
-      -- short press changes to that step
-      tracks[params:get("track")].lseq.step=col-1
-\    else
-      -- long press toggles active
-      tracks[params:get("track")].lseq:toggle_active(col-1)
-    end
-  elseif col==1 and row<8 then
-    if on then 
-      do return end 
-    end
-    --------------------
-    -- pulses/arp     --
-    --------------------
-    if hold_time<0.3 then
-      -- short press changes the pulses per measure
-      tracks[params:get("track")].lseq:set_ppm(row)
-    else
-      -- long press changes arp type
-      tracks[params:get("track")].lseq:toggle_arp()
     end
   end
 end
@@ -156,12 +171,9 @@ function GGrid:get_visual()
 
   -- illuminate the steps
   for col=2,16 do
-    local level=2
+    local level=3
     if lseq.d.steps[col-1].active then
       level=level+4
-    end
-    if col-1==lseq.step then
-      level=self.blinky[1]>self.blinky[3] and level+2 or level
     end
     self.visual[8][col]=level
   end
@@ -169,17 +181,23 @@ function GGrid:get_visual()
   -- illuminate the current step being played with a column
   if lseq.d.play  then 
     for row=1,7 do 
-      self.visual[row][lseq.current_step]=self.visual[row][lseq.current_step]+1
+      self.visual[row][lseq.current_step+1]=self.visual[row][lseq.current_step+1]+1  
     end
   end
 
+  -- illuminate the current step
+  for row=1,7 do 
+    self.visual[row][lseq.step+1]=self.visual[row][lseq.step+1]+2
+  end
+
+
   -- illuminate the meters
   for row=1,7 do
-    local level=2
+    local level=3
     if lseq.d.steps[lseq.step].ppm==row then
       level=level+6
       if lseq.d.steps[lseq.step].arp then
-        level=level+(self.blinky[1]>self.blinky[3] and 7 or 0)
+        level=level+(self.blinky[1]>self.blinky[3] and 4 or 0)
       end
     end
     self.visual[row][1]=level
@@ -195,7 +213,6 @@ function GGrid:get_visual()
     end
   end
 
-  
   -- illuminate added notes 
   for _, rowcol in ipairs(lseq.d.steps[lseq.step].places) do 
     self.visual[rowcol[1]][rowcol[2]]=self.visual[rowcol[1]][rowcol[2]]+2
@@ -216,6 +233,10 @@ function GGrid:get_visual()
     end
   end
 
+
+  -- check hold times
+  self:check_hold_times()
+  
   return self.visual
 end
 
