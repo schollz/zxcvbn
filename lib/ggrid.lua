@@ -79,11 +79,11 @@ function GGrid:check_hold_times()
       --------------------
       if hold_time>0.01 and v[2]==0 then
         -- short press changes to that step
-        tracks[params:get("track")].lseq.step=col-1
+        tracks[params:get("track")].lseq.step=col-2
         self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
       elseif hold_time>0.25 and v[2]==1 then
         -- long press toggles active
-        tracks[params:get("track")].lseq:toggle_active(col-1)
+        tracks[params:get("track")].lseq:toggle_active(col-2)
         self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
       end  
     elseif col==1 and row<8 then
@@ -112,7 +112,7 @@ function GGrid:key_press(row,col,on)
     hold_time=ct-self.pressed_buttons[row..","..col][1]
     self.pressed_buttons[row..","..col]=nil
   end
-  if row<8 and col>1 then
+  if row<8 and col>2 then
     --------------------
     -- update lseq    --
     --------------------
@@ -131,6 +131,13 @@ function GGrid:key_press(row,col,on)
       play_fn.note_on({duration_scaled=10,note_to_emit=note},{})
     elseif play_fn.note_off~=nil then
         play_fn.note_off({note_to_emit=note})
+    end
+  elseif row<8 and col==2 then
+    --------------------
+    -- toggle times   --
+    --------------------
+    if on then 
+      tracks[params:get("track")].lseq:set_times(row)
     end
   elseif row==8 and col==1 then
     --------------------
@@ -170,9 +177,9 @@ function GGrid:get_visual()
   end
 
   -- illuminate the steps
-  for col=2,16 do
-    local level=3
-    if lseq.d.steps[col-1].active then
+  for col=3,16 do
+    local level=2
+    if lseq.d.steps[col-2].active then
       level=level+4
     end
     self.visual[8][col]=level
@@ -181,24 +188,30 @@ function GGrid:get_visual()
   -- illuminate the current step being played with a column
   if lseq.d.play  then 
     for row=1,7 do 
-      self.visual[row][lseq.current_step+1]=self.visual[row][lseq.current_step+1]+1  
+      self.visual[row][lseq.current_step+2]=self.visual[row][lseq.current_step+2]+1  
     end
   end
 
   -- illuminate the current step
   for row=1,7 do 
-    self.visual[row][lseq.step+1]=self.visual[row][lseq.step+1]+2
+    self.visual[row][lseq.step+2]=self.visual[row][lseq.step+2]+2
+  end
+
+  -- illuminate the times to play
+  for row=1,7 do
+    local level=0
+    if lseq.d.steps[lseq.step].t==row then
+      level=level+6
+    end
+    self.visual[row][2]=level
   end
 
 
   -- illuminate the meters
   for row=1,7 do
-    local level=3
+    local level=lseq.d.steps[lseq.step].arp and 0 or 2
     if lseq.d.steps[lseq.step].ppm==row then
       level=level+6
-      if lseq.d.steps[lseq.step].arp then
-        level=level+(self.blinky[1]>self.blinky[3] and 4 or 0)
-      end
     end
     self.visual[row][1]=level
   end

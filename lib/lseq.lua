@@ -15,7 +15,10 @@ function Lseq:init()
     play=false,
   }
   self.ppms={
-    64,48,32,24,16,8,64,
+    96,72,48,36,24,12,6,
+  }
+  self.times={
+    12,8,6,4,3,2,1
   }
   self.current_step=1
   self.current_places={}
@@ -27,6 +30,7 @@ function Lseq:init()
       arp=true,
       active=false,
       ppm=1,-- pulses per measure
+      t=7, -- index of times to play
     }
   end
 end
@@ -36,24 +40,26 @@ function Lseq:update()
   local total_pulses=0
   for i,step in ipairs(self.d.steps) do
     if next(step.places)~=nil and step.active then
-      local seq={}
-      local pulses=self.ppms[step.ppm]
-      local notes={}
-      for j,rowcol in ipairs(step.places) do
-        local row=rowcol[1]
-        local col=rowcol[2]
-        local note_ind=((9-row)+(4*(col-1))-1)%#tracks[self.id].scale_notes+1
-        local note=tracks[self.id].scale_notes[note_ind]
-        if step.arp then
-          table.insert(seqs,{duration=math.floor(pulses/#step.places),pulses=1+total_pulses+(j-1)*math.floor(pulses/#step.places),notes={note},step=i,places={rowcol}})
-        else
-          table.insert(notes,note)
+      for times=1,self.times[step.t] do 
+        local seq={}
+        local pulses=self.ppms[step.ppm]
+        local notes={}
+        for j,rowcol in ipairs(step.places) do
+          local row=rowcol[1]
+          local col=rowcol[2]
+          local note_ind=((9-row)+(4*(col-1))-1)%#tracks[self.id].scale_notes+1
+          local note=tracks[self.id].scale_notes[note_ind]
+          if step.arp then
+            table.insert(seqs,{duration=math.floor(pulses/#step.places),pulses=1+total_pulses+(j-1)*math.floor(pulses/#step.places),notes={note},step=i,places={rowcol}})
+          else
+            table.insert(notes,note)
+          end
         end
+        if not step.arp then
+          table.insert(seqs,{duration=pulses,pulses=1+total_pulses,notes=notes,step=i,places=step.places})
+        end
+        total_pulses=total_pulses+pulses  
       end
-      if not step.arp then
-        table.insert(seqs,{duration=pulses,pulses=1+total_pulses,notes=notes,step=i,places=step.places})
-      end
-      total_pulses=total_pulses+pulses
     end
   end
   self.d.pulses=total_pulses
@@ -127,6 +133,12 @@ end
 function Lseq:set_ppm(x)
   local i=self.step
   self.d.steps[i].ppm=x
+  self:update()
+end
+
+function Lseq:set_times(x)
+  local i=self.step
+  self.d.steps[i].t=x
   self:update()
 end
 
