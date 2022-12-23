@@ -66,10 +66,10 @@ function GGrid:check_hold_times()
       --------------------
       -- toggle play    --
       --------------------
-      if hold_time>3 and v[2]==1 then 
+      if hold_time>3 and v[2]==1 then
         tracks[params:get("track")].lseq:clear(true)
         self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
-      elseif hold_time>1 and v[2]==0 then       
+      elseif hold_time>1 and v[2]==0 then
         tracks[params:get("track")].lseq:clear()
         self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
       end
@@ -85,7 +85,7 @@ function GGrid:check_hold_times()
         -- long press toggles active
         tracks[params:get("track")].lseq:toggle_active(col-2)
         self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
-      end  
+      end
     elseif col==1 and row<8 then
       --------------------
       -- pulses/arp     --
@@ -99,7 +99,7 @@ function GGrid:check_hold_times()
         tracks[params:get("track")].lseq:toggle_arp()
         self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
       end
-    end  
+    end
   end
 end
 
@@ -117,7 +117,7 @@ function GGrid:key_press(row,col,on)
     -- update lseq    --
     --------------------
 
-    if on then 
+    if on then
       tracks[params:get("track")].lseq:toggle_note(row,col)
     end
 
@@ -130,20 +130,20 @@ function GGrid:key_press(row,col,on)
     if on then
       play_fn.note_on({duration_scaled=10,note_to_emit=note},{})
     elseif play_fn.note_off~=nil then
-        play_fn.note_off({note_to_emit=note})
+      play_fn.note_off({note_to_emit=note})
     end
   elseif row<8 and col==2 then
     --------------------
     -- toggle times   --
     --------------------
-    if on then 
+    if on then
       tracks[params:get("track")].lseq:set_times(row)
     end
   elseif row==8 and col==1 then
     --------------------
     -- toggle play    --
     --------------------
-    if on then 
+    if on then
       tracks[params:get("track")].lseq:toggle_play()
     end
   end
@@ -186,15 +186,15 @@ function GGrid:get_visual()
   end
 
   -- illuminate the current step being played with a column
-  if lseq.d.play  then 
-    for row=2,8 do 
-      self.visual[row][lseq.current_step+2]=self.visual[row][lseq.current_step+2]+1  
+  if lseq.d.play then
+    for row=2,8 do
+      self.visual[row][lseq.current_step+2]=self.visual[row][lseq.current_step+2]+1
     end
   end
 
   -- illuminate the current step
-  for row=2,8 do 
-    self.visual[row][lseq.step+2]=self.visual[row][lseq.step+2]+2
+  for row=2,8 do
+    self.visual[row][lseq.step+2]=self.visual[row][lseq.step+2]+1
   end
 
   -- illuminate the times to play
@@ -205,7 +205,6 @@ function GGrid:get_visual()
     end
     self.visual[row][2]=level
   end
-
 
   -- illuminate the meters
   for row=1,7 do
@@ -226,8 +225,8 @@ function GGrid:get_visual()
     end
   end
 
-  -- illuminate added notes 
-  for _, rowcol in ipairs(lseq.d.steps[lseq.step].places) do 
+  -- illuminate added notes
+  for _,rowcol in ipairs(lseq.d.steps[lseq.step].places) do
     self.visual[rowcol[1]][rowcol[2]]=self.visual[rowcol[1]][rowcol[2]]+2
   end
 
@@ -246,10 +245,9 @@ function GGrid:get_visual()
     end
   end
 
-
   -- check hold times
   self:check_hold_times()
-  
+
   return self.visual
 end
 
