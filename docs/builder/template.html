@@ -631,7 +631,7 @@
     <section class="hero">
         <div class="hero-inner">
             <p align=center><strong><em>zxcvbn</em></strong></p>
-            <p><code><a href="#changelog" style="text-decoration: none;color:inherit;">v2.0.0</a></code></p>
+            <p><code><a href="#changelog" style="text-decoration: none;color:inherit;">v2.1.0</a></code></p>
             <p align=center id="app"></p>
         </div>
     </section>
@@ -791,6 +791,15 @@
                 </p>
                 {{end }}
             </div>
+        </div>
+        {{end}}
+        <div>
+            <hr class="hrgreen">
+        </div>
+        {{ with index .Blurbs "Grid"}}
+        <div class="pb pt">
+            <h1 id="{{slugify .Title}}">{{.Title}}<a href="#{{ slugify .Title}}" class="link-anchor"><i class="fas fa-link" aria-hidden="true"></i></a><a href="https://github.com/schollz/zxcvbn/edit/main/docs/builder/{{.Path}}" class="link-anchor"><i class="fas fa-edit" aria-hidden="true"></i></a></h1>
+            {{.Body}}
         </div>
         {{end}}
         <div>
