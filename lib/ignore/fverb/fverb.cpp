@@ -1759,7 +1759,6 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
   
     g_unitName = STRDUP(name.c_str());
     
-    // TODO: use correct sample rate
     tmp_dsp->classInit(48000);
     ControlCounter cc;
     tmp_dsp->buildUserInterface(&cc);

@@ -49,6 +49,8 @@ function Track:init()
 
   self.loop={pos_play=-1,pos_rec=-1,arm_play=false,arm_rec=false,send_tape=0}
 
+  self.lseq=lseq_:new{id=self.id}
+
   self.track_type_options={"mx.synths","dx7","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
 
@@ -190,7 +192,7 @@ function Track:init()
       controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
       formatter=pram.formatter,
       action=function(v)
-        if pram.id=="send_reverb" then 
+        if pram.id=="send_reverb" then
           check_reverb()
         end
         if pram.mod then
@@ -456,6 +458,10 @@ self.play_fn[TYPE_MXSAMPLES]={
 }
 -- mx.synths
 self.play_fn[TYPE_MXSYNTHS]={
+  note_off=function(d)
+    local note=d.note_to_emit+params:get(self.id.."pitch")
+    engine.note_off(self.id,note)
+  end,
   note_on=function(d,mods)
     local synth=params:string(self.id.."mx_synths")
     local note=d.note_to_emit+params:get(self.id.."pitch")
@@ -529,7 +535,12 @@ self.play_fn[TYPE_SOFTSAMPLE]={
 }
 -- crow
 self.play_fn[TYPE_CROW]={
+  last_note=0,
   note_off=function(d,mods)
+    local note=d.note_to_emit+params:get(self.id.."pitch")
+    if self.play_fn[TYPE_CROW].last_note~=note then 
+      do return end 
+    end
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local crow_asl=string.format("{to(0.001,%3.3f,exponential)}",params:get(self.id.."release")/1000)
     print(crow_asl)
@@ -540,6 +551,7 @@ self.play_fn[TYPE_CROW]={
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
     local note=d.note_to_emit+params:get(self.id.."pitch")
+    self.play_fn[TYPE_CROW].last_note=note
     local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     duration=duration>0 and duration or d.duration_scaled
     if level>0 then
@@ -550,7 +562,6 @@ self.play_fn[TYPE_CROW]={
       crow.output[i].volts=(note-24)/12
       crow.output[i+1]()
     end
-    -- TODO use debounce_fn
     if mods.x~=nil and mods.x>1 then
       clock.run(function()
         for i=1,mods.x do
@@ -722,6 +733,7 @@ function Track:dumps()
     end
   end
   data.state=self.state
+  data.lseq=self.lseq.d
   engine.loop_save(self.id,_path.data.."zxcvbn/tapes/"..params:get("random_string").."_")
   return json.encode(data)
 end
@@ -741,6 +753,9 @@ function Track:loads(s)
   end
   engine.loop_load(self.id,_path.data.."zxcvbn/tapes/"..params:get("random_string").."_")
   self.state=data.state
+  if data.lseq~=nil then
+    self.lseq.d=data.lseq
+  end
 end
 
 function Track:load_text(text)
@@ -759,7 +774,7 @@ end
 function Track:parse_tli()
   print("parsing",self.id)
   local text=self.states[STATE_VTERM]:get_text()
-  if text~="" and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE and not softcut_enabled then 
+  if text~="" and params:get(self.id.."track_type")==TYPE_SOFTSAMPLE and not softcut_enabled then
     setup_softcut()
   end
   local tli_parsed=nil
@@ -784,17 +799,17 @@ function Track:parse_tli()
   if self.tli.meta~=nil then
     for k,v in pairs(self.tli.meta) do
       local id=params.name_to_id[k]
-      if id~=nil then 
-        id = id:gsub('%d','')
+      if id~=nil then
+        id=id:gsub('%d','')
       end
-      if params.name_to_id[k]~=nil and params.id_to_name[self.id..id]~=nil then 
-          local ok,err=pcall(function()
-            print("setting "..self.id..id.." = "..v)
-            params:set(self.id..id,v)
-          end)
-          if not ok then
-            show_message("error setting "..params.id_to_name[self.id..id])
-          end
+      if params.name_to_id[k]~=nil and params.id_to_name[self.id..id]~=nil then
+        local ok,err=pcall(function()
+          print("setting "..self.id..id.." = "..v)
+          params:set(self.id..id,v)
+        end)
+        if not ok then
+          show_message("error setting "..params.id_to_name[self.id..id])
+        end
       elseif params.id_to_name[k]~=nil then
         local ok,err=pcall(function()
           print("setting "..k.." = "..v)
@@ -821,6 +836,9 @@ function Track:parse_tli()
 end
 
 function Track:emit(beat)
+  -- activate any lseq notes
+  self.lseq:emit(beat)
+
   -- turn off any midi notes
   if next(self.midi_notes)~=nil then
     local to_remove={}

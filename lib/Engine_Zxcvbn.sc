@@ -6,6 +6,7 @@ Engine_Zxcvbn : CroneEngine {
     // Zxcvbn specific v0.1.0
     var buses;
     var syns;
+    var nons; // notes on
     var mods;
     var im;
     var bufs; 
@@ -74,6 +75,7 @@ Engine_Zxcvbn : CroneEngine {
         oscs = Dictionary.new();
         mods = Dictionary.new();
         im = Dictionary.new();
+        nons = Dictionary.new();
         bufsDelay = Buffer.allocConsecutive(2,context.server,48000*4,1);
         
 
@@ -969,7 +971,6 @@ Engine_Zxcvbn : CroneEngine {
         }).send(context.server);
 
         SynthDef(\pad0, {
-            // TODO: add filter pan 
             var snd;
             snd = Saw.ar(\freq.kr(440) * ((-3..3) * 0.05).midiratio * [1, 2, 1, 4, 1, 2, 1]);
             snd = RLPF.ar(snd, LFNoise2.kr(0.3 ! snd.size).linexp(-1, 1, 100, 8000), 0.3);
@@ -1526,18 +1527,7 @@ Engine_Zxcvbn : CroneEngine {
                 syns.at("reverb"),\addBefore));
                 NodeWatcher.register(syns.at(id));
                 this.synthWatch(track_id,syns.at(id));
-            };
-        });
-
-        this.addCommand("note_off","f",{ arg msg;
-            var note=msg[1];
-            2.do{ arg i;
-                var id=note.asString++"_"++i;
-                if (syns.at(id).notNil,{
-                    if (syns.at(id).isRunning,{
-                        syns.at(id).set(\gate,0);
-                    });
-                });
+                nons.put(track_id++note.floor,syns.at(id));
             };
         });
 
@@ -1662,6 +1652,7 @@ Engine_Zxcvbn : CroneEngine {
                 pan: pan,
                 attack: attack,
                 release: release,
+                gate_release: release,
                 mod1: mod1,
                 mod2: mod2,
                 mod3: mod3,
@@ -1693,6 +1684,7 @@ Engine_Zxcvbn : CroneEngine {
                                 pan: pan,
                                 attack: attack,
                                 release: release,
+                                gate_release: release,
                                 mod1: mod1,
                                 mod2: mod2,
                                 mod3: mod3,
@@ -1719,7 +1711,20 @@ Engine_Zxcvbn : CroneEngine {
                 syns.put(id,syn);
             });
             this.synthWatch(id,syn);
+            nons.put(id++note.floor,syn);
         });
+
+        this.addCommand("note_off","sf", { arg msg;
+            var key=msg[1]++(msg[2].asFloat.floor);
+            // ["mx_synths_note_off",key].postln;
+            if (nons.at(key).notNil,{
+                // ["mx_synths_note_off",key,"notNil"].postln;
+                if (nons.at(key).isRunning,{
+                    // ["mx_synths_note_off",key,"notNil","isRunning"].postln;
+                    nons.at(key).set("gate_done",1);
+                });
+            });
+        }); 
 
         // ^ Zxcvbn specific
 

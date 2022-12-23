@@ -26,8 +26,8 @@ function GGrid:new(args)
     m.visual[i]={}
     m.visualf[i]={}
     for j=1,16 do
-        m.visual[i][j]=0
-        m.visualf[i][j]=0
+      m.visual[i][j]=0
+      m.visualf[i][j]=0
     end
   end
 
@@ -44,7 +44,9 @@ function GGrid:new(args)
   end
   m.grid_refresh:start()
 
-  self.pressed_buttons={}
+  m.step=1
+  m.pressed_buttons={}
+  m.blinky={8,8,4}
   return m
 end
 
@@ -53,63 +55,201 @@ function GGrid:grid_key(x,y,z)
   self:grid_redraw()
 end
 
+function GGrid:check_hold_times()
+  local ct=clock.get_beats()*clock.get_beat_sec()
+  for k,v in pairs(self.pressed_buttons) do
+    local row,col=k:match("(%d+),(%d+)")
+    row=tonumber(row)
+    col=tonumber(col)
+    local hold_time=ct-v[1]
+    if row==8 and col==1 then
+      --------------------
+      -- toggle play    --
+      --------------------
+      if hold_time>3 and v[2]==1 then 
+        tracks[params:get("track")].lseq:clear(true)
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      elseif hold_time>1 and v[2]==0 then       
+        tracks[params:get("track")].lseq:clear()
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      end
+    elseif row==1 and col>2 then
+      --------------------
+      -- change step    --
+      --------------------
+      if hold_time>0.01 and v[2]==0 then
+        -- short press changes to that step
+        tracks[params:get("track")].lseq.step=col-2
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      elseif hold_time>0.25 and v[2]==1 then
+        -- long press toggles active
+        tracks[params:get("track")].lseq:toggle_active(col-2)
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      end  
+    elseif col==1 and row<8 then
+      --------------------
+      -- pulses/arp     --
+      --------------------
+      if hold_time>0.01 and v[2]==0 then
+        -- short press changes the pulses per measure
+        tracks[params:get("track")].lseq:set_ppm(row)
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      elseif hold_time>0.25 and v[2]==1 then
+        -- long press changes arp type
+        tracks[params:get("track")].lseq:toggle_arp()
+        self.pressed_buttons[k][2]=self.pressed_buttons[k][2]+1
+      end
+    end  
+  end
+end
+
 function GGrid:key_press(row,col,on)
   local ct=clock.get_beats()*clock.get_beat_sec()
-  local hold_time=0
-  local id=(row-1)*16+col
+  hold_time=0
   if on then
-    self.pressed_buttons[row..","..col]=ct
+    self.pressed_buttons[row..","..col]={ct,0}
   else
-    hold_time=ct-self.pressed_buttons[row..","..col]
+    hold_time=ct-self.pressed_buttons[row..","..col][1]
     self.pressed_buttons[row..","..col]=nil
   end
-  local play_fn=tracks[params:get("track")].play_fn[params:get(params:get("track").."track_type")]
-  local note_ind=((9-row)+(4*(col-1))-1)%#tracks[params:get("track")].scale_notes+1
-  local note=tracks[params:get("track")].scale_notes[note_ind]
-  print(note)
-  if on then 
-    play_fn.note_on({duration_scaled=10,note_to_emit=note},{})
-                                                                         elseif play_fn.note_off~=nil then  
-    if params:get("grid_mono")==2 and next(self.pressed_buttons)~=nil then 
-      -- do not do note off
-    else
-      play_fn.note_off({note_to_emit=note})
+  if row>1 and col>2 then
+    --------------------
+    -- update lseq    --
+    --------------------
+
+    if on then 
+      tracks[params:get("track")].lseq:toggle_note(row,col)
+    end
+
+    --------------------
+    -- play the note  --
+    --------------------
+    local play_fn=tracks[params:get("track")].play_fn[params:get(params:get("track").."track_type")]
+    local note_ind=((9-row)+(4*(col-1))-1)%#tracks[params:get("track")].scale_notes+1
+    local note=tracks[params:get("track")].scale_notes[note_ind]
+    if on then
+      play_fn.note_on({duration_scaled=10,note_to_emit=note},{})
+    elseif play_fn.note_off~=nil then
+        play_fn.note_off({note_to_emit=note})
+    end
+  elseif row<8 and col==2 then
+    --------------------
+    -- toggle times   --
+    --------------------
+    if on then 
+      tracks[params:get("track")].lseq:set_times(row)
+    end
+  elseif row==8 and col==1 then
+    --------------------
+    -- toggle play    --
+    --------------------
+    if on then 
+      tracks[params:get("track")].lseq:toggle_play()
     end
   end
 end
 
-
 function GGrid:get_visual()
+  self.blinky[1]=self.blinky[1]-1
+  if self.blinky[1]==0 then
+    self.blinky[1]=self.blinky[2]
+  end
+
+  local lseq=tracks[params:get("track")].lseq
+
   -- clear visual
   for row=1,8 do
     for col=1,self.grid_width do
-        if self.visualf[row][col]>0 and self.pressed_buttons[row..","..col]==nil then 
-            local release=params:get(params:get("track").."monophonic_release")>0 and params:get(params:get("track").."monophonic_release") or params:get(params:get("track").."release")
-            release=release/1000
-            self.visualf[row][col]=self.visualf[row][col]-15/(release/self.grid_refresh.time)
-            if self.visualf[row][col]<0 then 
-                self.visualf[row][col]=0
-            end
+      if row<8 and col>1 and self.visualf[row][col]>0 and self.pressed_buttons[row..","..col]==nil then
+        local release=params:get(params:get("track").."monophonic_release")>0 and params:get(params:get("track").."monophonic_release") or params:get(params:get("track").."release")
+        release=release/1000
+        self.visualf[row][col]=self.visualf[row][col]-15/(release/self.grid_refresh.time)
+        if self.visualf[row][col]<0 then
+          self.visualf[row][col]=0
         end
-        if self.visualf[row][col]>0 then
-            self.visual[row][col]=util.round(self.visualf[row][col])
-        else
-            self.visual[row][col]=0
-        end
+      end
+      if row<8 and col>1 and self.visualf[row][col]>0 then
+        self.visual[row][col]=util.round(self.visualf[row][col])
+      else
+        self.visual[row][col]=0
+      end
     end
+  end
+
+  -- illuminate the steps
+  for col=3,16 do
+    local level=2
+    if lseq.d.steps[col-2].active then
+      level=level+4
+    end
+    self.visual[1][col]=level
+  end
+
+  -- illuminate the current step being played with a column
+  if lseq.d.play  then 
+    for row=2,8 do 
+      self.visual[row][lseq.current_step+2]=self.visual[row][lseq.current_step+2]+1  
+    end
+  end
+
+  -- illuminate the current step
+  for row=2,8 do 
+    self.visual[row][lseq.step+2]=self.visual[row][lseq.step+2]+2
+  end
+
+  -- illuminate the times to play
+  for row=1,7 do
+    local level=0
+    if lseq.d.steps[lseq.step].t==row then
+      level=level+6
+    end
+    self.visual[row][2]=level
+  end
+
+
+  -- illuminate the meters
+  for row=1,7 do
+    local level=lseq.d.steps[lseq.step].arp and 0 or 2
+    if lseq.d.steps[lseq.step].ppm==row then
+      level=level+6
+    end
+    self.visual[row][1]=level
+  end
+
+  -- visualize the playing
+  self.visual[8][1]=lseq.d.play and 15 or 0
+
+  -- illuminate playing notes
+  if lseq.d.play then
+    for _,rowcol in ipairs(lseq.current_places) do
+      self.visual[rowcol[1]][rowcol[2]]=self.visual[rowcol[1]][rowcol[2]]+2
+    end
+  end
+
+  -- illuminate added notes 
+  for _, rowcol in ipairs(lseq.d.steps[lseq.step].places) do 
+    self.visual[rowcol[1]][rowcol[2]]=self.visual[rowcol[1]][rowcol[2]]+2
   end
 
   -- illuminate currently pressed button
   for k,_ in pairs(self.pressed_buttons) do
     local row,col=k:match("(%d+),(%d+)")
-    if self.visualf[tonumber(row)][tonumber(col)]<15 then 
-        self.visualf[tonumber(row)][tonumber(col)]=self.visualf[tonumber(row)][tonumber(col)]+15/(params:get(params:get("track").."attack")/1000/self.grid_refresh.time)
-        if self.visualf[tonumber(row)][tonumber(col)]>15 then 
-            self.visualf[tonumber(row)][tonumber(col)]=15
+    row=tonumber(row)
+    col=tonumber(col)
+    if row<8 and col>1 then
+      if self.visualf[row][col]<15 then
+        self.visualf[row][col]=self.visualf[row][col]+15/(params:get(params:get("track").."attack")/1000/self.grid_refresh.time)
+        if self.visualf[row][col]>15 then
+          self.visualf[row][col]=15
         end
+      end
     end
   end
 
+
+  -- check hold times
+  self:check_hold_times()
+  
   return self.visual
 end
 
