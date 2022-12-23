@@ -63,20 +63,20 @@ Parentheses can be used to define subdivisions which can save space instead of e
 
 In this example, there are three notes, but two of the notes (`c` and `d`) are enclosed in a parentheses so they are considered a single entity. This means there are only two entities on that line (`(c d)` and `e`), and each is given half of the pulses (48 pulses). The parenthetical entity is then compiled with the remaining pulses, so that the remaining pulses are redivided, so the 48 pulses is split into 24 pulses for both the `c` and `d` notes.
 
-The above incantation can be written using rests too:
+The above incantation can be written using a tie:
 
-<p class="shiny">c d . e</p>
+<p class="shiny">c d e -</p>
 
-In this case it might be simpler to use rests. But as you add more subdivisions, things become more complicated. For example:
+In this case it might be simpler to use ties. But as you add more subdivisions, things become more complicated. For example:
 
 
 <p class="shiny">((c d e f) g) a</p>
 
 This is the same as:
 
-<p class="shiny">c d e f  g . . . a . . . . . . .</p>
+<p class="shiny">c d e f  g - - - a - - - - - - </p>
 
-The latter requires a lot more rests to get the same invocation.
+The latter requires a lot more ties to get the same invocation.
 
 <h2 class="h2under">Allocating time in pulses</h2>
 
