@@ -1,6 +1,6 @@
 # Compiled Lua sources
 docs/build/index.html
-builder
+docs/builder/builder
 luac.out
 lib/audiowaveform
 lib/acrostic/acrostic
