@@ -18,7 +18,7 @@ Individual notes are specified using lowercase scale letters (“a” through �
 
 Chords are specified by starting with an uppercase letter ("A" through "G") and then defining the chord flavor. The octave can be specified by including a `;<octave>` to the end of the command.
 
-Notes are only applicable on clades that can be specified by musical notes (rather than positions). See [Hex](#hex) for specifing positions.
+Notes are only applicable on clades that can be specified by musical notes (rather than positions). See [Hex](#hex) for specifying positions.
 
 ## Notes example
 

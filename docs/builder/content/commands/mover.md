@@ -29,4 +29,4 @@ c4 mv10,-10,0
 c4 v-5
 </pre>
 
-Note that the miniumum and the maximum pertain to that particular command (in this example it is the volume).
+Note that the minimum and the maximum pertain to that particular command (in this example it is the volume).

@@ -57,7 +57,7 @@ Ties are special too, because they can continue onto the next line. If you want 
 
 <h2 class="h2under" id="subdivisions">Example 5 (subdivisions)</h2>
 
-Parentheses can be used to define subdivisions which can save space instead of entering many resets. Each enclosed set of parentheses is considered a single entity for the purposes of dividing by the number of entities per line. For example, consider the following:
+Parentheses can be used to define subdivisions which can save space instead of entering many rests. Each enclosed set of parentheses is considered a single entity for the purposes of dividing by the number of entities per line. For example, consider the following:
 
 <p class="shiny">(c d) e</p>
 
