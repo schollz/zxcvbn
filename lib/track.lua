@@ -81,6 +81,7 @@ function Track:init()
   params:add_option(self.id.."mx_sample","instrument",mx_sample_options,1)
   -- crow
   params:add_option(self.id.."crow_type","outputs",{"1+2","3+4"},1)
+  params:add_option(self.id.."crow_gate","2nd output",{"envelope","gate"},2) 
 
   -- jf
   params:add_option(self.id.."jf_type","jf",{""},1)
@@ -167,6 +168,7 @@ function Track:init()
     {id="probability",name="probability (q)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack (k)",min=5,max=2000,exp=true,div=5,default=1,unit="ms"},
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
+    {id="crow_slew",name="slew",min=0,max=500,exp=false,div=1,default=0,unit="ms"},  --added crow slew
     {id="swell",name="swell (j)",min=0.1,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="release",name="release (l)",min=5,max=2000,exp=true,div=5,default=50,unit="ms"},
     {id="monophonic_release",name="mono release",min=0,max=2000,exp=false,div=10,default=0,unit="ms"},
@@ -275,7 +277,7 @@ function Track:init()
   self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","gate_note","compressible","send_reverb","send_delay"}
   self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","gate_note","send_reverb","send_delay"}
   self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","gate_note","send_reverb","send_delay"}
-  self.params["crow"]={"crow_type","attack","gate_note","release","crow_sustain"}
+  self.params["crow"]={"crow_type","crow_gate","attack","gate_note","release","crow_sustain","crow_slew"}
   self.params["jf"]={"jf_type"} -- jf options to come
   self.params["wsyn"]={"wsyn_type"} -- wsyn options to come
   self.params["midi"]={"midi_ch","gate_note","midi_dev"}
@@ -316,6 +318,7 @@ u=function(x,v) if v==nil then self.lfos["u"]:stop() end;params:set(self.id.."ra
 z=function(x,v) if v==nil then self.lfos["z"]:stop() end;params:set(self.id.."send_reverb",x/100) end,
 Z=function(x,v) if v==nil then self.lfos["Z"]:stop() end;params:set(self.id.."send_delay",x/100) end,
 y=function(x,v) if v==nil then self.lfos["y"]:stop() end;params:set(self.id.."transpose",x) end,
+N=function(x,v) if v==nil then self.lfos["N"]:stop() end;params:set(self.id.."crow_slew",x) end, 
 }
 -- setup lfos
 self.lfos={}
@@ -536,42 +539,67 @@ self.play_fn[TYPE_SOFTSAMPLE]={
 -- crow
 self.play_fn[TYPE_CROW]={
   last_note=0,
-  note_off=function(d,mods)
+  note_off=function(d,mods) --In tests it appears this function is never be called, maybe redundant?
+    local gate_mode = params:get(self.id.."crow_gate")
+    print("note off")
     local note=d.note_to_emit+params:get(self.id.."pitch")
     if self.play_fn[TYPE_CROW].last_note~=note then 
       do return end 
     end
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local crow_asl=string.format("{to(0.001,%3.3f,exponential)}",params:get(self.id.."release")/1000)
-    print(crow_asl)
-    crow.output[i+1].action=crow_asl
-    crow.output[i+1]()
+    --print(crow_asl)
+    if gate_mode==1 then
+      crow.output[i+1].action=crow_asl
+      crow.output[i+1]()
+    else
+      print("gate off")
+      crow.output[i+1].volts=0
+    end
   end,
   note_on=function(d,mods)
+    local gate_mode = params:get(self.id.."crow_gate")
+    --print(gate_mode)
     local i=(params:get(self.id.."crow_type")-1)*2+1
     local level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0))
     local note=d.note_to_emit+params:get(self.id.."pitch")
     self.play_fn[TYPE_CROW].last_note=note
+    local trigs=mods.x or 1
     local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     duration=duration>0 and duration or d.duration_scaled
+
+    local slew_time = params:get(self.id.."crow_slew")/1000
+    crow.output[i].slew = slew_time
     if level>0 then
       -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
       local crow_asl=string.format("{to(%3.3f,%3.3f,logarithmic), to(%3.3f,%3.3f,exponential), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,params:get(self.id.."crow_sustain"),duration,params:get(self.id.."release")/1000)
-      print(i+1,note,crow_asl)
-      crow.output[i+1].action=crow_asl
-      crow.output[i].volts=(note-24)/12
-      crow.output[i+1]()
+      local crow_trigger=string.format("pulse(%.3f,%1.1f)",duration/10,params:get(self.id.."crow_sustain")) --might make sense to check if scaling of duration/10 is too short or too long
+      --print(i+1,note,crow_asl)
+      if gate_mode==1 then
+        crow.output[i+1].action=crow_asl
+        crow.output[i].volts=(note-24)/12
+        crow.output[i+1]()
+      else
+        --print(crow_trigger)
+        crow.output[i+1].action = crow_trigger
+        crow.output[i+1]()
+        crow.output[i].volts=(note-24)/12
+      end
     end
+
     if mods.x~=nil and mods.x>1 then
       clock.run(function()
         for i=1,mods.x do
           clock.sleep(duration/mods.x)
-          crow.output[i+1](false)
+          if gate_mode==1 then
+            crow.output[i+1](false)
+          end
           level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0)*(i+1))
           note=d.note_to_emit+params:get(self.id.."pitch")*(i+1)
           if level>0 then
             crow.output[i].volts=(note-24)/12
             crow.output[i+1]()
+                        
           end
         end
       end)
