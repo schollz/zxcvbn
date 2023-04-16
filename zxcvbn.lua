@@ -407,7 +407,7 @@ function init2()
 
   if util.file_exists(_path.data.."zxcvbn/first") then
     params:read(_path.data.."zxcvbn/zxcvbn-01.pset")
-    os.execute("rm-f ".._path.data.."zxcvbn/first")
+    os.execute("rm ".._path.data.."zxcvbn/first")
     params:set("clock_tempo",150)
   end
 
