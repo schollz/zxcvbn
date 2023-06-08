@@ -573,36 +573,35 @@ self.play_fn[TYPE_CROW]={
     if level>0 then
       -- local crow_asl=string.format("adsr(%3.3f,0,%3.3f,%3.3f,'linear')",params:get(self.id.."attack")/1000,level,params:get(self.id.."release")/1000)
       local crow_asl=string.format("{to(%3.3f,%3.3f,logarithmic), to(%3.3f,%3.3f,exponential), to(0,%3.3f)}",level,params:get(self.id.."attack")/1000,params:get(self.id.."crow_sustain"),duration,params:get(self.id.."release")/1000)
-      local crow_trigger=string.format("pulse(%.3f,%1.1f)",duration/10,params:get(self.id.."crow_sustain")) --might make sense to check if scaling of duration/10 is too short or too long
-      --print(i+1,note,crow_asl)
+      local crow_trigger=string.format("{to(10,0), to(%1.1f,%3.3f), to(0,0)}",params:get(self.id.."crow_sustain"),duration/10)
+
       if gate_mode==1 then
         crow.output[i+1].action=crow_asl
         crow.output[i].volts=(note-24)/12
         crow.output[i+1]()
       else
-        --print(crow_trigger)
         crow.output[i+1].action = crow_trigger
-        crow.output[i+1]()
         crow.output[i].volts=(note-24)/12
+        crow.output[i+1]()
       end
     end
 
     if mods.x~=nil and mods.x>1 then
-      clock.run(function()
-        for i=1,mods.x do
-          clock.sleep(duration/mods.x)
-          if gate_mode==1 then
-            crow.output[i+1](false)
-          end
-          level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0)*(i+1))
-          note=d.note_to_emit+params:get(self.id.."pitch")*(i+1)
-          if level>0 then
-            crow.output[i].volts=(note-24)/12
-            crow.output[i+1]()
-                        
-          end
+      
+     level=util.linlin(-48,12,0,10,params:get(self.id.."db")+(mods.v or 0)*(i+1))
+     if(level > 0) then
+        crow.output[i+1].volts=0
+        local crow_trigger=string.format("times(%1.0f,{to(%3.3f,%3.3f,logarithmic), to(%3.3f,%3.3f,exponential), to(0,%3.3f)})",mods.x,params:get(self.id.."crow_sustain"),2/1000,params:get(self.id.."crow_sustain"),duration/10,2/1000)
+        local crow_asl = string.format("times(%1.0f,{to(%3.3f,%3.3f,logarithmic), to(%3.3f,%3.3f,exponential), to(0,%3.3f)})",mods.x,level,params:get(self.id.."attack")/1000,params:get(self.id.."crow_sustain"),duration,params:get(self.id.."release")/1000)
+        print(crow_asl)
+     
+        if gate_mode == 1 then
+          crow.output[i+1].action=crow_asl
+        else
+          crow.output[i+1].action = crow_trigger
         end
-      end)
+        crow.output[i+1]()
+      end
     end
   end,
 }
