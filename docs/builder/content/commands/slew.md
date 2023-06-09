@@ -1,7 +1,7 @@
 ---
 title: Slew
 weight: 1.0
-shortcode: N
+shortcode: "N"
 range: 0 to 500 ms
 clades:
     - crow
