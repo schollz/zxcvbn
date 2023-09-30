@@ -19,3 +19,5 @@ The [drum](#drum) this command will change the amount of decimation between 0 an
 For [mx.synths](#mx-synths) this command will change the four mods. Each mod has a range of 100 (which is mapped to -1 to 1). So for mod1, the values are 0-100, for mod2 the values are 101-200, etc.
 
 For [infinite pad](#infinite-pad) this command will change the swell. The range is 0 to 100%.
+
+For [MIDI](#midi) this command will send a CC message to the relative MIDI device and channel. The range is 0 to 127.
