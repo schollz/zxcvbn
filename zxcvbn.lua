@@ -566,7 +566,9 @@ function keyboard.code(k,v)
       show_message((params:get(params:get("track").."play")==0 and "stopped" or "playing").." track "..params:get("track"))
     end
     do return end
-  elseif k=="CTRL+SPACE" then
+elseif k=="CTRL+SPACE" then
+    local dev_list_temp = {} --temp array
+    local dev_temp = {}
     if v==1 then
       -- pause/play all
       print("pause/play all")
@@ -581,13 +583,29 @@ function keyboard.code(k,v)
         show_message("stopping all")
         for i=1,10 do
           params:set(i.."play",0)
+          if(params:get(i.."track_type") == 9) then
+            dev_temp = params:get(i.."midi_dev")
+            if(has_value(dev_list_temp,dev_temp) == false) then
+              dev_list_temp[i] = dev_temp
+              midi_device[params:get(i.."midi_dev")].stop()
+            end
+          end
         end
+        dev_list_temp = {} --temp array
       else
         for i=1,10 do
           if tracks[i].tli~=nil and tracks[i].tli.pulses>0 then
             params:set(i.."play",1)
           end
+          if(params:get(i.."track_type") == 9) then
+            dev_temp = params:get(i.."midi_dev")
+            if(has_value(dev_list_temp,dev_temp) == false) then
+              dev_list_temp[i] = dev_temp
+              midi_device[params:get(i.."midi_dev")].start()
+            end
+          end
         end
+        dev_list_temp = {} --temp array
         show_message("playing all")
       end
     end
@@ -608,6 +626,15 @@ function keyboard.code(k,v)
   screens[screen_ind]:keyboard(k,v)
 end
 
+function has_value (tab, val)
+  for index, value in ipairs(tab) do
+      if value == val then
+          return true
+      end
+  end
+  return false
+end
+
 function show_progress(val)
   show_message_progress=util.clamp(val,0,100)
 end
@@ -617,6 +644,7 @@ function show_message(message,seconds)
   show_message_clock=10*seconds
   show_message_text=message
 end
+
 
 function draw_message()
   if show_message_clock~=nil and show_message_text~=nil and show_message_clock>0 and show_message_text~="" then
@@ -983,7 +1011,7 @@ end
 
 function params_midi()
   -- midi
-  midi_device={{name="none",note_on=function()end,note_off=function()end}}
+  midi_device={{name="none",note_on=function()end,note_off=function()end,start=function()end,stop=function()end,}}
   midi_device_list={"none"}
   for i,dev in pairs(midi.devices) do
     if dev.port~=nil then
@@ -995,6 +1023,9 @@ function params_midi()
         name=name,
         note_on=function(note,vel,ch) connection:note_on(math.floor(note),math.floor(vel),ch) end,
         note_off=function(note,vel,ch) connection:note_off(math.floor(note),math.floor(vel),ch) end,
+        start = function() connection:start() end, 
+        stop = function() connection:stop() end,
+        cc = function(cc,val,ch) connection:cc(math.floor(cc), math.floor(val), ch) end,
       })
       connection.event=function(data)
         local msg=midi.to_msg(data)
