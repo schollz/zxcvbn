@@ -425,6 +425,8 @@ function Sample:keyboard(k,v)
     self:delta_cursor(1)
   elseif k=="CTRL+D" and v==1 then
     self:get_onsets()
+  elseif k=="CTRL+S" and v==1 then
+    self:save_cursors()
   elseif k=="LEFT" and v>0 then
     self:do_move(-1)
   elseif k=="RIGHT" and v>0 then
@@ -532,6 +534,15 @@ function Sample:get_render()
     os.execute(cmd)
   end
   return rendered
+end
+
+function Sample:save_cursors()
+  print("writing cursor file",self.path_to_cursors)
+  local file=io.open(self.path_to_cursors,"w+")
+  io.output(file)
+  io.write(json.encode({cursors=self.cursors}))
+  io.close(file)
+  show_message("cursors saved!")
 end
 
 function Sample:redraw()

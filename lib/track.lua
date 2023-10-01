@@ -46,7 +46,9 @@ end
 
 function Track:init()
   self.lfos={}
-
+  self.lfo_shape_options={"sine","saw","square","random"}
+  self.lfo_shape_chosen={}
+  
   self.loop={pos_play=-1,pos_rec=-1,arm_play=false,arm_rec=false,send_tape=0}
 
   self.lseq=lseq_:new{id=self.id}
@@ -105,6 +107,12 @@ function Track:init()
   -- midi stuff
   params:add_option(self.id.."midi_dev","device",midi_device_list,1)
   params:add_number(self.id.."midi_ch","channel",1,16,1)
+  params:add_binary(self.id.."midi_cc_enable", "enable cc", "toggle",0)
+  params:add_number(self.id.."midi_cc_number","cc number",0,127,0)
+  params:add_number(self.id.."midi_cc","cc value(j)",0,127,0)
+
+
+
 
   -- mx.synths stuff
   self.mx_synths={"polyperc","synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","dreadpiano","aaaaaa","triangles","bigbass","supersaw"}
@@ -174,7 +182,7 @@ function Track:init()
     {id="monophonic_release",name="mono release",min=0,max=2000,exp=false,div=10,default=0,unit="ms"},
     {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="gate_note",name="hold (h)",min=0,max=24*16,exp=false,div=1,default=0,formatter=function(param) return param:get()==0 and "full" or string.format("%d pulses",math.floor(param:get())) end},
-    {id="decimate",name="decimate (m)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
+    {id="decimate",name="decimate (j)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="drive",name="drive",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="compression",name="compression",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="pitch",name="note (n)",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
@@ -272,7 +280,7 @@ function Track:init()
   params:add_number(self.id.."retrig_add","activated retrig",0,32,0)
   params:add{type="binary",name="activate db/retrig",id=self.id.."activate_dnr",behavior="momentary"}
 
-  self.params={shared={"track_type","play","db","probability","pitch","mute","mute_group","transpose","scale_mode","root_note"}}
+  self.params={shared={"track_type","play","db","probability","lfo_shape","pitch","mute","mute_group","transpose","scale_mode","root_note"}}
   self.params["drum"]={"sample_file","retrig_add","db_add","activate_dnr","note_add","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb","send_delay"}
   self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","gate_note","compressible","send_reverb","send_delay"}
   self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","gate_note","send_reverb","send_delay"}
@@ -280,11 +288,16 @@ function Track:init()
   self.params["crow"]={"crow_type","crow_gate","attack","gate_note","release","crow_sustain","crow_slew"}
   self.params["jf"]={"jf_type"} -- jf options to come
   self.params["wsyn"]={"wsyn_type"} -- wsyn options to come
-  self.params["midi"]={"midi_ch","gate_note","midi_dev"}
+  self.params["midi"]={"midi_ch","gate_note","midi_dev","midi_cc_number","midi_cc","midi_cc_enable"} 
   self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb","send_delay"}
   self.params["dx7"]={"db","monophonic_release","gate_note","filter","attack","pan","release","compressing","compressible","dx7_preset","send_reverb","send_delay"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
 
+  params:add_option(self.id.."lfo_shape","lfo shape", self.lfo_shape_options,1)
+  params:set_action(self.id.."lfo_shape",function(x)
+    self.lfo_shape_chosen = self.lfo_shape_options[x]
+  end)
+  
   -- define the shortcodes here
   self.mods={
     j=function(x,v)
@@ -304,6 +317,8 @@ function Track:init()
         x=x-(i-1)*100
         x=(x-50)/50
         params:set(self.id.."mod"..i,x)
+      elseif params:get(self.id.."track_type")==TYPE_MIDI then 
+        params:set(self.id.."midi_cc",x)
       end
     end,
   i=function(x,v) if v==nil then self.lfos["i"]:stop() end;params:set(self.id.."filter",x+30) end,
@@ -325,6 +340,7 @@ self.lfos={}
 for k,_ in pairs(self.mods) do
   if k~="m" then
     self.lfos[k]=lfos_:add{
+      shape = self.lfo_shape_chosen,
       min=10,
       max=20,
       depth=1,
@@ -641,11 +657,16 @@ self.play_fn[TYPE_MIDI]={
     d.duration=duration>0 and duration or d.duration
     local duration_scaled=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     d.duration_scaled=duration_scaled>0 and duration_scaled or d.duration_scaled
+
+    if params:get(self.id.."midi_cc_enable") == 1 then
+      midi_device[params:get(self.id.."midi_dev")].cc(params:get(self.id.."midi_cc_number"),params:get(self.id.."midi_cc"),params:get(self.id.."midi_ch"))
+    end
     if vel>0 then
       -- print(note,vel,params:get(self.id.."midi_ch"))
       midi_device[params:get(self.id.."midi_dev")].note_on(note,vel,params:get(self.id.."midi_ch"))
       self.midi_notes[note]={device=params:get(self.id.."midi_dev"),duration=util.round(d.duration/trigs)}
     end
+    
     -- TODO use debouncing
     if trigs>1 then
       clock.run(function()
@@ -749,6 +770,7 @@ function Track:setup_lfo(x)
   if nums[3]~=nil then
     self.lfos[mod]:set("max",nums[3])
   end
+  self.lfos[mod]:set("shape",self.lfo_shape_chosen)
   self.lfos[mod]:start()
 end
 
