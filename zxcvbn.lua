@@ -457,7 +457,9 @@ function rerun()
 end
 
 function cleanup()
-  os.execute("pkill-f oscnotify")
+  os.execute("pkill -f oscnotify")
+  os.execute("pkill -f oscconnect")
+  os.execute("pkill -f osccpu")
 end
 
 function reset_clocks()
