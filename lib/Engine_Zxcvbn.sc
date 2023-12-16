@@ -631,7 +631,7 @@ Engine_Zxcvbn : CroneEngine {
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
             snd = Balance2.ar(snd[0],snd[1],Lag.kr(pan,0.1));
-            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 12;
+            snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 6;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
             Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
