@@ -518,12 +518,10 @@ self.play_fn[TYPE_MXSAMPLES]={
 -- mx.synths
 self.play_fn[TYPE_MXSYNTHS]={
   note_off=function(d)
-    print("note off!!")
     local note=d.note_to_emit+params:get(self.id.."pitch")
     engine.note_off(self.id,note)
   end,
   note_on=function(d,mods)
-    print("note on!")
     local synth=params:string(self.id.."mx_synths")
     local note=d.note_to_emit+params:get(self.id.."pitch")
     local db=params:get(self.id.."db")
@@ -543,12 +541,10 @@ self.play_fn[TYPE_MXSYNTHS]={
 -- Passersby
 self.play_fn[TYPE_PASSERSBY]={
   note_off=function(d)
-    print("NOTE OFF")
     local note=d.note_to_emit+params:get(self.id.."pitch")
     engine.note_off(self.id,note)
   end,
   note_on=function(d,mods)
-    print("note on!")
     local envelope_type=params:get(self.id.."envelope_type")
     local note=d.note_to_emit+params:get(self.id.."pitch")
     local amp=params:get(self.id.."db")
