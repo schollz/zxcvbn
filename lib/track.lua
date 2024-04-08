@@ -74,7 +74,7 @@ function Track:init()
     self:select(self.selected)
   end)
 
-  params:add_separator(self.id.."Clade_settings","Clade settings")
+  params:add_separator(self.id.."Clade_settings","clade")
 
   params:add_number(self.id.."sc","softcut voice",1,3,1)
   params:set_action(self.id.."sc",function(x)
@@ -208,7 +208,7 @@ function Track:init()
 
   for _,pram in ipairs(params_menu) do
     if pram.id=="pitch" then
-      params:add_separator(self.id.."General_settings","General settings")
+      params:add_separator(self.id.."General_settings","shared")
     end
     params:add{
       type="control",

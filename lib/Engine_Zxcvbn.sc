@@ -801,16 +801,17 @@ Engine_Zxcvbn : CroneEngine {
         }).add;
 
         // </mx.synths>
+
         //https://github.com/markwheeler/passersby
-        SynthDef("passersby",{
+        //passersby
+        SynthDef("passersby_asr",{
 
             arg out=0,gate=1, killGate, duration=600, hz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
             vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0;
             
             var i_nyquist = SampleRate.ir * 0.5, snd, controlLag = 0.005, i_numHarmonics = 44,
             modFreq, mod1, mod2, mod1Index, mod2Index, mod1Freq, mod2Freq, sinOsc,
-            filterEnvVel, filterEnvLow, lpgEnvelope, lpgSignal, asrEnvelope, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8;
-
+            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8;
 
 
             // Lag inputs
@@ -839,28 +840,86 @@ Engine_Zxcvbn : CroneEngine {
             // Sine and triangle
             sinOsc = SinOsc.ar(freq: modFreq, phase: 0, mul: 0.5);
             //removed tri and saw, took too much cpu power and caused issues :(
-    /*         triOsc = VarSaw.ar(freq: modFreq, iphase: 0, width: 0.5, mul: 0.5);
 
-            // Additive square and saw
-            additivePhase = LFSaw.ar(freq: modFreq, iphase: 1, mul: pi, add: pi);
-            additiveOsc = Mix.fill(i_numHarmonics, {
-                arg index;
-                var harmonic, harmonicFreq, harmonicCutoff, attenuation;
+			// Fold
+			snd = Fold.ar(in: sinOsc * (1 + (timbre * 0.5) + (waveFolds * 2)), lo: -0.5, hi: 0.5);
 
-                harmonic = index + 1;
-                harmonicFreq = hz * harmonic;
-                harmonicCutoff = i_nyquist - harmonicFreq;
+			// Hack away some aliasing
+			snd = LPF.ar(in: snd, freq: 12000);
 
-                // Attenuate harmonics that will go over nyquist once FM is applied
-                attenuation = Select.kr(index, [1, // Save the fundamental
-                    (harmonicCutoff - (harmonicFreq * 0.25) - harmonicFreq).expexp(0.000001, harmonicFreq * 0.5, 0.000001, 1)]);
+			// Noise
+			snd = snd + PinkNoise.ar(mul: 0.003);
 
-                (sin(additivePhase * harmonic % 2pi) / harmonic) * attenuation * (harmonic % 2 + waveShape.linlin(0.666666, 1, 0, 1)).min(1);
-            });
+			// LPG
+			filterEnvVel = vel.linlin(0, 1, 0.5, 1);
+            filterEnvVel = 1; //default velocity to 100% for now
+			filterEnvLow = (peak * filterEnvVel).min(300); 
 
-			// Mix carriers
-			snd = LinSelectX.ar(waveShape * 3, [sinOsc, triOsc, additiveOsc]);
- */
+            asrEnvelope = EnvGen.ar(envelope: Env.asr(attackTime: attack, sustainLevel: 1, releaseTime: release, curve: -4), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+            asrFilterFreq = asrEnvelope.linlin(0, 1, filterEnvLow, peak * filterEnvVel);
+
+            asrSignal = RLPF.ar(in: snd, freq: asrFilterFreq, rq: 0.95);
+            asrSignal = RLPF.ar(in: asrSignal, freq: asrFilterFreq, rq: 0.95);
+
+            asrEnvelope2 = EnvGen.ar(envelope: Env.asr(attackTime: attack, sustainLevel: 1, releaseTime: release, curve: -4), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2); 
+
+            asrSignal = asrSignal * asrEnvelope2; 
+
+            
+			snd = asrSignal;
+            snd = snd*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
+			// Saturation amp
+			//snd = tanh(snd * pressure.linlin(0, 1, 1.5, 3) * amp).softclip; //this took up cpu power as well, I guess calculating tanh is expensive :(
+            snd = snd*amp/2;
+            snd = Pan2.ar(snd,Lag.kr(pan,0.1));
+
+			Out.ar(\outtrack.kr(0),snd);
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
+            Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);  
+        }).add;
+
+        SynthDef("passersby_lpg",{
+
+            arg out=0,gate=1, killGate, duration=600, hz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
+            vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0;
+            
+            var i_nyquist = SampleRate.ir * 0.5, snd, controlLag = 0.005, i_numHarmonics = 44,
+            modFreq, mod1, mod2, mod1Index, mod2Index, mod1Freq, mod2Freq, sinOsc,
+            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8;
+
+
+            // Lag inputs
+            hz = Lag.kr(hz * pitchBendRatio, 0.007 + glide);
+            fm1Ratio = Lag.kr(fm1Ratio, controlLag);
+            fm2Ratio = Lag.kr(fm2Ratio, controlLag);
+            fm1Amount = Lag.kr(fm1Amount.squared, controlLag);
+            fm2Amount = Lag.kr(fm2Amount.squared, controlLag);
+
+            vel = Lag.kr(vel, controlLag);
+            waveShape = Lag.kr(waveShape, controlLag);
+            waveFolds = Lag.kr(waveFolds, controlLag);
+            attack = Lag.kr(attack, controlLag);
+            peak = Lag.kr(peak, controlLag);
+            decay = Lag.kr(decay, controlLag);
+
+             // Modulators
+            mod1Index = fm1Amount * 22;
+            mod1Freq = hz * fm1Ratio * LFNoise2.kr(freq: 0.1, mul: 0.001, add: 1);
+            mod1 = SinOsc.ar(freq: mod1Freq, phase: 0, mul: mod1Index * mod1Freq, add: 0);
+            mod2Index = fm2Amount * 12;
+            mod2Freq = hz * fm2Ratio * LFNoise2.kr(freq: 0.1, mul: 0.005, add: 1);
+            mod2 = SinOsc.ar(freq: mod2Freq, phase: 0, mul: mod2Index * mod2Freq, add: 0);
+            modFreq = hz + mod1 + mod2; 
+
+            // Sine and triangle
+            sinOsc = SinOsc.ar(freq: modFreq, phase: 0, mul: 0.5);
+
+            //removed tri and saw, took too much cpu power and caused issues :(
+    
 			// Fold
 			snd = Fold.ar(in: sinOsc * (1 + (timbre * 0.5) + (waveFolds * 2)), lo: -0.5, hi: 0.5);
 
@@ -876,26 +935,13 @@ Engine_Zxcvbn : CroneEngine {
 			filterEnvLow = (peak * filterEnvVel).min(300); 
 
             lpgEnvelope= EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.003, release], curve: [4, -20]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
-
             lpgEnvelope2=EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.002, release], curve: [4, -10]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 
             lpgSignal = RLPF.ar(in: snd, freq: lpgEnvelope.linlin(0, 1, filterEnvLow, peak * filterEnvVel), rq: 0.9);
             lpgSignal = lpgSignal * lpgEnvelope2;  
-
-			 // ASR with 4-pole filter
-			asrEnvelope = EnvGen.ar(envelope: Env.asr(attackTime: attack, sustainLevel: 1, releaseTime: release, curve: -4), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
-			asrFilterFreq = asrEnvelope.linlin(0, 1, filterEnvLow, peak * filterEnvVel);
-
-			asrSignal = RLPF.ar(in: snd, freq: asrFilterFreq, rq: 0.95);
-			asrSignal = RLPF.ar(in: asrSignal, freq: asrFilterFreq, rq: 0.95);
-
-            asrEnvelope2 = EnvGen.ar(envelope: Env.asr(attackTime: attack, sustainLevel: 1, releaseTime: release, curve: -4), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2); 
-
-			asrSignal = asrSignal * asrEnvelope2; 
-
-			snd = Select.ar(envType, [lpgSignal, asrSignal]);
-            snd = snd*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2); //implement gate kill
-
+            
+			snd = lpgSignal;
+            snd = snd*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
 			// Saturation amp
 			//snd = tanh(snd * pressure.linlin(0, 1, 1.5, 3) * amp).softclip; //this took up cpu power as well, I guess calculating tanh is expensive :(
             snd = snd*amp/2;
@@ -909,6 +955,7 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
             Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);  
         }).add;
+        //passersby ends
 
         (1..2).do({arg ch;
         SynthDef("playerOneShot"++ch,{ 
@@ -1648,7 +1695,7 @@ Engine_Zxcvbn : CroneEngine {
             };
         });
         
-         this.addCommand("passersby_note_on","ffffffffffffffffffffsfff",{ arg msg;
+        this.addCommand("passersby_note_on","ffffffffffffffffffffsfff",{ arg msg;
             var envType=msg[1]-1;
             var note=msg[2];
             var amp=msg[3];
@@ -1675,8 +1722,15 @@ Engine_Zxcvbn : CroneEngine {
             var sendDelay=msg[24];
             var killGate;
             var syn;
-            envType.postln;
-            monophonic_release.postln;
+            var synth;
+            if (envType==0,
+            {
+                synth = "passersby_lpg";
+            },
+            {
+                synth = "passersby_asr";
+            }
+            );
              if (monophonic_release>0,{
                 if (syns.at(id).notNil,{
                     if (syns.at(id).isRunning,{   
@@ -1685,7 +1739,7 @@ Engine_Zxcvbn : CroneEngine {
                     });
                 });
             });
-            syn=Synth.new("passersby",[
+            syn=Synth.new(synth,[
                 envType: envType,
                 hz: note.midicps,
                 amp: amp.dbamp,
@@ -1721,7 +1775,7 @@ Engine_Zxcvbn : CroneEngine {
                             (duration/ (retrig+1) ).wait;
                             syn.set("gate_release",monophonic_release+0.05);
                             syn.set("gate_done",1);
-                            syn=Synth.new("passersby", [
+                            syn=Synth.new(synth, [
                                 envType: envType,
                                 hz: note.midicps,
                                 amp: amp.dbamp,
