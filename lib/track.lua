@@ -181,8 +181,8 @@ function Track:init()
     {id="crow_slew",name="slew",min=0,max=500,exp=false,div=1,default=0,unit="ms"},  --added crow slew
 
     {id="wavefold",name="wavefold(j)",min=0,max=3,exp=false,div=0.01,default=0}, --added passersby
-    {id="fm_low_ratio",name="fm low ratio",min=0.1,max=1,exp=false,div=0.01,default=0.66}, --added passersby
-    {id="fm_high_ratio",name="fm high ratio",min=1,max=10,exp=false,div=0.01,default=3.3}, --added passersby
+    {id="fm_low_ratio",name="fm low ratio",min=0.1,max=1,exp=false,div=0.01,default=0.5}, --added passersby
+    {id="fm_high_ratio",name="fm high ratio",min=1,max=10,exp=false,div=0.01,default=3}, --added passersby
     {id="fm_low",name="fm low(i)",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
     {id="fm_high",name="fm high(k)",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
     {id="pb_attack",name="attack",min=3,max=8000,exp=true,div=10,default=40,unit="ms"}, --added passersby
