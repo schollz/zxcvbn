@@ -176,7 +176,7 @@ function Track:init()
     {id="pan",name="pan (w)",min=-1,mod=true,max=1,exp=false,div=0.01,default=0},
     {id="filter",name="filter (i)",mod=true,min=24,max=135,exp=false,div=0.5,default=135,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
     {id="probability",name="probability (q)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
-    {id="attack",name="attack (k)",min=5,max=2000,exp=true,div=5,default=1,unit="ms"},
+    {id="attack",name="attack (k)",min=5,max=2000,exp=true,div=5,default=5,unit="ms"},
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
     {id="crow_slew",name="slew",min=0,max=500,exp=false,div=1,default=0,unit="ms"},  --added crow slew
 
@@ -403,6 +403,7 @@ self.enc3[TYPE_MXSAMPLES]="pan"
 self.enc3[TYPE_MXSYNTHS]="pan"
 self.enc3[TYPE_DX7]="pan"
 self.enc3[TYPE_SOFTSAMPLE]="pan"
+self.enc3[TYPE_PASSERSBY]="wavefold"
 
 -- initialize track data
 self.state=STATE_VTERM
@@ -427,8 +428,12 @@ end,shift_updown=function(d)
     params:delta(self.id.."wsyn_type",d)
   elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
     params:delta(self.id.."sc",d)
+  elseif params:get(self.id.."track_type")==TYPE_PASSERSBY then
+    params:delta(self.id.."envelope_type",d)
   end
-end,enc3=function()
+end,
+
+enc3=function()
   return self.enc3[params:get(self.id.."track_type")]
 end})
 table.insert(self.states,sample_:new{id=self.id})
@@ -808,6 +813,8 @@ function Track:description()
     s=s..string.format(" (%s)",params:string(self.id.."wsyn_type"))
   elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
     s=s..string.format(" (%s)",params:string(self.id.."sc"))
+  elseif params:get(self.id.."track_type")==TYPE_PASSERSBY then
+    s=s..string.format(" (%s)",params:string(self.id.."envelope_type"))
   end
   return s
 end
