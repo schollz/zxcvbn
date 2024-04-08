@@ -1,4 +1,4 @@
--- zxcvbn v2.3.0
+-- zxcvbn v2.4.0
 --
 --
 -- zxcvbn.norns.online
@@ -459,7 +459,7 @@ function rerun()
 end
 
 function cleanup()
-  os.execute("pkill oscnotify")
+  os.execute("pkill -f oscnotify")
   os.execute("pkill -f oscconnect")
   os.execute("pkill -f osccpu")
 end
