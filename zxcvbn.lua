@@ -75,7 +75,7 @@ function init()
   Restart_Message=UI.Message.new{"please restart norns"}
   if Needs_Restart then redraw() return end
   -- rest of init()
-
+  
   -- setup screens
   screens={}
   screen_ind=1
@@ -138,6 +138,7 @@ function init2()
   end
 
   -- add major parameters
+  params:add_separator("zxcvbn","zxcvbn") --add separator if some mod is adding menu items
   params_meta()
   params_audioin()
   params_sidechain()
@@ -421,6 +422,7 @@ function init2()
   -- params:set("4play",1)
   -- params:set("audioinpanL",0)
   -- params:set("1scale_mode",2)
+  
 end
 
 function load_dx7()
@@ -457,7 +459,7 @@ function rerun()
 end
 
 function cleanup()
-  os.execute("pkill -f oscnotify")
+  os.execute("pkill oscnotify")
   os.execute("pkill -f oscconnect")
   os.execute("pkill -f osccpu")
 end
@@ -571,6 +573,8 @@ function keyboard.code(k,v)
 elseif k=="CTRL+SPACE" then
     local dev_list_temp = {} --temp array
     local dev_temp = {}
+    local nb_check
+    local midi_device_name
     if v==1 then
       -- pause/play all
       print("pause/play all")
@@ -586,8 +590,10 @@ elseif k=="CTRL+SPACE" then
         for i=1,10 do
           params:set(i.."play",0)
           if(params:get(i.."track_type") == 9) then
-            dev_temp = params:get(i.."midi_dev")
-            if(has_value(dev_list_temp,dev_temp) == false) then
+            dev_temp = params:get(i.."midi_dev") 
+            midi_device_name = midi_device[dev_temp].name
+            nb_check = string.find(midi_device_name,"nb")
+            if(has_value(dev_list_temp,dev_temp) == false and nb_check == nil ) then 
               dev_list_temp[i] = dev_temp
               midi_device[params:get(i.."midi_dev")].stop()
             end
@@ -601,7 +607,9 @@ elseif k=="CTRL+SPACE" then
           end
           if(params:get(i.."track_type") == 9) then
             dev_temp = params:get(i.."midi_dev")
-            if(has_value(dev_list_temp,dev_temp) == false) then
+            midi_device_name = midi_device[dev_temp].name
+            nb_check = string.find(midi_device_name,"nb")
+            if(has_value(dev_list_temp,dev_temp) == false and nb_check == nil ) then
               dev_list_temp[i] = dev_temp
               midi_device[params:get(i.."midi_dev")].start()
             end
@@ -811,7 +819,9 @@ function params_action()
     end
     for i,s in ipairs(data.tracks) do
       print("loads",i,s)
+      print("resetting LFO's")
       tracks[i]:loads(s)
+      tracks[i]:resetlfos()
     end
   end
 end

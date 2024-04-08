@@ -16,6 +16,8 @@ TYPE_CROW=8
 TYPE_MIDI=9
 TYPE_JF=10
 TYPE_WSYN=11
+TYPE_PASSERSBY = 12
+
 
 function string.split(pString,pPattern)
   local Table={} -- NOTE: use {n = 0} in Lua-5.0
@@ -53,9 +55,8 @@ function Track:init()
 
   self.lseq=lseq_:new{id=self.id}
 
-  self.track_type_options={"mx.synths","dx7","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn"}
+  self.track_type_options={"mx.synths","dx7","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn","passersby"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
-
   params:set_action(self.id.."track_type",function(x)
     local chosenclade=self.track_type_options[x]
 
@@ -72,6 +73,8 @@ function Track:init()
     -- rerun show/hiding
     self:select(self.selected)
   end)
+
+  params:add_separator(self.id.."Clade_settings","Clade settings")
 
   params:add_number(self.id.."sc","softcut voice",1,3,1)
   params:set_action(self.id.."sc",function(x)
@@ -111,9 +114,8 @@ function Track:init()
   params:add_number(self.id.."midi_cc_number","cc number",0,127,0)
   params:add_number(self.id.."midi_cc","cc value(j)",0,127,0)
 
-
-
-
+  -- Passersby stuff
+  params:add_option(self.id.."envelope_type","envelope type",{"lpg","sustain"},1)
   -- mx.synths stuff
   self.mx_synths={"polyperc","synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","dreadpiano","aaaaaa","triangles","bigbass","supersaw"}
   params:add_option(self.id.."mx_synths","synth",self.mx_synths)
@@ -177,6 +179,15 @@ function Track:init()
     {id="attack",name="attack (k)",min=5,max=2000,exp=true,div=5,default=1,unit="ms"},
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
     {id="crow_slew",name="slew",min=0,max=500,exp=false,div=1,default=0,unit="ms"},  --added crow slew
+
+    {id="wavefold",name="wavefold(j)",min=0,max=3,exp=false,div=0.01,default=0}, --added passersby
+    {id="fm_low_ratio",name="fm low ratio",min=0.1,max=1,exp=false,div=0.01,default=0.66}, --added passersby
+    {id="fm_high_ratio",name="fm high ratio",min=1,max=10,exp=false,div=0.01,default=3.3}, --added passersby
+    {id="fm_low",name="fm low(i)",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
+    {id="fm_high",name="fm high(k)",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
+    {id="pb_attack",name="attack",min=3,max=8000,exp=true,div=10,default=40,unit="ms"}, --added passersby
+    {id="peak",name="peak",min=100,max=10000,exp=true,div=10,default=10000,unit="hz"}, --added passersby
+
     {id="swell",name="swell (j)",min=0.1,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="release",name="release (l)",min=5,max=2000,exp=true,div=5,default=50,unit="ms"},
     {id="monophonic_release",name="mono release",min=0,max=2000,exp=false,div=10,default=0,unit="ms"},
@@ -194,7 +205,11 @@ function Track:init()
     {id="send_delay",name="delay send (Z)",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
     {id="transpose",name="transpose (y)",min=-127,max=127,exp=false,div=1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.0f",param:get()>-0.01 and "+" or "",param:get()) end},
   }
+
   for _,pram in ipairs(params_menu) do
+    if pram.id=="pitch" then
+      params:add_separator(self.id.."General_settings","General settings")
+    end
     params:add{
       type="control",
       id=self.id..pram.id,
@@ -231,6 +246,7 @@ function Track:init()
         end
       end,
     }
+    
   end
 
   self.note_cache={}
@@ -280,7 +296,7 @@ function Track:init()
   params:add_number(self.id.."retrig_add","activated retrig",0,32,0)
   params:add{type="binary",name="activate db/retrig",id=self.id.."activate_dnr",behavior="momentary"}
 
-  self.params={shared={"track_type","play","db","probability","lfo_shape","pitch","mute","mute_group","transpose","scale_mode","root_note"}}
+  self.params={shared={"track_type","Clade_settings","General_settings","play","db","probability","lfo_shape","pitch","mute","mute_group","transpose","scale_mode","root_note"}}
   self.params["drum"]={"sample_file","retrig_add","db_add","activate_dnr","note_add","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb","send_delay"}
   self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","gate_note","compressible","send_reverb","send_delay"}
   self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","gate_note","send_reverb","send_delay"}
@@ -292,6 +308,7 @@ function Track:init()
   self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb","send_delay"}
   self.params["dx7"]={"db","monophonic_release","gate_note","filter","attack","pan","release","compressing","compressible","dx7_preset","send_reverb","send_delay"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
+  self.params["passersby"]={"envelope_type","wavefold","fm_low_ratio","fm_high_ratio","fm_low","fm_high","pb_attack","peak","release","gate_note","monophonic_release","db","send_reverb","send_delay","pan"}
 
   params:add_option(self.id.."lfo_shape","lfo shape", self.lfo_shape_options,1)
   params:set_action(self.id.."lfo_shape",function(x)
@@ -300,40 +317,63 @@ function Track:init()
   
   -- define the shortcodes here
   self.mods={
-    j=function(x,v)
-      if v==nil then self.lfos["j"]:stop() end
-      if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
-        params:set(self.id.."sc_rec_level",util.clamp(x,0,100)/100)
-      elseif params:get(self.id.."track_type")==TYPE_DRUM then
-        params:set(self.id.."decimate",util.clamp(x,0,100)/100)
-      elseif params:get(self.id.."track_type")==TYPE_DX7 then
-        params:set(self.id.."dx7_preset",x)
-      elseif params:get(self.id.."track_type")==TYPE_INFINITEPAD then
-        params:set(self.id.."swell",util.clamp(x,0,200)/100)
-      elseif params:get(self.id.."track_type")==TYPE_MXSYNTHS then
-        x=util.clamp(x,0,400)
-        local i=math.floor((x-1)/100)+1
-        i=i<1 and 1 or i
-        x=x-(i-1)*100
-        x=(x-50)/50
-        params:set(self.id.."mod"..i,x)
-      elseif params:get(self.id.."track_type")==TYPE_MIDI then 
-        params:set(self.id.."midi_cc",x)
+      j=function(x,v)
+        if v==nil then self.lfos["j"]:stop() end
+        if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
+          params:set(self.id.."sc_rec_level",util.clamp(x,0,100)/100)
+        elseif params:get(self.id.."track_type")==TYPE_DRUM then
+          params:set(self.id.."decimate",util.clamp(x,0,100)/100)
+        elseif params:get(self.id.."track_type")==TYPE_DX7 then
+          params:set(self.id.."dx7_preset",x)
+        elseif params:get(self.id.."track_type")==TYPE_INFINITEPAD then
+          params:set(self.id.."swell",util.clamp(x,0,200)/100)
+        elseif params:get(self.id.."track_type")==TYPE_MXSYNTHS then
+          x=util.clamp(x,0,400)
+          local i=math.floor((x-1)/100)+1
+          i=i<1 and 1 or i
+          x=x-(i-1)*100
+          x=(x-50)/50
+          params:set(self.id.."mod"..i,x)
+        elseif params:get(self.id.."track_type")==TYPE_MIDI then 
+          params:set(self.id.."midi_cc",util.clamp(x,0,127))
+        elseif params:get(self.id.."track_type")==TYPE_PASSERSBY then
+          params:set(self.id.."wavefold",util.clamp(x,0,300)/100)
+        end
+    end,
+    i=function(x,v) 
+      if v==nil then self.lfos["i"]:stop() end
+      if params:get(self.id.."track_type")==TYPE_PASSERSBY then
+        params:set(self.id.."fm_low",util.clamp(x,0,100)/100)
+      else
+        params:set(self.id.."filter",x+30)
       end
     end,
-  i=function(x,v) if v==nil then self.lfos["i"]:stop() end;params:set(self.id.."filter",x+30) end,
-q=function(x,v) if v==nil then self.lfos["q"]:stop() end;params:set(self.id.."probability",x) end,
-h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x);params:set(self.id.."gate_note",x) end,
-k=function(x,v) if v==nil then self.lfos["k"]:stop() end;params:set(self.id.."attack",x) end,
-l=function(x,v) if v==nil then self.lfos["l"]:stop() end;params:set(self.id.."release",x) end,
-w=function(x,v) if v==nil then self.lfos["w"]:stop() end;params:set(self.id.."pan",(x/100));params:set(self.id.."sc_pan",x/100) end,
-m=function(x) self:setup_lfo(x) end,
-n=function(x,v) if v==nil then self.lfos["n"]:stop() end;params:set(self.id.."pitch",x) end,
-u=function(x,v) if v==nil then self.lfos["u"]:stop() end;params:set(self.id.."rate",x/100);params:set(self.id.."sc_rate",x/100) end,
-z=function(x,v) if v==nil then self.lfos["z"]:stop() end;params:set(self.id.."send_reverb",x/100) end,
-Z=function(x,v) if v==nil then self.lfos["Z"]:stop() end;params:set(self.id.."send_delay",x/100) end,
-y=function(x,v) if v==nil then self.lfos["y"]:stop() end;params:set(self.id.."transpose",x) end,
-N=function(x,v) if v==nil then self.lfos["N"]:stop() end;params:set(self.id.."crow_slew",x) end, 
+    q=function(x,v) if v==nil then self.lfos["q"]:stop() end;params:set(self.id.."probability",x) end,
+    h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x);params:set(self.id.."gate_note",x) end,
+    k=function(x,v) 
+      if v==nil then self.lfos["k"]:stop() end
+      if params:get(self.id.."track_type")==TYPE_PASSERSBY then
+        params:set(self.id.."fm_high",util.clamp(x,0,100)/100)
+      else
+      params:set(self.id.."attack",x) 
+      end
+    end,  
+    l=function(x,v) if v==nil then self.lfos["l"]:stop() end; params:set(self.id.."release",x) end,
+    w=function(x,v) if v==nil then self.lfos["w"]:stop() end;params:set(self.id.."pan",(x/100));params:set(self.id.."sc_pan",x/100) end,
+    m=function(x) self:setup_lfo(x) end,
+    n=function(x,v) if v==nil then self.lfos["n"]:stop() end;params:set(self.id.."pitch",x) end,
+    u=function(x,v) if v==nil then self.lfos["u"]:stop() end;params:set(self.id.."rate",x/100);params:set(self.id.."sc_rate",x/100) end,
+    z=function(x,v) if v==nil then self.lfos["z"]:stop() end;params:set(self.id.."send_reverb",x/100) end,
+    Z=function(x,v) if v==nil then self.lfos["Z"]:stop() end;params:set(self.id.."send_delay",x/100) end,
+    y=function(x,v) if v==nil then self.lfos["y"]:stop() end;params:set(self.id.."transpose",x) end,
+    N=function(x,v) 
+      if v==nil then self.lfos["N"]:stop() end
+      if params:get(self.id.."track_type")==TYPE_CROW then
+        params:set(self.id.."crow_slew",x) 
+      elseif params:get(self.id.."track_type")==TYPE_PASSERSBY then
+        --params:set(self.id.."glide",x) 
+      end
+    end, 
 }
 -- setup lfos
 self.lfos={}
@@ -478,10 +518,12 @@ self.play_fn[TYPE_MXSAMPLES]={
 -- mx.synths
 self.play_fn[TYPE_MXSYNTHS]={
   note_off=function(d)
+    print("note off!!")
     local note=d.note_to_emit+params:get(self.id.."pitch")
     engine.note_off(self.id,note)
   end,
   note_on=function(d,mods)
+    print("note on!")
     local synth=params:string(self.id.."mx_synths")
     local note=d.note_to_emit+params:get(self.id.."pitch")
     local db=params:get(self.id.."db")
@@ -497,7 +539,38 @@ self.play_fn[TYPE_MXSYNTHS]={
     duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,db_add,params:get(self.id.."send_delay"))
   end,
 }
--- mx.synths
+
+-- Passersby
+self.play_fn[TYPE_PASSERSBY]={
+  note_off=function(d)
+    print("NOTE OFF")
+    local note=d.note_to_emit+params:get(self.id.."pitch")
+    engine.note_off(self.id,note)
+  end,
+  note_on=function(d,mods)
+    print("note on!")
+    local envelope_type=params:get(self.id.."envelope_type")
+    local note=d.note_to_emit+params:get(self.id.."pitch")
+    local amp=params:get(self.id.."db")
+    local peak=params:get(self.id.."peak")
+    local pan=params:get(self.id.."pan")
+    local attack=params:get(self.id.."pb_attack")/1000
+    local decay=params:get(self.id.."release")/1000
+    local waveshape = 0
+    local wavefold = params:get(self.id.."wavefold")
+    local fm1ratio = params:get(self.id.."fm_low_ratio")
+    local fm2ratio = params:get(self.id.."fm_high_ratio")
+    local fm1amount = params:get(self.id.."fm_low")
+    local fm2amount = params:get(self.id.."fm_high")
+    local glide = 0
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
+    duration=duration>0 and duration or d.duration_scaled
+    local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
+    engine.passersby_note_on(envelope_type,note,amp,peak,pan,attack,decay,waveshape,wavefold,fm1ratio,fm2ratio,fm1amount,fm2amount,glide,
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,params:get(self.id.."send_delay"))
+  end, 
+}
+-- DX7
 self.play_fn[TYPE_DX7]={
   note_on=function(d,mods)
     -- preset, note, vel, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay
@@ -744,7 +817,6 @@ function Track:description()
 end
 
 function Track:setup_lfo(x)
-  print("setup_lfo",x)
   if x==nil or tonumber(x)~=nil then
     do return end
   end
@@ -774,6 +846,14 @@ function Track:setup_lfo(x)
   self.lfos[mod]:start()
 end
 
+function Track:resetlfos()
+  for k,_ in pairs(self.mods) do
+    if(self.lfos[k] ~= nil) then
+      self.lfos[k]:stop()
+    end
+  end  
+end
+
 function Track:dumps()
   local data={states={}}
   for i,v in ipairs(self.states) do
@@ -786,6 +866,7 @@ function Track:dumps()
   engine.loop_save(self.id,_path.data.."zxcvbn/tapes/"..params:get("random_string").."_")
   return json.encode(data)
 end
+
 
 function Track:loads(s)
   local data=json.decode(s)
@@ -1016,6 +1097,7 @@ function Track:load_sample(path)
     self.states[STATE_SAMPLE]:load_sample(path,params:get(self.id.."track_type")==TYPE_MELODIC,params:get(self.id.."slices"))
   end
 end
+
 
 function Track:loop_record()
   print(string.format("track %d: recording armed",self.id))
