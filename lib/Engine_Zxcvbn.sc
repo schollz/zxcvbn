@@ -809,7 +809,7 @@ Engine_Zxcvbn : CroneEngine {
             
             var i_nyquist = SampleRate.ir * 0.5, snd, controlLag = 0.005, i_numHarmonics = 44,
             modFreq, mod1, mod2, mod1Index, mod2Index, mod1Freq, mod2Freq, sinOsc,
-            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8;
+            filterEnvVel, filterEnvLow, lpgEnvelope, lpgSignal, asrEnvelope, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8;
 
 
 
@@ -874,31 +874,28 @@ Engine_Zxcvbn : CroneEngine {
 			filterEnvVel = vel.linlin(0, 1, 0.5, 1);
             filterEnvVel = 1; //default velocity to 100% for now
 			filterEnvLow = (peak * filterEnvVel).min(300); 
-            //default way
+
             lpgEnvelope= EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.005, release], curve: [4, -20]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
-            //lpgEnvelope=lpgEnvelope*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
 
             lpgEnvelope2=EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.005, release], curve: [4, -10]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
-            //lpgEnvelope2=lpgEnvelope2*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
 
             lpgSignal = RLPF.ar(in: snd, freq: lpgEnvelope.linlin(0, 1, filterEnvLow, peak * filterEnvVel), rq: 0.9);
             lpgSignal = lpgSignal * lpgEnvelope2;  
 
 			 // ASR with 4-pole filter
 			asrEnvelope = EnvGen.ar(envelope: Env.asr(attackTime: attack, sustainLevel: 1, releaseTime: release, curve: -4), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
-            //asrEnvelope=asrEnvelope*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
 			asrFilterFreq = asrEnvelope.linlin(0, 1, filterEnvLow, peak * filterEnvVel);
 
 			asrSignal = RLPF.ar(in: snd, freq: asrFilterFreq, rq: 0.95);
 			asrSignal = RLPF.ar(in: asrSignal, freq: asrFilterFreq, rq: 0.95);
 
             asrEnvelope2 = EnvGen.ar(envelope: Env.asr(attackTime: attack, sustainLevel: 1, releaseTime: release, curve: -4), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2); 
-            //asrEnvelope2 = asrEnvelope2*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
 
 			asrSignal = asrSignal * asrEnvelope2; 
 
 			snd = Select.ar(envType, [lpgSignal, asrSignal]);
-            
+            snd = snd*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2); //implement gate kill
+
 			// Saturation amp
 			//snd = tanh(snd * pressure.linlin(0, 1, 1.5, 3) * amp).softclip; //this took up cpu power as well, I guess calculating tanh is expensive :(
             snd = snd*amp/2;
