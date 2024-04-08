@@ -875,9 +875,9 @@ Engine_Zxcvbn : CroneEngine {
             filterEnvVel = 1; //default velocity to 100% for now
 			filterEnvLow = (peak * filterEnvVel).min(300); 
 
-            lpgEnvelope= EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.005, release], curve: [4, -20]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+            lpgEnvelope= EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.003, release], curve: [4, -20]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 
-            lpgEnvelope2=EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.005, release], curve: [4, -10]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
+            lpgEnvelope2=EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.002, release], curve: [4, -10]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 
             lpgSignal = RLPF.ar(in: snd, freq: lpgEnvelope.linlin(0, 1, filterEnvLow, peak * filterEnvVel), rq: 0.9);
             lpgSignal = lpgSignal * lpgEnvelope2;  
