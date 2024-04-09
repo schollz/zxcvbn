@@ -883,6 +883,8 @@ function params_audioin()
     {id="pan",name="pan",min=-1,max=1,exp=false,div=0.01,default=-1,response=1},
     {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
     {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="sendreverb",name="reverb send",min=0,max=1,exp=false,div=0.01,default=0,response=1},
+    {id="senddelay",name="delay send",min=0,max=1,exp=false,div=0.01,default=0,response=1},
   }
   params:add_group("AUDIO IN",#params_menu*2+1)
   params:add_option("audioin_linked","audio in",{"mono+mono","stereo"},2)
