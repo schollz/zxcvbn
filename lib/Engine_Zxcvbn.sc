@@ -804,6 +804,9 @@ Engine_Zxcvbn : CroneEngine {
 
         //https://github.com/markwheeler/passersby
         //passersby
+        //split the two different envelope modes into two different synthdefs because
+        //1. easier to trigger and kill each note via the voice allocation method of zxcvbn
+        //2. it saves some cpu power by not defining and running 3 filters at a time. Instead its 1 filter for lpg and 2 for ASR
         SynthDef("passersby_asr",{
 
             arg out=0,gate=1, killGate, duration=600, hz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
