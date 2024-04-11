@@ -917,7 +917,7 @@ Engine_Zxcvbn : CroneEngine {
             mod2Freq = hz * fm2Ratio * LFNoise2.kr(freq: 0.1, mul: 0.005, add: 1);
             mod2 = SinOsc.ar(freq: mod2Freq, phase: 0, mul: mod2Index * mod2Freq, add: 0);
             modFreq = hz + mod1 + mod2; 
-
+        
             // Sine and triangle
             sinOsc = SinOsc.ar(freq: modFreq, phase: 0, mul: 0.5);
 
@@ -943,6 +943,7 @@ Engine_Zxcvbn : CroneEngine {
             lpgSignal = RLPF.ar(in: snd, freq: lpgEnvelope.linlin(0, 1, filterEnvLow, peak * filterEnvVel), rq: 0.9);
             lpgSignal = lpgSignal * lpgEnvelope2;  
             
+
 			snd = lpgSignal;
             snd = snd*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
 			// Saturation amp
@@ -959,6 +960,39 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);  
         }).add;
         //passersby ends
+
+        SynthDef("oilcan",{
+            arg  out = 0, lpf=18000, duration= 10, freq = 91, atk = 0, fb = 5, sweep_time = 1, sweep_ix = 0.05, mod_ratio = 1.1, 
+            mod_rel = 70, mod_ix = 0.01, car_rel = 0.3, fold = 0, gain = 1, routing = 0, gate = 1,pan=0, level=1;
+            var headroom = 0.7, car_env, mod_env, sweep_env, pitch, mod, car, snd;
+
+            car_env = EnvGen.ar(Env.perc(atk,car_rel), doneAction: 2, gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))));
+            mod_env = EnvGen.ar(Env.perc(atk,(car_rel*(mod_rel/100))), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))));
+            sweep_env = EnvGen.ar(Env.perc(atk,(car_rel*(sweep_time/100))), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0])))) * sweep_ix;
+
+            pitch = Clip.ar(freq + (sweep_env*5000),0,10000);
+
+            mod = Fold.ar(SinOscFB.ar(pitch * mod_ratio, fb) * (fold+1), -1, 1) * mod_env * mod_ix;
+            car = Fold.ar(SinOsc.ar(pitch + (mod*10000*(1-routing))) * (fold+1), -1, 1) * car_env;
+
+            snd = car + (mod*routing);
+            snd = snd*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2); //this is added so that we can do some sick retriggering!
+
+            snd = Clip.ar(snd, 0-headroom,headroom);
+            snd = (snd * gain).tanh;
+
+            snd = SelectX.ar(\decimate.kr(0).lag(0.01), [snd, Latch.ar(snd, Impulse.ar(LFNoise2.kr(0.3).exprange(1000,16e3)))]);
+
+            snd = LPF.ar(snd,Lag.kr(lpf));
+
+            snd = Pan2.ar(snd,Lag.kr(pan,0.1));
+            Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
+            Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);
+            Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);
+            Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd); 
+        }).add;
 
         (1..2).do({arg ch;
         SynthDef("playerOneShot"++ch,{ 
@@ -1412,6 +1446,11 @@ Engine_Zxcvbn : CroneEngine {
             var sendDelay=msg[25];
             var db_first=db+db_add;
             var do_stretch=0;
+            var duration = 0.003;
+            duration = (duration_slice * gate / (retrig + 1));
+            if(duration < 0.003,{
+                duration = 0.003;
+            });
             if (stretch>0,{
                 do_stretch=1;
             });
@@ -1445,7 +1484,7 @@ Engine_Zxcvbn : CroneEngine {
                     filter: filter,
                     rate: rate*pitch.midiratio/(1+stretch),
                     pos: pos,
-                    duration: (duration_slice * gate / (retrig + 1)),
+                    duration: duration,
                     decimate: decimate,
                     drive: drive,
                     compression: compression,
@@ -1472,7 +1511,7 @@ Engine_Zxcvbn : CroneEngine {
                                 release: release,
                                 amp: (db+(db_add*(i+1))).dbamp,
                                 rate: rate*((pitch.sign)*(i+1)+pitch).midiratio/(1+stretch),
-                                duration: duration_slice * gate / (retrig + 1),
+                                duration: duration,
                                 filter: filter,
                                 pos: pos,
                                 decimate: decimate,
@@ -1819,6 +1858,126 @@ Engine_Zxcvbn : CroneEngine {
             nons.put(id++note.floor,syn); 
         }); 
 
+         this.addCommand("oilcan_note_on","fffffffffffffffffffffsfffff",{ arg msg;
+            var freq=msg[1];
+            var attack=msg[2];
+            var fb=msg[3];
+            var sweep_time=msg[4];
+            var sweep_ix=msg[5];
+            var mod_ratio=msg[6];
+            var mod_rel=msg[7];
+            var mod_ix=msg[8];
+            var car_rel=msg[9]; //this is overall release
+            var fold=msg[10];
+            var gain=msg[11];
+            var routing=msg[12];
+            var pan=msg[13];
+            var headroom=msg[14];
+            var level=msg[15];
+            var duration=msg[16];
+            var sendCompressible=msg[17];
+            var sendCompressing=msg[18];
+            var sendReverb=msg[19];
+            var lpf=msg[20].midicps;
+            var monophonic_release=msg[21];
+            var id=msg[22].asString;
+            var sendTape=msg[23];
+            var retrig=msg[24];
+            var sendDelay=msg[25];
+            var note=msg[26];
+            var decimate=msg[27];
+            var syn;
+     
+            if (monophonic_release>0,{
+                if (syns.at(id).notNil,{
+                    if (syns.at(id).isRunning,{   
+                        syns.at(id).set("gate_release",monophonic_release);
+                        syns.at(id).set("gate_done",1);
+                    });
+                });
+            });
+            syn=Synth.new("oilcan",[
+                freq: freq,
+                gain: gain,
+                headroom: headroom,
+                attack: attack,
+                pan: pan,
+                fb: fb,
+                car_rel: car_rel,
+                gate_release: car_rel,
+                sweep_time: sweep_time,
+                sweep_ix: sweep_ix,
+                mod_ratio: mod_ratio,
+                mod_rel: mod_rel,
+                mod_ix: mod_ix,
+                fold: fold,
+                routing: routing,
+                level: level,
+                lpf:lpf,
+                decimate: decimate,
+                duration: (duration / (retrig + 1)),
+                out: buses.at("busCompressible"),
+                outsc: buses.at("busCompressing"),
+                outnsc: buses.at("busNotCompressible"),
+                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
+                compressible: sendCompressible,
+                compressing: sendCompressing,
+                sendreverb: sendReverb,
+                senddelay: sendDelay,
+                sendtape: sendTape,
+                outtrack: buses.at("bus"++id),
+            ],syns.at("reverb"),\addBefore).onFree({"freed!"});
+            if (retrig>0,{
+                if ((duration/ (retrig+1))>0.01, {
+                    Routine {
+                        (retrig).do{ arg i;
+                            (duration/ (retrig+1) ).wait;
+                            syn.set("gate_release",monophonic_release+0.05);
+                            syn.set("gate_done",1);
+                            syn=Synth.new("oilcan", [
+                                freq: freq,
+                                gain: gain,
+                                headroom: headroom,
+                                attack: attack,
+                                pan: pan,
+                                fb: fb,
+                                car_rel: car_rel,
+                                gate_release: car_rel,
+                                sweep_time: sweep_time,
+                                sweep_ix: sweep_ix,
+                                mod_ratio: mod_ratio,
+                                mod_rel: mod_rel,
+                                mod_ix: mod_ix,
+                                fold: fold,
+                                routing: routing,
+                                level: level,
+                                lpf,lpf,
+                                decimate: decimate,
+                                duration: (duration / (retrig + 1)),
+                                out: buses.at("busCompressible"),
+                                outsc: buses.at("busCompressing"),
+                                outnsc: buses.at("busNotCompressible"),
+                                outreverb: buses.at("busReverb"),outtape: buses.at("busTape"),outdelay: buses.at("busDelay"),
+                                compressible: sendCompressible,
+                                compressing: sendCompressing,
+                                sendreverb: sendReverb,
+                                senddelay: sendDelay,
+                                sendtape: sendTape,
+                                
+                                outtrack: buses.at("bus"++id),
+                            ], syns.at("reverb"), \addBefore);
+                        };
+                    }.play;
+                });
+            });
+            NodeWatcher.register(syn);
+            if (monophonic_release>0,{
+                syns.put(id,syn);
+            });
+            this.synthWatch(id,syn);
+            nons.put(id++note.floor,syn); 
+        }); 
+        
         this.addCommand("load_buffer","s",{ arg msg;
             var id=msg[1];
             Buffer.read(context.server, id, action: {arg buf;

@@ -17,7 +17,8 @@ TYPE_MIDI=9
 TYPE_JF=10
 TYPE_WSYN=11
 TYPE_PASSERSBY = 12
-
+TYPE_OILCAN = 13
+OILCAN_NUM_TIMBERS = 7
 
 function string.split(pString,pPattern)
   local Table={} -- NOTE: use {n = 0} in Lua-5.0
@@ -55,7 +56,7 @@ function Track:init()
 
   self.lseq=lseq_:new{id=self.id}
 
-  self.track_type_options={"mx.synths","dx7","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn","passersby"}
+  self.track_type_options={"mx.synths","dx7","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn","passersby","oilcan"}
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
     local chosenclade=self.track_type_options[x]
@@ -116,6 +117,60 @@ function Track:init()
 
   -- Passersby stuff
   params:add_option(self.id.."envelope_type","envelope type",{"lpg","sustain"},1)
+
+  -- oilcan stuff
+  params:add_number(self.id.."select_timbre","timbre",1,OILCAN_NUM_TIMBERS,1)
+  params:set_action(self.id.."select_timbre",function()
+    -- rerun show/hiding
+    self:select(self.selected)
+  end)
+  params:add_binary(self.id..'trig','trig')
+	params:set_action(self.id..'trig', function()
+      local d = params:get(self.id.."select_timbre") 
+			self.play_fn[params:get(self.id.."track_type")].preview(d)
+	end)
+
+  -- add oilcan params, because they're seperated into 16 different timbres.
+  params_menu_oilcan = {
+    {id = 'freq',	name = 'freq',	min = 5,	max = 10000,	default = 115,	units = 'hz'},
+    {id = 'sweep_time',	name = 'sweep time',	min = 0.001,	max = 100,	default = 0.10,	units = '%'},
+    {id = 'sweep_ix',	name = 'sweep index',	min = -1,	max = 1,	default = 0.04,	k = 0},
+    {id = 'atk',	name = 'attack',	min = 0,	max = 1,	default = 0,	units = 'sec'},
+    {id = 'car_rel',	name = 'release',	min = 0.01,	max = 3,	default = 0.5,	units = 'sec'},
+    {id = 'mod_rel',	name = 'modulator release',	min = 0.1,	max = 200,	default = 100,	units = '%'},
+    {id = 'mod_ix',	name = 'modulator level',	min = 0,	max = 1,	default = 0},
+    {id = 'mod_ratio',	name = 'modulator ratio',	min = 0.001,	max = 32,	default = 1},
+    {id = 'fb',	name = 'feedback',	min = 0,	max = 10,	default = 0},
+    {id = 'fold',	name = 'fold',	min = 0,	max = 100,	default = 0,	units = 'x',	k = 6},
+    {id = 'headroom',	name = 'headroom',	min = 0.001,	max = 1,	default = 1},
+    {id = 'gain',	name = 'gain',	min = 0,	max = 10,	default = 1,	units = 'x'},
+    {id = 'routing',	name = 'routing',	min = 0,	max = 1,	default = 0.1,	k = 0},	
+  }
+  --create all params for oilcan
+  for j=1,OILCAN_NUM_TIMBERS do
+    for _,pram in ipairs(params_menu_oilcan) do    
+      params:add{
+        id = self.id..pram.id..'_'..j
+      ,	name = pram.name
+      ,	type = 'taper'
+      ,	min = pram.min
+      ,	max = pram.max
+      ,	default = pram.default
+      ,	k = pram.k and pram.k or 4
+      ,	units = pram.units and pram.units or ''
+      }
+      params:hide(self.id..pram.id..'_'..j)
+    end
+  end
+
+  params:add_file(self.id..'target_file','OPEN', _path.data .. 'zxcvbn/oilcan/default-1.oilkit')
+	params:set_action(self.id..'target_file', function() self:oilcan_load_kit() end)
+  params:add_binary(self.id.."save_kit","save kit")
+	params:set_action(self.id.."save_kit", function() self:oilcan_save_kit() end)
+	params:add_binary(self.id.."load_kit","load kit")
+	params:set_action(self.id.."load_kit", function() self:oilcan_load_kit() end)
+	params:add_binary(self.id.."save_new","new kit")
+	params:set_action(self.id.."save_new", function() self:oilcan_new_kit_file() end)
   -- mx.synths stuff
   self.mx_synths={"polyperc","synthy","casio","icarus","epiano","toshiya","malone","kalimba","mdapiano","dreadpiano","aaaaaa","triangles","bigbass","supersaw"}
   params:add_option(self.id.."mx_synths","synth",self.mx_synths)
@@ -188,6 +243,9 @@ function Track:init()
     {id="pb_attack",name="attack",min=3,max=8000,exp=true,div=10,default=40,unit="ms"}, --added passersby
     {id="peak",name="peak",min=100,max=10000,exp=true,div=10,default=10000,unit="hz"}, --added passersby
 
+    {id="oil_release",name="release macro (l)",min=0,max=5,exp=false,div=0.01,default=1,unit="x"},
+
+    
     {id="swell",name="swell (j)",min=0.1,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="release",name="release (l)",min=5,max=2000,exp=true,div=5,default=50,unit="ms"},
     {id="monophonic_release",name="mono release",min=0,max=2000,exp=false,div=10,default=0,unit="ms"},
@@ -196,20 +254,11 @@ function Track:init()
     {id="decimate",name="decimate (j)",min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="drive",name="drive",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
     {id="compression",name="compression",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
-    {id="pitch",name="note (n)",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
-    {id="rate",name="rate (u)",min=-2,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()*100) end},
-    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
-    {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
-    {id="stretch",name="stretch",min=0,max=5,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
-    {id="send_reverb",name="reverb send (z)",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
-    {id="send_delay",name="delay send (Z)",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
-    {id="transpose",name="transpose (y)",min=-127,max=127,exp=false,div=1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.0f",param:get()>-0.01 and "+" or "",param:get()) end},
   }
 
+
+
   for _,pram in ipairs(params_menu) do
-    if pram.id=="pitch" then
-      params:add_separator(self.id.."General_settings","shared")
-    end
     params:add{
       type="control",
       id=self.id..pram.id,
@@ -247,7 +296,36 @@ function Track:init()
       end,
     }
     
-  end
+  end --add clade params ends
+
+
+
+  params_menu={
+    {id="pitch",name="note (n)",min=-24,max=24,exp=false,div=0.1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()) end},
+    {id="rate",name="rate (u)",min=-2,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%s%2.1f",param:get()>-0.01 and "+" or "",param:get()*100) end},
+    {id="compressing",name="compressing",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="compressible",name="compressible",min=0,max=1,exp=false,div=1,default=0.0,response=1,formatter=function(param) return param:get()==1 and "yes" or "no" end},
+    {id="stretch",name="stretch",min=0,max=5,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="send_reverb",name="reverb send (z)",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="send_delay",name="delay send (Z)",mod=true,min=0,max=1,exp=false,div=0.01,default=0.0,response=1,formatter=function(param) return string.format("%2.0f%%",param:get()*100) end},
+    {id="transpose",name="transpose (y)",min=-127,max=127,exp=false,div=1,default=0.0,response=1,formatter=function(param) return string.format("%s%2.0f",param:get()>-0.01 and "+" or "",param:get()) end},
+  }
+  params:add_separator(self.id.."General_settings","shared")
+
+  for _,pram in ipairs(params_menu) do
+    params:add{
+      type="control",
+      id=self.id..pram.id,
+      name=pram.name,
+      controlspec=controlspec.new(pram.min,pram.max,pram.exp and "exp" or "lin",pram.div,pram.default,pram.unit or "",pram.div/(pram.max-pram.min)),
+      formatter=pram.formatter,
+      action=function(v)
+        if pram.id=="send_reverb" then
+          check_reverb()
+        end
+      end,
+    } 
+  end --add general params ends
 
   self.note_cache={}
   self.scale_notes={}
@@ -309,6 +387,7 @@ function Track:init()
   self.params["dx7"]={"db","monophonic_release","gate_note","filter","attack","pan","release","compressing","compressible","dx7_preset","send_reverb","send_delay"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
   self.params["passersby"]={"envelope_type","wavefold","fm_low_ratio","fm_high_ratio","fm_low","fm_high","pb_attack","peak","release","gate_note","monophonic_release","db","send_reverb","send_delay","pan"}
+  self.params["oilcan"]={"decimate","target_file","save_kit","save_new","load_kit","monophonic_release","db","send_reverb","send_delay","pan","oil_release","filter"} --define params that are common for all timbers of oilcan, except select timbre.
 
   params:add_option(self.id.."lfo_shape","lfo shape", self.lfo_shape_options,1)
   params:set_action(self.id.."lfo_shape",function(x)
@@ -321,7 +400,7 @@ function Track:init()
         if v==nil then self.lfos["j"]:stop() end
         if params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
           params:set(self.id.."sc_rec_level",util.clamp(x,0,100)/100)
-        elseif params:get(self.id.."track_type")==TYPE_DRUM then
+        elseif params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_OILCAN then
           params:set(self.id.."decimate",util.clamp(x,0,100)/100)
         elseif params:get(self.id.."track_type")==TYPE_DX7 then
           params:set(self.id.."dx7_preset",x)
@@ -358,7 +437,11 @@ function Track:init()
       params:set(self.id.."attack",x) 
       end
     end,  
-    l=function(x,v) if v==nil then self.lfos["l"]:stop() end; params:set(self.id.."release",x) end,
+    l=function(x,v) 
+      if v==nil then self.lfos["l"]:stop() end
+      params:set(self.id.."release",x)
+      params:set(self.id.."oil_release",util.clamp(x,0,500)/100)
+    end,
     w=function(x,v) if v==nil then self.lfos["w"]:stop() end;params:set(self.id.."pan",(x/100));params:set(self.id.."sc_pan",x/100) end,
     m=function(x) self:setup_lfo(x) end,
     n=function(x,v) if v==nil then self.lfos["n"]:stop() end;params:set(self.id.."pitch",x) end,
@@ -571,6 +654,71 @@ self.play_fn[TYPE_PASSERSBY]={
     duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,params:get(self.id.."send_delay"))
   end, 
 }
+
+-- oilcan
+self.play_fn[TYPE_OILCAN]={
+  note_off=function(d)
+    local note=d.note_to_emit+params:get(self.id.."pitch")
+    engine.note_off(self.id,note)
+  end,
+  note_on=function(d,mods)
+ 
+    local p = (d.note_to_emit-1)%7+1 
+    p = util.clamp(p,1,7) --clamp it from 1 to 7 to be safe :)
+    if d.note_to_emit==nil then
+      do return end
+    end
+    local decimate = params:get(self.id.."decimate");
+    local freq = util.clamp(params:get(self.id.."freq".."_"..p)+params:get(self.id.."pitch"),5,10000)
+    local attack=params:get(self.id.."atk"..'_'..p)
+    local fb=params:get(self.id.."fb"..'_'..p)
+    local sweep_time = params:get(self.id.."sweep_time"..'_'..p)
+    local sweep_ix = params:get(self.id.."sweep_ix"..'_'..p)
+    local mod_ratio = params:get(self.id.."mod_ratio"..'_'..p)
+    local mod_rel = params:get(self.id.."mod_rel"..'_'..p)
+    local mod_ix = params:get(self.id.."mod_ix"..'_'..p)
+    local car_rel = params:get(self.id.."car_rel"..'_'..p) * (params:get(self.id.."oil_release"))
+    local fold = params:get(self.id.."fold"..'_'..p)
+    local amp = params:get(self.id.."gain".."_"..p) * (10^(params:get(self.id.."db")/20))
+    local routing = params:get(self.id.."routing"..'_'..p)
+    local pan = params:get(self.id.."pan")
+    local headroom = params:get(self.id.."headroom"..'_'..p)
+    local level = 1
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
+    duration=duration>0 and duration or d.duration_scaled
+    local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
+    engine.oilcan_note_on(freq,attack,fb,sweep_time,sweep_ix,mod_ratio,mod_rel,mod_ix,car_rel,fold,amp,routing,pan,headroom,level,
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,params:get(self.id.."send_delay"),p,decimate)
+    end,
+  preview=function(d)
+    local p = d
+    print(p)
+    if d ==nil then
+      do return end
+    end
+    local decimate = params:get(self.id.."decimate");
+    local freq = util.clamp(params:get(self.id.."freq".."_"..p)+params:get(self.id.."pitch"),5,10000)
+    local attack=params:get(self.id.."atk"..'_'..p)
+    local fb=params:get(self.id.."fb"..'_'..p)
+    local sweep_time = params:get(self.id.."sweep_time"..'_'..p)
+    local sweep_ix = params:get(self.id.."sweep_ix"..'_'..p)
+    local mod_ratio = params:get(self.id.."mod_ratio"..'_'..p)
+    local mod_rel = params:get(self.id.."mod_rel"..'_'..p)
+    local mod_ix = params:get(self.id.."mod_ix"..'_'..p)
+    local car_rel = params:get(self.id.."car_rel"..'_'..p) * (params:get(self.id.."oil_release"))
+    local fold = params:get(self.id.."fold"..'_'..p)
+    local amp = params:get(self.id.."gain".."_"..p) * (10^(params:get(self.id.."db")/20))
+    local routing = params:get(self.id.."routing"..'_'..p)
+    local pan = params:get(self.id.."pan")
+    local headroom = params:get(self.id.."headroom"..'_'..p)
+    local level = 0
+    local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
+    local retrig=0
+    engine.oilcan_note_on(freq,attack,fb,sweep_time,sweep_ix,mod_ratio,mod_rel,mod_ix,car_rel,fold,amp,routing,pan,headroom,level,
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,params:get(self.id.."send_delay"),p,decimate)
+    end, 
+}
+
 -- DX7
 self.play_fn[TYPE_DX7]={
   note_on=function(d,mods)
@@ -856,6 +1004,55 @@ function Track:resetlfos()
     end
   end  
 end
+--oilcan functions
+function Track:oilcan_save_kit(path)
+  local r = {}
+  local f = path and path or params:get(self.id..'target_file')
+  if type(f) ~= 'string' then 
+    print('oilcan: no file target selected!')
+    return
+  end
+  for i=1,OILCAN_NUM_TIMBERS do
+    table.insert(r,{})
+    for _,pram in ipairs(params_menu_oilcan) do
+      table.insert(r[i],params:get(self.id..pram.id..'_'..i))
+    end
+  end
+  tab.save(r,f)
+  print('saved kit to '..f) 
+end
+
+function Track:oilcan_new_kit_file()
+  local f
+  for i=1,999 do
+    f = '/home/we/dust/data/zxcvbn/oilcan/oilkit-'..i
+    if not util.file_exists(f) then
+      os.execute('touch '..f)
+      self:oilcan_save_kit(f) --save the current settings to the file first so when loading it we dont throw an error
+      params:set(self.id..'target_file', f)
+      print('created '..f)
+      break
+    end
+  end 
+end
+
+function Track:oilcan_load_kit(path)
+  local f = path and path or params:get(self.id..'target_file')
+  if util.file_exists(f) then
+    local r = tab.load(f)
+    for i=1,OILCAN_NUM_TIMBERS do
+      -- tab.print(r[i])
+      for k,pram in ipairs(params_menu_oilcan) do
+        --print('setting',self.id..pram.id..'_'..i,'to',r[i][k])
+        params:set(self.id..pram.id..'_'..i, r[i][k])
+      end
+    end
+    print('loaded kit from '..f)
+  else
+    print('kit file '..f..' does not exist yet')
+  end 
+end
+--oilcan functions end
 
 function Track:dumps()
   local data={states={}}
@@ -912,7 +1109,8 @@ function Track:parse_tli()
   end
   local tli_parsed=nil
   local is_hex=false
-  is_hex=params:get(self.id.."track_type")==TYPE_SOFTSAMPLE or params:get(self.id.."track_type")==TYPE_DRUM
+  --add check if track should be parsed as notes or hex
+  is_hex=params:get(self.id.."track_type")==TYPE_SOFTSAMPLE or params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_OILCAN 
   tli_parsed,err=tli:parse_tli(text,is_hex)
   if err~=nil then
     print("error: "..err)
@@ -1042,7 +1240,8 @@ function Track:emit(beat)
       if note_to_emit~=nil then
         -- add transposition to note before getting scale
         note_to_emit=self:note_in_scale(note_to_emit+params:get(self.id.."transpose"))
-        self:scroll_add((params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE) and note_to_emit or string.lower(musicutil.note_num_to_name(note_to_emit)))
+        -- also add check if track should scroll notes or hex numbers on the left side of screen :)
+        self:scroll_add((params:get(self.id.."track_type")==TYPE_DRUM or params:get(self.id.."track_type")==TYPE_SOFTSAMPLE or params:get(self.id.."track_type")==TYPE_OILCAN) and note_to_emit or string.lower(musicutil.note_num_to_name(note_to_emit)))
       end
       if note_to_emit==nil or params:get(self.id.."mute")==1 then
         do return end
@@ -1057,7 +1256,7 @@ end
 
 function Track:select(selected)
   self.selected=selected
-  -- first hide parameters
+  -- first hide params
   for k,ps in pairs(self.params) do
     for _,p in ipairs(ps) do
       if selected and (k=="shared" or k==params:string(self.id.."track_type")) then
@@ -1066,7 +1265,27 @@ function Track:select(selected)
       end
     end
   end
-  -- then show them (so that some things can share the same parameters)
+  --hide oilcan params first
+  print("hiding oilcan!")
+  params:hide(self.id.."select_timbre")
+  params:hide(self.id.."trig")
+  for j=1,OILCAN_NUM_TIMBERS do
+    for _,pram in ipairs(params_menu_oilcan) do
+      params:hide(self.id..pram.id..'_'..j)
+    end
+  end
+  --show params specific for oilcan 
+  if(selected and params:string(self.id.."track_type") == "oilcan") then
+    print("showing oilcan!")
+    params:show(self.id.."select_timbre")
+    params:show(self.id.."trig")
+    local p = params:get(self.id.."select_timbre")
+    for _,pram in ipairs(params_menu_oilcan) do
+      params:show(self.id..pram.id..'_'..p)
+    end
+  end
+
+  -- then show all other params (so that some things can share the same parameters)
   for k,ps in pairs(self.params) do
     for _,p in ipairs(ps) do
       if selected and (k=="shared" or k==params:string(self.id.."track_type")) then
@@ -1074,6 +1293,9 @@ function Track:select(selected)
       end
     end
   end
+
+  
+
   debounce_fn["menu"]={
     1,function()
       _menu.rebuild_params()
