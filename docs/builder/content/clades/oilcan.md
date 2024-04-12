@@ -5,7 +5,7 @@ weight: 4.0
 
 <img src="/static/passersby.png" class="fr">
 
-This clade is an integration of zjb-s's awesome [Oilcan Percussion Co.](https://github.com/zjb-s/oilcan/tree/main) drum synth! The only thing that is different from them is that the Macro controls are not included and there is an additional [Decimate] parameter for it with its relevant shortcode.
+This clade is an integration of zjb-s's awesome [Oilcan Percussion Co.](https://github.com/zjb-s/oilcan/tree/main) drum synth! The only thing that is different from the original is that the Macro controls are not included and there is an additional [Decimate] parameter for it with its relevant shortcode.
 It has 7 timbres which are really 7 different drum sounds that you can configure and trigger.
 This clade **uses [hex](#hex) syntax** which defines the position of the slice (`0-f`). Since the clade has 7 sounds the range of (`0-f`) hex numbers are mapped to (`0-6`) in a loop. 
 
