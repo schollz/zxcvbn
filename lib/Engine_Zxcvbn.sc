@@ -810,11 +810,11 @@ Engine_Zxcvbn : CroneEngine {
         SynthDef("passersby_asr",{
 
             arg out=0,gate=1, killGate, duration=600, hz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
-            vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0;
+            vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0,foldEnvAmt=0,foldEnvRel=40;
             
             var i_nyquist = SampleRate.ir * 0.5, snd, controlLag = 0.005, i_numHarmonics = 44,
             modFreq, mod1, mod2, mod1Index, mod2Index, mod1Freq, mod2Freq, sinOsc,
-            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8;
+            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8,foldEnvelope;
 
 
             // Lag inputs
@@ -843,7 +843,8 @@ Engine_Zxcvbn : CroneEngine {
             // Sine and triangle
             sinOsc = SinOsc.ar(freq: modFreq, phase: 0, mul: 0.5);
             //removed tri and saw, took too much cpu power and caused issues :(
-
+            foldEnvelope = EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.003, foldEnvRel], curve: [4, -20]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))));
+            waveFolds = Clip.kr((waveFolds+(foldEnvelope*3*foldEnvAmt)),0,3);
 			// Fold
 			snd = Fold.ar(in: sinOsc * (1 + (timbre * 0.5) + (waveFolds * 2)), lo: -0.5, hi: 0.5);
 
@@ -888,11 +889,11 @@ Engine_Zxcvbn : CroneEngine {
         SynthDef("passersby_lpg",{
 
             arg out=0,gate=1, killGate, duration=600, hz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
-            vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0;
+            vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0,foldEnvAmt=0,foldEnvRel=40;
             
             var i_nyquist = SampleRate.ir * 0.5, snd, controlLag = 0.005, i_numHarmonics = 44,
             modFreq, mod1, mod2, mod1Index, mod2Index, mod1Freq, mod2Freq, sinOsc,
-            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8;
+            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8,foldEnvelope;
 
 
             // Lag inputs
@@ -922,7 +923,8 @@ Engine_Zxcvbn : CroneEngine {
             sinOsc = SinOsc.ar(freq: modFreq, phase: 0, mul: 0.5);
 
             //removed tri and saw, took too much cpu power and caused issues :(
-    
+            foldEnvelope = EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.003, foldEnvRel], curve: [4, -20]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))));
+            waveFolds = Clip.kr((waveFolds+(foldEnvelope*3*foldEnvAmt)),0,3);
 			// Fold
 			snd = Fold.ar(in: sinOsc * (1 + (timbre * 0.5) + (waveFolds * 2)), lo: -0.5, hi: 0.5);
 
@@ -1737,7 +1739,7 @@ Engine_Zxcvbn : CroneEngine {
             };
         });
         
-        this.addCommand("passersby_note_on","ffffffffffffffffffffsfff",{ arg msg;
+        this.addCommand("passersby_note_on","ffffffffffffffffffffsfffff",{ arg msg;
             var envType=msg[1]-1;
             var note=msg[2];
             var amp=msg[3];
@@ -1762,6 +1764,8 @@ Engine_Zxcvbn : CroneEngine {
             var sendTape=msg[22];
             var retrig=msg[23];
             var sendDelay=msg[24];
+            var fold_amt=msg[25];
+            var fold_rel=msg[26];
             var killGate;
             var syn;
             var synth;
@@ -1796,6 +1800,8 @@ Engine_Zxcvbn : CroneEngine {
                 fm2Ratio: fm2Ratio,
                 fm1Amount: fm1Amount,
                 fm2Amount: fm2Amount,
+                foldEnvAmt: fold_amt,
+                foldEnvRel: fold_rel,
                 glide: glide,
                 killGate, killGate,
                 duration: (duration / (retrig + 1)),
@@ -1832,6 +1838,8 @@ Engine_Zxcvbn : CroneEngine {
                                 fm2Ratio: fm2Ratio,
                                 fm1Amount: fm1Amount,
                                 fm2Amount: fm2Amount,
+                                foldEnvAmt: fold_amt,
+                                foldEnvRel: fold_rel,
                                 glide: glide,
                                 killGate, killGate,
                                 duration: (duration / (retrig + 1)),

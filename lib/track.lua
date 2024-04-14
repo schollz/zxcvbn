@@ -8,16 +8,17 @@ STATE_SOFTSAMPLE=4
 TYPE_MXSYNTHS=1
 TYPE_DX7=2
 TYPE_INFINITEPAD=3
-TYPE_MELODIC=4
-TYPE_MXSAMPLES=5
-TYPE_SOFTSAMPLE=6
-TYPE_DRUM=7
-TYPE_CROW=8
-TYPE_MIDI=9
-TYPE_JF=10
-TYPE_WSYN=11
-TYPE_PASSERSBY = 12
-TYPE_OILCAN = 13
+TYPE_PASSERSBY = 4
+TYPE_OILCAN = 5
+TYPE_MELODIC=6
+TYPE_MXSAMPLES=7
+TYPE_SOFTSAMPLE=8
+TYPE_DRUM=9
+TYPE_CROW=10
+TYPE_MIDI=11
+TYPE_JF=12
+TYPE_WSYN=13
+
 OILCAN_NUM_TIMBERS = 7
 
 function string.split(pString,pPattern)
@@ -56,21 +57,20 @@ function Track:init()
 
   self.lseq=lseq_:new{id=self.id}
 
-  self.track_type_options={"mx.synths","dx7","infinite pad","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn","passersby","oilcan"}
+  self.track_type_options={"mx.synths","dx7","infinite pad","passersby","oilcan","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn"} 
+
+  --this is here to support legacy psets
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
   params:set_action(self.id.."track_type",function(x)
     local chosenclade=self.track_type_options[x]
-
     -- if JF is chosen, init JF
     if chosenclade=="jf" then
       crow.ii.jf.mode(1)
     end
-
     -- if Wsyn is chosen, init wsyn
     if chosenclade=="wsyn" then
       crow.ii.wsyn.ar_mode(1)
     end
-
     -- rerun show/hiding
     self:select(self.selected)
   end)
@@ -117,6 +117,7 @@ function Track:init()
 
   -- Passersby stuff
   params:add_option(self.id.."envelope_type","envelope type",{"lpg","sustain"},1)
+
 
   -- oilcan stuff
   params:add_number(self.id.."select_timbre","timbre",1,OILCAN_NUM_TIMBERS,1)
@@ -240,8 +241,10 @@ function Track:init()
     {id="fm_high_ratio",name="fm high ratio",min=1,max=10,exp=false,div=0.01,default=3}, --added passersby
     {id="fm_low",name="fm low(i)",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
     {id="fm_high",name="fm high(k)",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
-    {id="pb_attack",name="attack",min=3,max=8000,exp=true,div=10,default=40,unit="ms"}, --added passersby
+    {id="pb_attack",name="attack",min=3,max=8000,exp=true,div=10,default=40,unit="ms",formatter=function(param) if params:get(self.id.."envelope_type") == 1 then return string.format("N/A") end return string.format("%d ms", param:get())  end}, --added passersby
     {id="peak",name="peak",min=100,max=10000,exp=true,div=10,default=10000,unit="hz"}, --added passersby
+    {id="fold_env",name="fold envelope",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
+    {id="fold_release",name="fold decay",min=5,max=2000,exp=true,div=5,default=50,unit="ms"}, --added passersby
 
     {id="oil_release",name="release macro (l)",min=0,max=5,exp=false,div=0.01,default=1,unit="x"},
 
@@ -285,6 +288,7 @@ function Track:init()
               v=util.dbamp(v)
               k="amp"
             end
+            
             if params:get(self.id.."track_type")==TYPE_DX7 then
               print("setting dx7",k,v)
               engine.dx7_set(k,v)
@@ -386,7 +390,7 @@ function Track:init()
   self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb","send_delay"}
   self.params["dx7"]={"db","monophonic_release","gate_note","filter","attack","pan","release","compressing","compressible","dx7_preset","send_reverb","send_delay"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
-  self.params["passersby"]={"envelope_type","wavefold","fm_low_ratio","fm_high_ratio","fm_low","fm_high","pb_attack","peak","release","gate_note","monophonic_release","db","send_reverb","send_delay","pan"}
+  self.params["passersby"]={"envelope_type","wavefold","fm_low_ratio","fm_high_ratio","fm_low","fm_high","pb_attack","peak","release","fold_env","fold_release","gate_note","monophonic_release","db","send_reverb","send_delay","pan"}
   self.params["oilcan"]={"decimate","target_file","save_kit","save_new","load_kit","monophonic_release","db","send_reverb","send_delay","pan","oil_release","filter"} --define params that are common for all timbers of oilcan, except select timbre.
 
   params:add_option(self.id.."lfo_shape","lfo shape", self.lfo_shape_options,1)
@@ -641,6 +645,8 @@ self.play_fn[TYPE_PASSERSBY]={
     local attack=params:get(self.id.."pb_attack")/1000
     local decay=params:get(self.id.."release")/1000
     local waveshape = 0
+    local fold_env = params:get(self.id.."fold_env")
+    local fold_release = params:get(self.id.."fold_release")/1000
     local wavefold = params:get(self.id.."wavefold")
     local fm1ratio = params:get(self.id.."fm_low_ratio")
     local fm2ratio = params:get(self.id.."fm_high_ratio")
@@ -651,7 +657,7 @@ self.play_fn[TYPE_PASSERSBY]={
     duration=duration>0 and duration or d.duration_scaled
     local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
     engine.passersby_note_on(envelope_type,note,amp,peak,pan,attack,decay,waveshape,wavefold,fm1ratio,fm2ratio,fm1amount,fm2amount,glide,
-    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,params:get(self.id.."send_delay"))
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,params:get(self.id.."send_delay"),fold_env,fold_release)
   end, 
 }
 
@@ -1266,7 +1272,6 @@ function Track:select(selected)
     end
   end
   --hide oilcan params first
-  print("hiding oilcan!")
   params:hide(self.id.."select_timbre")
   params:hide(self.id.."trig")
   for j=1,OILCAN_NUM_TIMBERS do
@@ -1276,7 +1281,6 @@ function Track:select(selected)
   end
   --show params specific for oilcan 
   if(selected and params:string(self.id.."track_type") == "oilcan") then
-    print("showing oilcan!")
     params:show(self.id.."select_timbre")
     params:show(self.id.."trig")
     local p = params:get(self.id.."select_timbre")
