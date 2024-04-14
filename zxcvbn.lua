@@ -416,12 +416,19 @@ function init2()
   g_=grid_:new()
 
   -- DEBUG DEBUG
-  -- params:set("1play",1)
+  -- params:set("1play",1 )
   --   params:set("4track_type",2)
   --   params:set("track",4)
   -- params:set("4play",1)
   -- params:set("audioinpanL",0)
   -- params:set("1scale_mode",2)
+
+  --create oilcan folder and move files if it doesn't exist already
+  if (util.file_exists(_path.data.."zxcvbn/oilcan")) == false then
+    util.make_dir(_path.data .. 'zxcvbn/oilcan')
+    print("copying oilcan presets")
+    os.execute('cp '.. _path.code .. 'zxcvbn/lib/oilcan_presets/*.oilkit '.. _path.data .. 'zxcvbn/oilcan/')
+  end
   
 end
 
@@ -589,7 +596,7 @@ elseif k=="CTRL+SPACE" then
         show_message("stopping all")
         for i=1,10 do
           params:set(i.."play",0)
-          if(params:get(i.."track_type") == 9) then
+          if(tracks[i].track_type_options[params:get(i.."track_type")] == "midi") then
             dev_temp = params:get(i.."midi_dev") 
             midi_device_name = midi_device[dev_temp].name
             nb_check = string.find(midi_device_name,"nb")
@@ -605,7 +612,7 @@ elseif k=="CTRL+SPACE" then
           if tracks[i].tli~=nil and tracks[i].tli.pulses>0 then
             params:set(i.."play",1)
           end
-          if(params:get(i.."track_type") == 9) then
+          if(tracks[i].track_type_options[params:get(i.."track_type")] == "midi") then
             dev_temp = params:get(i.."midi_dev")
             midi_device_name = midi_device[dev_temp].name
             nb_check = string.find(midi_device_name,"nb")
