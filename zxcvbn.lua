@@ -596,7 +596,7 @@ elseif k=="CTRL+SPACE" then
         show_message("stopping all")
         for i=1,10 do
           params:set(i.."play",0)
-          if(tracks[i].track_type_options[params:get(i.."track_type")] == "midi") then
+          if(params:string(i.."track_type") == "midi") then
             dev_temp = params:get(i.."midi_dev") 
             midi_device_name = midi_device[dev_temp].name
             nb_check = string.find(midi_device_name,"nb")
@@ -612,7 +612,7 @@ elseif k=="CTRL+SPACE" then
           if tracks[i].tli~=nil and tracks[i].tli.pulses>0 then
             params:set(i.."play",1)
           end
-          if(tracks[i].track_type_options[params:get(i.."track_type")] == "midi") then
+          if(params:string(i.."track_type") == "midi") then
             dev_temp = params:get(i.."midi_dev")
             midi_device_name = midi_device[dev_temp].name
             nb_check = string.find(midi_device_name,"nb")
