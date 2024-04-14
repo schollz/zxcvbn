@@ -3,7 +3,7 @@ title: oilcan
 weight: 4.0
 ---
 
-<img src="/static/passersby.png" class="fr">
+<img src="/static/oilcan.png" class="fr">
 
 This clade is an integration of zjb-s's awesome [Oilcan Percussion Co.](https://github.com/zjb-s/oilcan/tree/main) drum synth! The only thing that is different from the original is that the Macro controls are not included(except Release) and there is an additional [Decimate] parameter for it with its relevant shortcode.
 
