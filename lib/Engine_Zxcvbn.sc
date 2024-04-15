@@ -803,18 +803,18 @@ Engine_Zxcvbn : CroneEngine {
         // </mx.synths>
 
         //https://github.com/markwheeler/passersby
-        //passersby
-        //split the two different envelope modes into two different synthdefs because
+       //split the two different envelope modes into two different synthdefs because
         //1. easier to trigger and kill each note via the voice allocation method of zxcvbn
         //2. it saves some cpu power by not defining and running 3 filters at a time. Instead its 1 filter for lpg and 2 for ASR
         SynthDef("passersby_asr",{
 
             arg out=0,gate=1, killGate, duration=600, hz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
-            vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0,foldEnvAmt=0,foldEnvRel=40;
+            vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0,
+            auxEnvAmt=0,auxEnvRel=40,auxEnvFold=0,auxEnvfm1=0,auxEnvfm2=0,auxEnvhz=0;
             
             var i_nyquist = SampleRate.ir * 0.5, snd, controlLag = 0.005, i_numHarmonics = 44,
             modFreq, mod1, mod2, mod1Index, mod2Index, mod1Freq, mod2Freq, sinOsc,
-            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8,foldEnvelope;
+            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8,auxEnvelope;
 
 
             // Lag inputs
@@ -831,6 +831,13 @@ Engine_Zxcvbn : CroneEngine {
             peak = Lag.kr(peak, controlLag);
             decay = Lag.kr(decay, controlLag);
 
+            //routable auxiliary envelope :)
+            auxEnvelope = EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.003, auxEnvRel], curve: [4, -20]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))));
+            waveFolds = Clip.kr((waveFolds+(auxEnvelope*3*auxEnvAmt*auxEnvFold)),0,3);
+            fm1Amount = Clip.kr((fm1Amount+(auxEnvelope*auxEnvAmt*auxEnvfm1)),0,1);
+            fm2Amount = Clip.kr((fm2Amount+(auxEnvelope*auxEnvAmt*auxEnvfm2)),0,1);
+            hz = hz + (auxEnvelope*auxEnvAmt*2500*auxEnvhz);
+
              // Modulators
             mod1Index = fm1Amount * 22;
             mod1Freq = hz * fm1Ratio * LFNoise2.kr(freq: 0.1, mul: 0.001, add: 1);
@@ -843,8 +850,8 @@ Engine_Zxcvbn : CroneEngine {
             // Sine and triangle
             sinOsc = SinOsc.ar(freq: modFreq, phase: 0, mul: 0.5);
             //removed tri and saw, took too much cpu power and caused issues :(
-            foldEnvelope = EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.003, foldEnvRel], curve: [4, -20]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))));
-            waveFolds = Clip.kr((waveFolds+(foldEnvelope*3*foldEnvAmt)),0,3);
+
+            
 			// Fold
 			snd = Fold.ar(in: sinOsc * (1 + (timbre * 0.5) + (waveFolds * 2)), lo: -0.5, hi: 0.5);
 
@@ -889,11 +896,12 @@ Engine_Zxcvbn : CroneEngine {
         SynthDef("passersby_lpg",{
 
             arg out=0,gate=1, killGate, duration=600, hz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
-            vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0,foldEnvAmt=0,foldEnvRel=40;
+            vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0,
+            auxEnvAmt=0,auxEnvRel=40,auxEnvFold=0,auxEnvfm1=0,auxEnvfm2=0,auxEnvhz=0;
             
             var i_nyquist = SampleRate.ir * 0.5, snd, controlLag = 0.005, i_numHarmonics = 44,
             modFreq, mod1, mod2, mod1Index, mod2Index, mod1Freq, mod2Freq, sinOsc,
-            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8,foldEnvelope;
+            filterEnvVel, filterEnvLow, lpgEnvelope, lpgEnvelope2, lpgSignal, asrEnvelope, asrEnvelope2, asrFilterFreq, asrSignal, killEnvelope, maxDecay = 8,auxEnvelope;
 
 
             // Lag inputs
@@ -910,6 +918,13 @@ Engine_Zxcvbn : CroneEngine {
             peak = Lag.kr(peak, controlLag);
             decay = Lag.kr(decay, controlLag);
 
+            //routable auxiliary envelope :)
+            auxEnvelope = EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.003, auxEnvRel], curve: [4, -20]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))));
+            waveFolds = Clip.kr((waveFolds+(auxEnvelope*3*auxEnvAmt*auxEnvFold)),0,3);
+            fm1Amount = Clip.kr((fm1Amount+(auxEnvelope*auxEnvAmt*auxEnvfm1)),0,1);
+            fm2Amount = Clip.kr((fm2Amount+(auxEnvelope*auxEnvAmt*auxEnvfm2)),0,1);
+            hz = hz + (auxEnvelope*auxEnvAmt*2500*auxEnvhz);
+
              // Modulators
             mod1Index = fm1Amount * 22;
             mod1Freq = hz * fm1Ratio * LFNoise2.kr(freq: 0.1, mul: 0.001, add: 1);
@@ -923,8 +938,7 @@ Engine_Zxcvbn : CroneEngine {
             sinOsc = SinOsc.ar(freq: modFreq, phase: 0, mul: 0.5);
 
             //removed tri and saw, took too much cpu power and caused issues :(
-            foldEnvelope = EnvGen.ar(envelope: Env.new(levels: [0, 1, 0], times: [0.003, foldEnvRel], curve: [4, -20]), gate: (gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))));
-            waveFolds = Clip.kr((waveFolds+(foldEnvelope*3*foldEnvAmt)),0,3);
+            
 			// Fold
 			snd = Fold.ar(in: sinOsc * (1 + (timbre * 0.5) + (waveFolds * 2)), lo: -0.5, hi: 0.5);
 

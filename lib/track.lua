@@ -224,6 +224,8 @@ function Track:init()
     end)
   end
 
+  aux_destination = {"wavefold","fm low","fm high","pitch"}
+
   params_menu={
     {id="dx7_preset",name="preset",min=1,max=12000,exp=false,div=1,default=1108,formatter=function(param) return dx7_names[math.floor(param:get())+1] end},
     {id="source_note",name="source_note",min=1,max=127,exp=false,div=1,default=60,formatter=function(param) return musicutil.note_num_to_name(math.floor(param:get()),true)end},
@@ -243,14 +245,15 @@ function Track:init()
     {id="fm_high",name="fm high(k)",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
     {id="pb_attack",name="attack",min=3,max=8000,exp=true,div=10,default=40,unit="ms",formatter=function(param) if params:get(self.id.."envelope_type") == 1 then return string.format("N/A") end return string.format("%d ms", param:get())  end}, --added passersby
     {id="peak",name="peak",min=100,max=10000,exp=true,div=10,default=10000,unit="hz"}, --added passersby
-    {id="fold_env",name="fold envelope",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
-    {id="fold_release",name="fold decay",min=5,max=2000,exp=true,div=5,default=50,unit="ms"}, --added passersby
+    {id="aux_dest",name="aux destination",min=1,max=4,exp=false,div=1,default=1,formatter=function(param) return string.format(aux_destination[param:get()]) end}, --added passersby
+    {id="aux_env",name="aux envelope",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
+    {id="aux_release",name="aux decay",min=5,max=2000,exp=true,div=5,default=200,unit="ms"}, --added passersby
 
     {id="oil_release",name="release macro (l)",min=0,max=5,exp=false,div=0.01,default=1,unit="x"},
 
     
     {id="swell",name="swell (j)",min=0.1,max=2,exp=false,div=0.01,default=1.0,response=1,formatter=function(param) return string.format("%d%%",util.round(100*param:get())) end},
-    {id="release",name="release (l)",min=5,max=2000,exp=true,div=5,default=50,unit="ms"},
+    {id="release",name="release (l)",min=5,max=2000,exp=true,div=5,default=200,unit="ms"},
     {id="monophonic_release",name="mono release",min=0,max=2000,exp=false,div=10,default=0,unit="ms"},
     {id="gate",name="gate (h)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="gate_note",name="hold (h)",min=0,max=24*16,exp=false,div=1,default=0,formatter=function(param) return param:get()==0 and "full" or string.format("%d pulses",math.floor(param:get())) end},
@@ -390,7 +393,7 @@ function Track:init()
   self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb","send_delay"}
   self.params["dx7"]={"db","monophonic_release","gate_note","filter","attack","pan","release","compressing","compressible","dx7_preset","send_reverb","send_delay"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
-  self.params["passersby"]={"envelope_type","wavefold","fm_low_ratio","fm_high_ratio","fm_low","fm_high","pb_attack","peak","release","fold_env","fold_release","gate_note","monophonic_release","db","send_reverb","send_delay","pan"}
+  self.params["passersby"]={"envelope_type","wavefold","fm_low_ratio","fm_high_ratio","fm_low","fm_high","pb_attack","peak","release","aux_dest","aux_env","aux_release","gate_note","monophonic_release","db","send_reverb","send_delay","pan"}
   self.params["oilcan"]={"decimate","target_file","save_kit","save_new","load_kit","monophonic_release","db","send_reverb","send_delay","pan","oil_release","filter"} --define params that are common for all timbers of oilcan, except select timbre.
 
   params:add_option(self.id.."lfo_shape","lfo shape", self.lfo_shape_options,1)
@@ -645,8 +648,23 @@ self.play_fn[TYPE_PASSERSBY]={
     local attack=params:get(self.id.."pb_attack")/1000
     local decay=params:get(self.id.."release")/1000
     local waveshape = 0
-    local fold_env = params:get(self.id.."fold_env")
-    local fold_release = params:get(self.id.."fold_release")/1000
+    local aux_dest = params:get(self.id.."aux_dest")
+    local fold_dest = 0
+    local fm1_dest = 0
+    local fm2_dest = 0
+    local hz_dest = 0
+    --hacky way to do it, not sure what could be done better here
+    if aux_dest == 1 then
+      fold_dest = 1
+    elseif aux_dest == 2 then
+      fm1_dest = 1
+    elseif aux_dest == 3 then
+      fm2_dest = 1
+    elseif aux_dest == 4 then
+      hz_dest = 1
+    end
+    local aux_env = params:get(self.id.."aux_env")
+    local aux_release = params:get(self.id.."aux_release")/1000
     local wavefold = params:get(self.id.."wavefold")
     local fm1ratio = params:get(self.id.."fm_low_ratio")
     local fm2ratio = params:get(self.id.."fm_high_ratio")
@@ -657,7 +675,7 @@ self.play_fn[TYPE_PASSERSBY]={
     duration=duration>0 and duration or d.duration_scaled
     local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
     engine.passersby_note_on(envelope_type,note,amp,peak,pan,attack,decay,waveshape,wavefold,fm1ratio,fm2ratio,fm1amount,fm2amount,glide,
-    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,params:get(self.id.."send_delay"),fold_env,fold_release)
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,params:get(self.id.."send_delay"),aux_env,aux_release,fold_dest,fm1_dest,fm2_dest,hz_dest)
   end, 
 }
 
