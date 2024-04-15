@@ -4,7 +4,7 @@ weight: 1.0
 shortcode: "j"
 range: 0 to 300
 clades:
-    - Passersby
+    - Zassersby
 ---
 
 Adjusts the wavefolding for the oscillator

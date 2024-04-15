@@ -4,7 +4,7 @@ weight: 1.0
 shortcode: "i"
 range: 0 to 100
 clades:
-    - Passersby
+    - Zassersby
 ---
 
 Adjusts the FM amount for lower frequency FM modulator.
