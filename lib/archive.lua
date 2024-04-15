@@ -94,7 +94,8 @@ end
 function Archive:make_archive()
   local temp_pset="/home/we/dust/data/zxcvbn/temp_pset"
   params:write(temp_pset)
-  local name=util.os_capture(string.format("cat %s | sha256sum | head -c 8",temp_pset,pset_num))..".zip"
+  local pset_name = params.name
+  local name=util.os_capture(string.format("cat %s | sha256sum | head -c 8",temp_pset,pset_num))..pset_name..".zip"
   self:dump(name,"temp_pset")
   print("made archive "..name)
   return name
@@ -135,6 +136,7 @@ function Archive:package_audio(fname,path)
   --   os.execute(string.format("cd %s && zip %s -u %s",_path.data.."zxcvbn",fname,v))
   -- end
 end
+
 
 function Archive:package_psets(fname,pset)
   local s=util.os_capture(string.format("cd %s && find * -name '%s*' -type f",_path.data.."zxcvbn",pset))
