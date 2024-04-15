@@ -1753,7 +1753,7 @@ Engine_Zxcvbn : CroneEngine {
             };
         });
         
-        this.addCommand("passersby_note_on","ffffffffffffffffffffsfffff",{ arg msg;
+        this.addCommand("passersby_note_on","ffffffffffffffffffffsfffffffff",{ arg msg;
             var envType=msg[1]-1;
             var note=msg[2];
             var amp=msg[3];
@@ -1778,8 +1778,12 @@ Engine_Zxcvbn : CroneEngine {
             var sendTape=msg[22];
             var retrig=msg[23];
             var sendDelay=msg[24];
-            var fold_amt=msg[25];
-            var fold_rel=msg[26];
+            var aux_amt=msg[25];
+            var aux_rel=msg[26];
+            var aux_fold=msg[27];
+            var aux_fm1=msg[28];
+            var aux_fm2=msg[29];
+            var aux_hz=msg[30];
             var killGate;
             var syn;
             var synth;
@@ -1814,8 +1818,12 @@ Engine_Zxcvbn : CroneEngine {
                 fm2Ratio: fm2Ratio,
                 fm1Amount: fm1Amount,
                 fm2Amount: fm2Amount,
-                foldEnvAmt: fold_amt,
-                foldEnvRel: fold_rel,
+                auxEnvAmt: aux_amt,
+                auxEnvRel: aux_rel,
+                auxEnvFold: aux_fold,
+                auxEnvfm1: aux_fm1,
+                auxEnvfm2: aux_fm2,
+                auxEnvhz: aux_hz,
                 glide: glide,
                 killGate, killGate,
                 duration: (duration / (retrig + 1)),
@@ -1852,8 +1860,12 @@ Engine_Zxcvbn : CroneEngine {
                                 fm2Ratio: fm2Ratio,
                                 fm1Amount: fm1Amount,
                                 fm2Amount: fm2Amount,
-                                foldEnvAmt: fold_amt,
-                                foldEnvRel: fold_rel,
+                                auxEnvAmt: aux_amt,
+                                auxEnvRel: aux_rel,
+                                auxEnvFold: aux_fold,
+                                auxEnvfm1: aux_fm1,
+                                auxEnvfm2: aux_fm2,
+                                auxEnvhz: aux_hz,
                                 glide: glide,
                                 killGate, killGate,
                                 duration: (duration / (retrig + 1)),
