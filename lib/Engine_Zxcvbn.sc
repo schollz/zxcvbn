@@ -1,5 +1,6 @@
 // Engine_Zxcvbn
 
+
 // Inherit methods from CroneEngine
 Engine_Zxcvbn : CroneEngine {
 
@@ -9,7 +10,7 @@ Engine_Zxcvbn : CroneEngine {
     var nons; // notes on
     var mods;
     var im;
-    var bufs; 
+    var bufs;
     var oscs;
     var mx;
     var ouroboro;
@@ -41,7 +42,7 @@ Engine_Zxcvbn : CroneEngine {
                     if (mods[id][i].isRunning,{
                         ["synthChange",id,k,v,i].postln;
                         mods[id][i].set(k.asString,v);
-                    });                    
+                    });
                 });
             });
         });
@@ -77,7 +78,7 @@ Engine_Zxcvbn : CroneEngine {
         im = Dictionary.new();
         nons = Dictionary.new();
         bufsDelay = Buffer.allocConsecutive(2,context.server,48000*4,1);
-        
+
 
         bufs.put("tape",Buffer.alloc(context.server, context.server.sampleRate * 18.0, 2));
         oscs.put("position",OSCFunc({ |msg| NetAddr("127.0.0.1", 10111).sendMsg("progress",msg[3],msg[3]); }, '/position'));
@@ -95,7 +96,7 @@ Engine_Zxcvbn : CroneEngine {
                 msg[19],msg[20],
                 msg[21],msg[22]
         ); }, '/amplitude'));
-        
+
         dx7syn = ("/home/we/dust/code/zxcvbn/lib/DX7.scd").load;
         context.server.sync;
 
@@ -348,7 +349,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 5;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
@@ -413,7 +414,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
@@ -458,7 +459,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
@@ -492,7 +493,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
@@ -538,7 +539,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
@@ -577,7 +578,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
@@ -609,7 +610,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 6;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
@@ -626,6 +627,7 @@ Engine_Zxcvbn : CroneEngine {
             gain=LinLin.kr(mod3,-1,1,0.25,3);
             detune=LinExp.kr(mod4,-1,1,0.00001,0.3);
             note=hz.cpsmidi + bend;
+            note = Lag.kr(note,portamento);
             snd = Pulse.ar([note-detune,note+detune].midicps, pw);
             snd = MoogFF.ar(snd,co,gain);
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
@@ -634,7 +636,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 2;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
@@ -678,7 +680,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 5;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
@@ -687,63 +689,63 @@ Engine_Zxcvbn : CroneEngine {
             sub=0,portamento=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
             mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,duration=600;
-        var saw, wiggle, snd;
-        // frequencies drawn from https://slideplayer.com/slide/15020921/
-        var f1a = [290, 420, 580, 720, 690, 550, 400, 280];
-        var f2a = [750, 1000, 790, 1100, 1600, 1750, 1900, 2200];
-        var f3a = [2300, 2350, 2400, 2500, 2600, 2700, 2800, 3300];
-        var f4a = [3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500];
-        var f1b = [390, 435, 590, 850, 860, 600, 420, 360];
-        var f2b = [900, 1100, 850, 1200, 2200, 2350, 2500, 2750];
-        var f3b = [2850, 2900, 3000, 3000, 3100, 3200, 3300, 3800];
-        var f4b = [4000, 4000, 4000, 4000, 4000, 4000, 4000, 4000];
-        var f1c = [420, 590, 640, 1100, 1000, 700, 575, 375];
-        var f2c = [1200, 1300, 1100, 1300, 2500, 2700, 2800, 3200];
-        var f3c = [3200, 3250, 3300, 3400, 3500, 3600, 3700, 4200];
-        var f4c = [4500, 4500, 4500, 4500, 4500, 4500, 4500, 4500];
-        var f1, f2, f3, f4;
-        var a1, a2, a3, a4;
-        var q1, q2, q3, q4;
-        var voice, vowel, tilt, cons, detune, focus, div, reso;
-        var env;
-        hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-        voice=Select.kr( (mod1 > -0.99), [hz.explin(100, 1000, 0, 2), LinLin.kr(mod1, -1, 1, 0, 2)]);
-        vowel=LinLin.kr(mod2, -1, 1, 0, 7);
-        tilt=LinLin.kr(mod2, -1, 1, 0.3, 0.6) * LinLin.kr(mod4, -1, 1, 0.6, 1.1);
-        reso = LinLin.kr(mod4, -1, 1, 0.1, 0.23);
-        detune = LinLin.kr(mod3, -1, 1, 0, 0.015);
-        focus = -1 * LinLin.kr(mod3, -1, 1, 0, 1);
-        div = LinLin.kr(mod3, -1, 1, 1, 7).sqrt;
-        cons = mod4.linlin(-1, 1, -0.5, 0.8);
+            var saw, wiggle, snd;
+            // frequencies drawn from https://slideplayer.com/slide/15020921/
+            var f1a = [290, 420, 580, 720, 690, 550, 400, 280];
+            var f2a = [750, 1000, 790, 1100, 1600, 1750, 1900, 2200];
+            var f3a = [2300, 2350, 2400, 2500, 2600, 2700, 2800, 3300];
+            var f4a = [3500, 3500, 3500, 3500, 3500, 3500, 3500, 3500];
+            var f1b = [390, 435, 590, 850, 860, 600, 420, 360];
+            var f2b = [900, 1100, 850, 1200, 2200, 2350, 2500, 2750];
+            var f3b = [2850, 2900, 3000, 3000, 3100, 3200, 3300, 3800];
+            var f4b = [4000, 4000, 4000, 4000, 4000, 4000, 4000, 4000];
+            var f1c = [420, 590, 640, 1100, 1000, 700, 575, 375];
+            var f2c = [1200, 1300, 1100, 1300, 2500, 2700, 2800, 3200];
+            var f3c = [3200, 3250, 3300, 3400, 3500, 3600, 3700, 4200];
+            var f4c = [4500, 4500, 4500, 4500, 4500, 4500, 4500, 4500];
+            var f1, f2, f3, f4;
+            var a1, a2, a3, a4;
+            var q1, q2, q3, q4;
+            var voice, vowel, tilt, cons, detune, focus, div, reso;
+            var env;
+            hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+            voice=Select.kr( (mod1 > -0.99), [hz.explin(100, 1000, 0, 2), LinLin.kr(mod1, -1, 1, 0, 2)]);
+            vowel=LinLin.kr(mod2, -1, 1, 0, 7);
+            tilt=LinLin.kr(mod2, -1, 1, 0.3, 0.6) * LinLin.kr(mod4, -1, 1, 0.6, 1.1);
+            reso = LinLin.kr(mod4, -1, 1, 0.1, 0.23);
+            detune = LinLin.kr(mod3, -1, 1, 0, 0.015);
+            focus = -1 * LinLin.kr(mod3, -1, 1, 0, 1);
+            div = LinLin.kr(mod3, -1, 1, 1, 7).sqrt;
+            cons = mod4.linlin(-1, 1, -0.5, 0.8);
 
-        f1 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f1a, f1b, f1c].flop));
-        f2 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f2a, f2b, f2c].flop));
-        f3 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f3a, f3b, f3c].flop));
-        f4 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f4a, f4b, f4c].flop));
-        a1 = 1;
-        a2 = tilt;
-        a3 = tilt ** 1.5;
-        a4 = tilt ** 2;
-        q1 = reso;
-        q2 = q1/1.5;
-        q3 = q2/1.5;
-        q4 = reso/10;
+            f1 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f1a, f1b, f1c].flop));
+            f2 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f2a, f2b, f2c].flop));
+            f3 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f3a, f3b, f3c].flop));
+            f4 = LinSelectX.kr(voice, LinSelectX.kr(vowel, [f4a, f4b, f4c].flop));
+            a1 = 1;
+            a2 = tilt;
+            a3 = tilt ** 1.5;
+            a4 = tilt ** 2;
+            q1 = reso;
+            q2 = q1/1.5;
+            q3 = q2/1.5;
+            q4 = reso/10;
 
-            hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
-        saw = VarSaw.ar(hz*(1+ (detune * [-1, 0.7, -0.3, 0, 0.3, -0.7, 1])), width: 0).collect({ |item, index|
-          Pan2.ar(item, index.linlin(0, 6, -1, 1)*SinOsc.kr(Rand.new(0.1, 0.3))*focus)
-        });
-        wiggle = EnvGen.kr(Env.perc(attackTime: 0.0, releaseTime: 0.15), doneAction: Done.none);
-        saw.postln;
-        snd = HPF.ar(
-            Mix.new(BBandPass.ar(saw, ([
-            f1,
-            f2 * (1 + (cons*wiggle)),
-            f3,
-            f4]!2).flop,
-            ([q1, q2, q3, q4]!2).flop) * ([a1, a2, a3, a4]!2).flop),
-          20);
-          snd.postln;
+                hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
+            saw = VarSaw.ar(hz*(1+ (detune * [-1, 0.7, -0.3, 0, 0.3, -0.7, 1])), width: 0).collect({ |item, index|
+            Pan2.ar(item, index.linlin(0, 6, -1, 1)*SinOsc.kr(Rand.new(0.1, 0.3))*focus)
+            });
+            wiggle = EnvGen.kr(Env.perc(attackTime: 0.0, releaseTime: 0.15), doneAction: Done.none);
+            saw.postln;
+            snd = HPF.ar(
+                Mix.new(BBandPass.ar(saw, ([
+                f1,
+                f2 * (1 + (cons*wiggle)),
+                f3,
+                f4]!2).flop,
+                ([q1, q2, q3, q4]!2).flop) * ([a1, a2, a3, a4]!2).flop),
+            20);
+            snd.postln;
 
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
@@ -753,7 +755,7 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 5;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);  
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
@@ -796,14 +798,14 @@ Engine_Zxcvbn : CroneEngine {
             snd = LPF.ar(snd,Lag.kr(lpf)) * env * amp / 8;
             Out.ar(\outtrack.kr(0),snd);Out.ar(\out.kr(0),\compressible.kr(0)*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outsc.kr(0),\compressing.kr(0)*snd);
-            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd); 
+            Out.ar(\outnsc.kr(0),(1-\compressible.kr(0))*(1-\sendreverb.kr(0))*snd);
             Out.ar(\outreverb.kr(0),\sendreverb.kr(0)*snd);Out.ar(\outtape.kr(0),\sendtape.kr(0)*snd);Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd);
         }).add;
 
         // </mx.synths>
 
-        //https://github.com/markwheeler/passersby
-       //split the two different envelope modes into two different synthdefs because
+        //passersby/zassersby
+        //split the two different envelope modes into two different synthdefs because
         //1. easier to trigger and kill each note via the voice allocation method of zxcvbn
         //2. it saves some cpu power by not defining and running 3 filters at a time. Instead its 1 filter for lpg and 2 for ASR
         SynthDef("passersby_asr",{
@@ -977,6 +979,7 @@ Engine_Zxcvbn : CroneEngine {
         }).add;
         //passersby ends
 
+
         SynthDef("oilcan",{
             arg  out = 0, lpf=18000, duration= 10, freq = 91, atk = 0, fb = 5, sweep_time = 1, sweep_ix = 0.05, mod_ratio = 1.1, 
             mod_rel = 70, mod_ix = 0.01, car_rel = 0.3, fold = 0, gain = 1, routing = 0, gate = 1,pan=0, level=1;
@@ -1010,8 +1013,9 @@ Engine_Zxcvbn : CroneEngine {
             Out.ar(\outdelay.kr(0),\senddelay.kr(0)*snd); 
         }).add;
 
+
         (1..2).do({arg ch;
-        SynthDef("playerOneShot"++ch,{ 
+        SynthDef("playerOneShot"++ch,{
             arg bufnum, id=0.0,amp=0.25, rate=1.0,sampleStart=0.0,sampleEnd=1.0, watch=0.0, xfade=0.01,t_free=0,attack=0.005,release=1000000;
 
             // vars
@@ -1045,10 +1049,10 @@ Engine_Zxcvbn : CroneEngine {
             // envelopes
             // snd=snd*EnvGen.ar(Env.perc(attack,release),doneAction:2);
 
-            SendReply.kr(Impulse.kr(15),'/audition',[A2K.kr(pos)]);                      
+            SendReply.kr(Impulse.kr(15),'/audition',[A2K.kr(pos)]);
 
             Out.ar(0,snd);
-        }).add; 
+        }).add;
         });
 
 
@@ -1070,19 +1074,19 @@ Engine_Zxcvbn : CroneEngine {
         SynthDef("playerInOut"++ch,{
             arg out=0, buf, id=0,amp=1.0, pan=0, filter=18000, rate=1.0,pitch=0,sampleStart=0.0,sampleEnd=1.0,sampleIn=0.0,sampleOut=1.0, watch=0, gate=1, xfade=0.1,
             duration=10000,attack=0.001,decay=0.3,sustain=1.0,release=2.0,drive=0;
-            
+
             // vars
             var snd,snd2,pos,trigger,sampleDuration,sampleDurationInOut,imp,aOrB,posA,sndA,posB,sndB,trigA,trigB;
             var durationBuffer=BufDur.ir(buf);
             var frames=BufFrames.ir(buf);
-            
+
             rate = BufRateScale.ir(buf)*rate*pitch.midiratio;
             sampleDuration=(sampleEnd-sampleStart)/rate.abs;
             sampleDurationInOut=(sampleOut-sampleIn)/rate.abs;
-            
+
             trigger=DelayN.kr(Impulse.kr(0)+Impulse.kr(1/sampleDurationInOut),sampleDuration*0.9,sampleDuration*0.9);
             aOrB=ToggleFF.kr(trigger);
-            
+
             posA=Phasor.ar(
                 trig:1-aOrB,
                 rate:rate,
@@ -1123,7 +1127,7 @@ Engine_Zxcvbn : CroneEngine {
             snd=Pan2.ar(snd,0.0);
             snd=Pan2.ar(snd[0],1.neg+(2*pan))+Pan2.ar(snd[1],1+(2*pan));
             snd=Balance2.ar(snd[0],snd[1],pan);
-            
+
             SendReply.kr(Impulse.kr(10)*watch,'/position',[pos / BufFrames.ir(buf) * BufDur.ir(buf)]);
 
             Out.ar(\outtrack.kr(0),snd/10);Out.ar(\out.kr(0),\compressible.kr(0)*snd*amp);
@@ -1156,8 +1160,8 @@ Engine_Zxcvbn : CroneEngine {
             sndSC=In.ar(inSC,2);
             sndDelay=In.ar(inDelay,2);
 
-            snd = Compander.ar(snd, (sndSC*sidechain_mult), 
-                compress_thresh, 1, compress_level, 
+            snd = Compander.ar(snd, (sndSC*sidechain_mult),
+                compress_thresh, 1, compress_level,
                 compress_attack, compress_release);
             snd = snd + sndNSC;
 
@@ -1243,15 +1247,15 @@ Engine_Zxcvbn : CroneEngine {
             snd2 = snd2 + PitchShift.ar(snd, 0.1, 8,0,1,0.125*shimmer/2);
             snd2 = Fverb.ar(snd2[0],snd2[1],
                 predelay: predelay,
-                input_amount: input_amount, 
-                input_lowpass_cutoff: input_lowpass_cutoff, 
-                input_highpass_cutoff: input_highpass_cutoff, 
-                input_diffusion_1: input_diffusion_1, 
-                input_diffusion_2: input_diffusion_2, 
-                tail_density: tail_density, 
-                decay: decay, 
-                damping: damping, 
-                modulator_frequency: modulator_frequency, 
+                input_amount: input_amount,
+                input_lowpass_cutoff: input_lowpass_cutoff,
+                input_highpass_cutoff: input_highpass_cutoff,
+                input_diffusion_1: input_diffusion_1,
+                input_diffusion_2: input_diffusion_2,
+                tail_density: tail_density,
+                decay: decay,
+                damping: damping,
+                modulator_frequency: modulator_frequency,
                 modulator_depth: modulator_depth,
             );
             // snd2 = DelayC.ar(snd2, 0.2, SinOsc.ar(0.3, [0, pi]).linlin(-1,1,0,0.001));
@@ -1265,7 +1269,7 @@ Engine_Zxcvbn : CroneEngine {
 
         (1..2).do({arg ch;
         SynthDef("slice0"++ch,{
-            arg amp=0, buf=0, rate=1, pos=0, drive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
+            arg amp=0, buf=0, rate=1, pos=0, drive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01;
             var snd,snd2;
             var snd_pos = Phasor.ar(
                 trig: Impulse.kr(0),
@@ -1306,7 +1310,7 @@ Engine_Zxcvbn : CroneEngine {
 
         (1..2).do({arg ch;
         SynthDef("slice1"++ch,{
-            arg amp=0, buf=0, rate=1, pos=0, drive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01; 
+            arg amp=0, buf=0, rate=1, pos=0, drive=1, compression=0, gate=1, duration=100000, pan=0, send_pos=0, filter=18000, attack=0.01,release=0.01;
             var snd,snd2;
             var snd_pos = Phasor.ar(
                 trig: Impulse.kr(0),
@@ -1542,7 +1546,7 @@ Engine_Zxcvbn : CroneEngine {
                         NodeWatcher.register(syns.at(id));
                         this.synthWatch(id.asString.split($_)[0].asString,syns.at(id));
                     }.play;
-                 },{ 
+                 },{
                     NodeWatcher.register(syns.at(id));
                     this.synthWatch(id.asString.split($_)[0].asString,syns.at(id));
                 });
@@ -1557,7 +1561,7 @@ Engine_Zxcvbn : CroneEngine {
                     ["gating off"].postln;
                     syns.at(id).set(\gate,0);
                 });
-            });            
+            });
         });
 
         this.addCommand("melodic_on","ssffffffffffffffffffffff",{ arg msg;
@@ -1662,7 +1666,7 @@ Engine_Zxcvbn : CroneEngine {
                             this.synthWatch(id.asString.split($_)[0].asString,syns.at(id));
                         }.play;
                     });
-                 },{ 
+                 },{
                     NodeWatcher.register(syns.at(id));
                     this.synthWatch(id.asString.split($_)[0].asString,syns.at(id));
                 });
@@ -1707,7 +1711,7 @@ Engine_Zxcvbn : CroneEngine {
             ],syns.at("reverb"),\addBefore).onFree({"freed!"});
         });
 
-
+        //only for infinipad? might be good to rename it...
         this.addCommand("note_on","ffffffffffsf",{ arg msg;
             var note=msg[1];
             var amp=msg[2].dbamp;
@@ -1729,7 +1733,7 @@ Engine_Zxcvbn : CroneEngine {
                     });
                 });
                 syns.put(id,Synth.new("pad1", [
-                    freq: note.midicps, 
+                    freq: note.midicps,
                     amp: amp,
                     attack: attack,
                     release: release,
@@ -1752,7 +1756,8 @@ Engine_Zxcvbn : CroneEngine {
                 nons.put(track_id++note.floor,syns.at(id));
             };
         });
-        
+
+
         this.addCommand("passersby_note_on","ffffffffffffffffffffsfffffffff",{ arg msg;
             var envType=msg[1]-1;
             var note=msg[2];
@@ -1892,7 +1897,7 @@ Engine_Zxcvbn : CroneEngine {
             nons.put(id++note.floor,syn); 
         }); 
 
-         this.addCommand("oilcan_note_on","fffffffffffffffffffffsfffff",{ arg msg;
+        this.addCommand("oilcan_note_on","fffffffffffffffffffffsfffff",{ arg msg;
             var freq=msg[1];
             var attack=msg[2];
             var fb=msg[3];
@@ -2011,7 +2016,7 @@ Engine_Zxcvbn : CroneEngine {
             this.synthWatch(id,syn);
             nons.put(id++note.floor,syn); 
         }); 
-        
+
         this.addCommand("load_buffer","s",{ arg msg;
             var id=msg[1];
             Buffer.read(context.server, id, action: {arg buf;
@@ -2053,7 +2058,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-        this.addCommand("mixer","f", { arg msg; 
+        this.addCommand("mixer","f", { arg msg;
             if (msg[1]>0,{
                 syns.put("mixer", Synth.new("mixer", [
                     bus1: buses.at("bus1"),
@@ -2123,7 +2128,7 @@ Engine_Zxcvbn : CroneEngine {
                     if (syns.at(id).isRunning,{
                         syns.at(id).set("gate_release",monophonic_release);
                         syns.at(id).set("gate_done",1);
-                    });                    
+                    });
                 });
             });
             syn=Synth.new(synth,[
@@ -2195,17 +2200,19 @@ Engine_Zxcvbn : CroneEngine {
             nons.put(id++note.floor,syn);
         });
 
+
+
         this.addCommand("note_off","sf", { arg msg;
             var key=msg[1]++(msg[2].asFloat.floor);
             // ["mx_synths_note_off",key].postln;
             if (nons.at(key).notNil,{
-                // ["mx_synths_note_off",key,"notNil"].postln;
+              //   ["mx_synths_note_off",key,"notNil"].postln;
                 if (nons.at(key).isRunning,{
-                    // ["mx_synths_note_off",key,"notNil","isRunning"].postln;
+                  //  ["mx_synths_note_off",key,"notNil","isRunning"].postln;
                     nons.at(key).set("gate_done",1);
                 });
             });
-        }); 
+        });
 
         // ^ Zxcvbn specific
 
@@ -2281,7 +2288,7 @@ Engine_Zxcvbn : CroneEngine {
             });
         });
 
-       
+
         this.addCommand("loop_save","is", { arg msg;
             var id=msg[1];
             var path=msg[2];
@@ -2291,7 +2298,7 @@ Engine_Zxcvbn : CroneEngine {
                 bufs.at(key).write(filename,"wav");
             });
         });
-       
+
         this.addCommand("loop_load","is", { arg msg;
             var id=msg[1];
             var path=msg[2];
@@ -2333,7 +2340,7 @@ Engine_Zxcvbn : CroneEngine {
             var synBefore=syns.at("reverb");
             var outtrack=buses.at("bus"++id);
             var amp= (db+db_add).dbamp;
-            dx7syn.value(0,"",0,preset, note, 110, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay, 
+            dx7syn.value(0,"",0,preset, note, 110, pan, attack, release, duration, compressible, compressing, sendreverb, sendtape, senddelay,
                 out, outsc, outnsc, outreverb, outtape, outdelay, synBefore, amp, filter, outtrack);
         });
 
