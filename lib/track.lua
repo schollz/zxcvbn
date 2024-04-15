@@ -8,7 +8,7 @@ STATE_SOFTSAMPLE=4
 TYPE_MXSYNTHS=1
 TYPE_DX7=2
 TYPE_INFINITEPAD=3
-TYPE_PASSERSBY = 4
+TYPE_ZASSERSBY = 4
 TYPE_OILCAN = 5
 TYPE_MELODIC=6
 TYPE_MXSAMPLES=7
@@ -432,13 +432,13 @@ function Track:init()
           params:set(self.id.."mod"..i,x)
         elseif params:get(self.id.."track_type")==TYPE_MIDI then 
           params:set(self.id.."midi_cc",util.clamp(x,0,127))
-        elseif params:get(self.id.."track_type")==TYPE_PASSERSBY then
+        elseif params:get(self.id.."track_type")==TYPE_ZASSERSBY then
           params:set(self.id.."wavefold",util.clamp(x,0,300)/100)
         end
     end,
     i=function(x,v) 
       if v==nil then self.lfos["i"]:stop() end
-      if params:get(self.id.."track_type")==TYPE_PASSERSBY then
+      if params:get(self.id.."track_type")==TYPE_ZASSERSBY then
         params:set(self.id.."fm_low",util.clamp(x,0,100)/100)
       else
         params:set(self.id.."filter",x+30)
@@ -448,7 +448,7 @@ function Track:init()
     h=function(x,v) if v==nil then self.lfos["h"]:stop() end;params:set(self.id.."gate",x);params:set(self.id.."gate_note",x) end,
     k=function(x,v) 
       if v==nil then self.lfos["k"]:stop() end
-      if params:get(self.id.."track_type")==TYPE_PASSERSBY then
+      if params:get(self.id.."track_type")==TYPE_ZASSERSBY then
         params:set(self.id.."fm_high",util.clamp(x,0,100)/100)
       else
       params:set(self.id.."attack",x) 
@@ -470,7 +470,7 @@ function Track:init()
       if v==nil then self.lfos["N"]:stop() end
       if params:get(self.id.."track_type")==TYPE_CROW then
         params:set(self.id.."crow_slew",x) 
-      elseif params:get(self.id.."track_type")==TYPE_PASSERSBY then
+      elseif params:get(self.id.."track_type")==TYPE_ZASSERSBY then
         --params:set(self.id.."glide",x) 
       end
     end, 
@@ -503,7 +503,7 @@ self.enc3[TYPE_MXSAMPLES]="pan"
 self.enc3[TYPE_MXSYNTHS]="pan"
 self.enc3[TYPE_DX7]="pan"
 self.enc3[TYPE_SOFTSAMPLE]="pan"
-self.enc3[TYPE_PASSERSBY]="wavefold"
+self.enc3[TYPE_ZASSERSBY]="wavefold"
 self.enc3[TYPE_OILCAN]="oil_release"
 
 -- initialize track data
@@ -529,7 +529,7 @@ end,shift_updown=function(d)
     params:delta(self.id.."wsyn_type",d)
   elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
     params:delta(self.id.."sc",d)
-  elseif params:get(self.id.."track_type")==TYPE_PASSERSBY then
+  elseif params:get(self.id.."track_type")==TYPE_ZASSERSBY then
     params:delta(self.id.."envelope_type",d)
   end
 end,
@@ -645,7 +645,7 @@ self.play_fn[TYPE_MXSYNTHS]={
 }
 
 -- Passersby
-self.play_fn[TYPE_PASSERSBY]={
+self.play_fn[TYPE_ZASSERSBY]={
   note_off=function(d)
     local note=d.note_to_emit+params:get(self.id.."pitch")
     engine.note_off(self.id,note)
@@ -996,7 +996,7 @@ function Track:description()
     s=s..string.format(" (%s)",params:string(self.id.."wsyn_type"))
   elseif params:get(self.id.."track_type")==TYPE_SOFTSAMPLE then
     s=s..string.format(" (%s)",params:string(self.id.."sc"))
-  elseif params:get(self.id.."track_type")==TYPE_PASSERSBY then
+  elseif params:get(self.id.."track_type")==TYPE_ZASSERSBY then
     s=s..string.format(" (%s)",params:string(self.id.."envelope_type"))
   end
   return s
