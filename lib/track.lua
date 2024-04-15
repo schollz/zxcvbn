@@ -57,7 +57,7 @@ function Track:init()
 
   self.lseq=lseq_:new{id=self.id}
 
-  self.track_type_options={"mx.synths","dx7","infinite pad","passersby","oilcan","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn"} 
+  self.track_type_options={"mx.synths","dx7","infinite pad","zassersby","oilcan","melodic","mx.samples","softcut","drum","crow","midi","jf","wsyn"} 
 
   --this is here to support legacy psets
   params:add_option(self.id.."track_type","clade",self.track_type_options,1)
@@ -99,8 +99,18 @@ function Track:init()
 
   -- sliced sample
   params:add_number(self.id.."slices","slices",1,16,16)
+
   params:add_file(self.id.."sample_file","file",_path.audio.."break-ops")
   params:set_action(self.id.."sample_file",function(x)
+    if util.file_exists(x) and string.sub(x,-1)~="/" then
+      self:load_sample(x)
+    end
+  end)
+
+  params:add_binary(self.id.."reload_sample","reload sample")
+  params:set_action(self.id.."reload_sample",function()
+    print("reloaded sample")
+    local x = params:get(self.id.."sample_file")
     if util.file_exists(x) and string.sub(x,-1)~="/" then
       self:load_sample(x)
     end
@@ -382,7 +392,7 @@ function Track:init()
   params:add{type="binary",name="activate db/retrig",id=self.id.."activate_dnr",behavior="momentary"}
 
   self.params={shared={"track_type","Clade_settings","General_settings","play","db","probability","lfo_shape","pitch","mute","mute_group","transpose","scale_mode","root_note"}}
-  self.params["drum"]={"sample_file","retrig_add","db_add","activate_dnr","note_add","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb","send_delay"}
+  self.params["drum"]={"reload_sample","sample_file","retrig_add","db_add","activate_dnr","note_add","stretch","rate","slices","bpm","compression","play_through","gate","filter","decimate","drive","pan","compressing","compressible","attack","release","send_reverb","send_delay"}
   self.params["melodic"]={"sample_file","drive","monophonic_release","attack","release","filter","pan","source_note","compressing","gate_note","compressible","send_reverb","send_delay"}
   self.params["infinite pad"]={"attack","swell","filter","pan","release","compressing","compressible","gate_note","send_reverb","send_delay"}
   self.params["mx.samples"]={"mx_sample","db","attack","pan","release","compressing","compressible","gate_note","send_reverb","send_delay"}
@@ -393,7 +403,7 @@ function Track:init()
   self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb","send_delay"}
   self.params["dx7"]={"db","monophonic_release","gate_note","filter","attack","pan","release","compressing","compressible","dx7_preset","send_reverb","send_delay"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
-  self.params["passersby"]={"envelope_type","wavefold","fm_low_ratio","fm_high_ratio","fm_low","fm_high","pb_attack","peak","release","aux_dest","aux_env","aux_release","gate_note","monophonic_release","db","send_reverb","send_delay","pan"}
+  self.params["zassersby"]={"envelope_type","wavefold","fm_low_ratio","fm_high_ratio","fm_low","fm_high","pb_attack","peak","release","aux_dest","aux_env","aux_release","gate_note","monophonic_release","db","send_reverb","send_delay","pan"}
   self.params["oilcan"]={"decimate","target_file","save_kit","save_new","load_kit","monophonic_release","db","send_reverb","send_delay","pan","oil_release","filter"} --define params that are common for all timbers of oilcan, except select timbre.
 
   params:add_option(self.id.."lfo_shape","lfo shape", self.lfo_shape_options,1)
@@ -494,6 +504,7 @@ self.enc3[TYPE_MXSYNTHS]="pan"
 self.enc3[TYPE_DX7]="pan"
 self.enc3[TYPE_SOFTSAMPLE]="pan"
 self.enc3[TYPE_PASSERSBY]="wavefold"
+self.enc3[TYPE_OILCAN]="oil_release"
 
 -- initialize track data
 self.state=STATE_VTERM
@@ -547,7 +558,7 @@ self.play_fn[TYPE_DRUM]={
     self.states[STATE_SAMPLE]:play{
       on=true,
       id=id,
-      ci=(d.note_to_emit-1)%16+1,
+      ci=(d.note_to_emit-1)%self.states[STATE_SAMPLE].slice_num+1,
       db=(mods.v or 0)+params:get(self.id.."db_add")*params:get(self.id.."activate_dnr"),
       pan=params:get(self.id.."pan"),
       duration=d.duration_scaled,
