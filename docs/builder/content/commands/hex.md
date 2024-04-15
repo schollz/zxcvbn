@@ -6,9 +6,10 @@ shortcode: hashtag
 clades:
     - drum
     - softcut
+    - oilcan
 ---
 
-Hex is used instead of [Note](#note) for clades that involve positions - namely [drum](#drum) and [softcut](#softcut). In both of those clades, there are 16 available positions. The commands to playback at a certain position is simply a hex value, `0-9a-f` where `0` is position 1 and `f` is position 16.
+Hex is used instead of [Note](#note) for clades that involve positions - namely [drum](#drum), [softcut](#softcut) and [oilcan](#oilcan). In [drum] and [softcute], there are up to 16 available positions. For [oilcan] there are only 7. The commands to playback at a certain position is simply a hex value, `0-9a-f` where `0` is position 1 and `f` is position 16.
 
 The usage of Hex commands is similar to [Note](#note) in that you can use them with arps, you remove spaces in between to play things together, etc.
 
