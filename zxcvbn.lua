@@ -140,11 +140,12 @@ function init2()
   -- add major parameters
   params:add_separator("zxcvbn","zxcvbn") --add separator if some mod is adding menu items
   params_meta()
+  add_midi_devs()
+  params_midi()
   params_audioin()
   params_sidechain()
   params_reverb()
   params_kick()
-  params_midi()
   params_mixer()
 
   local charset={} do -- [0-9a-zA-Z]
@@ -578,10 +579,6 @@ function keyboard.code(k,v)
     end
     do return end
 elseif k=="CTRL+SPACE" then
-    local dev_list_temp = {} --temp array
-    local dev_temp = {}
-    local nb_check
-    local midi_device_name
     if v==1 then
       -- pause/play all
       print("pause/play all")
@@ -593,37 +590,9 @@ elseif k=="CTRL+SPACE" then
         end
       end
       if any_playing then
-        show_message("stopping all")
-        for i=1,10 do
-          params:set(i.."play",0)
-          if(params:string(i.."track_type") == "midi") then
-            dev_temp = params:get(i.."midi_dev") 
-            midi_device_name = midi_device[dev_temp].name
-            nb_check = string.find(midi_device_name,"nb")
-            if(has_value(dev_list_temp,dev_temp) == false and nb_check == nil ) then 
-              dev_list_temp[i] = dev_temp
-              midi_device[params:get(i.."midi_dev")].stop()
-            end
-          end
-        end
-        dev_list_temp = {} --temp array
+        stop_all()
       else
-        for i=1,10 do
-          if tracks[i].tli~=nil and tracks[i].tli.pulses>0 then
-            params:set(i.."play",1)
-          end
-          if(params:string(i.."track_type") == "midi") then
-            dev_temp = params:get(i.."midi_dev")
-            midi_device_name = midi_device[dev_temp].name
-            nb_check = string.find(midi_device_name,"nb")
-            if(has_value(dev_list_temp,dev_temp) == false and nb_check == nil ) then
-              dev_list_temp[i] = dev_temp
-              midi_device[params:get(i.."midi_dev")].start()
-            end
-          end
-        end
-        dev_list_temp = {} --temp array
-        show_message("playing all")
+        play_all()
       end
     end
     do return end
@@ -660,6 +629,50 @@ function show_message(message,seconds)
   seconds=seconds or 2
   show_message_clock=10*seconds
   show_message_text=message
+end
+
+function play_all(sync_receive)
+  local dev_list_temp = {} --temp array
+  local dev_temp = {}
+  local nb_check
+  local midi_device_name
+  for i=1,10 do
+    if tracks[i].tli~=nil and tracks[i].tli.pulses>0 then
+      params:set(i.."play",1)
+    end
+    if(params:string(i.."track_type") == "midi") and sync_receive ~= 1 then
+      dev_temp = params:get(i.."midi_dev")
+      midi_device_name = midi_device[dev_temp].name
+      nb_check = string.find(midi_device_name,"nb")
+      if(has_value(dev_list_temp,dev_temp) == false and nb_check == nil ) then
+        dev_list_temp[i] = dev_temp
+        midi_device[params:get(i.."midi_dev")].start()
+      end
+    end
+  end
+  dev_list_temp = {} --temp array
+  show_message("playing all")
+end
+
+function stop_all(sync_receive)
+  local dev_list_temp = {} --temp array
+  local dev_temp = {}
+  local nb_check
+  local midi_device_name
+  show_message("stopping all")
+  for i=1,10 do
+    params:set(i.."play",0)
+    if(params:string(i.."track_type") == "midi") and sync_receive ~= 1 then
+      dev_temp = params:get(i.."midi_dev") 
+      midi_device_name = midi_device[dev_temp].name
+      nb_check = string.find(midi_device_name,"nb")
+      if(has_value(dev_list_temp,dev_temp) == false and nb_check == nil ) then 
+        dev_list_temp[i] = dev_temp
+        midi_device[params:get(i.."midi_dev")].stop()
+      end
+    end
+  end
+  dev_list_temp = {} --temp array
 end
 
 
@@ -869,6 +882,7 @@ function params_kick()
 end
 
 function params_meta()
+
   params:add_group("META",7)
   params:add_option("norns_sync","norns sync",{"follower","follower+leader","leader"},2)
   params:add_option("ambisonics","loop ambisonics",{"no","yes"},1)
@@ -1030,39 +1044,60 @@ function params_sidechain()
   end
 end
 
+
 function params_midi()
-  -- midi
-  midi_device={{name="none",note_on=function()end,note_off=function()end,start=function()end,stop=function()end,}}
-  midi_device_list={"none"}
-  for i,dev in pairs(midi.devices) do
-    if dev.port~=nil then
-      local connection=midi.connect(dev.port)
-      local name=string.lower(dev.name).." "..i
-      print("adding "..name.." as midi device")
-      table.insert(midi_device_list,name)
-      table.insert(midi_device,{
-        name=name,
-        note_on=function(note,vel,ch) connection:note_on(math.floor(note),math.floor(vel),ch) end,
-        note_off=function(note,vel,ch) connection:note_off(math.floor(note),math.floor(vel),ch) end,
-        start = function() connection:start() end, 
-        stop = function() connection:stop() end,
-        cc = function(cc,val,ch) connection:cc(math.floor(cc), math.floor(val), ch) end,
-      })
-      connection.event=function(data)
-        local msg=midi.to_msg(data)
-        if msg.type=="clock" then
-          do return end
-        end
-        if msg.type=='start' or msg.type=='continue' then
-          -- OP-1 fix for transport
-          reset()
-        elseif msg.type=="stop" then
-        elseif msg.type=="note_on" then
+  params:add_group("MIDI",2)
+  params:add_separator("midi_sync_sep","midi start stop receive")
+  params:add_option("midi_dev_sync","",midi_device_list,1)
+end
+
+function add_midi_devs()
+      -- midi
+      midi_device={{name="none",note_on=function()end,note_off=function()end,start=function()end,stop=function()end,}}
+      midi_device_list={"none"}
+      for i,dev in pairs(midi.devices) do
+        if dev.port~=nil then
+          local connection=midi.connect(dev.port)
+          local name=string.lower(dev.name).." "..i
+          print("adding "..name.." as midi device")
+          table.insert(midi_device_list,name)
+          table.insert(midi_device,{
+            name=name,
+            note_on=function(note,vel,ch) connection:note_on(math.floor(note),math.floor(vel),ch) end,
+            note_off=function(note,vel,ch) connection:note_off(math.floor(note),math.floor(vel),ch) end,
+            start = function() connection:start() end, 
+            stop = function() connection:stop() end,
+            cc = function(cc,val,ch) connection:cc(math.floor(cc), math.floor(val), ch) end,
+          })
+          connection.event=function(data)
+            local msg=midi.to_msg(data)
+            local name = string.lower(connection.device.name).." "..connection.device.port
+            local sync_name = params:get("midi_dev_sync")
+            
+            if msg.type=="clock" then
+              do return end
+            end
+            if msg.type=='start' or msg.type=='continue' then
+              print(name)
+              print(midi_device[sync_name].name)
+              if(midi_device[sync_name].name == name) then
+                play_all(1)
+              end
+              -- OP-1 fix for transport
+              --why reset()? produces error
+              --reset() 
+            elseif msg.type=="stop" then
+              if(midi_device[params:get("midi_dev_sync")].name == name) then
+                stop_all(1)
+              end
+            elseif msg.type=="note_on" then
+            end
+          end
         end
       end
-    end
-  end
 end
+
+
 
 function setup_softcut()
   softcut_enabled=true
