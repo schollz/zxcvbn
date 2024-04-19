@@ -1073,13 +1073,10 @@ function add_midi_devs()
             local msg=midi.to_msg(data)
             local name = string.lower(connection.device.name).." "..connection.device.port
             local sync_name = params:get("midi_dev_sync")
-            
             if msg.type=="clock" then
               do return end
             end
             if msg.type=='start' or msg.type=='continue' then
-              print(name)
-              print(midi_device[sync_name].name)
               if(midi_device[sync_name].name == name) then
                 play_all(1)
               end
