@@ -644,7 +644,7 @@ function play_all(sync_receive)
       dev_temp = params:get(i.."midi_dev")
       midi_device_name = midi_device[dev_temp].name
       nb_check = string.find(midi_device_name,"nb")
-      if(has_value(dev_list_temp,dev_temp) == false and nb_check == nil ) then
+      if(has_value(dev_list_temp,dev_temp) == false and nb_check == nil and dev_temp ~= params:get("midi_dev_sync") ) then
         dev_list_temp[i] = dev_temp
         midi_device[params:get(i.."midi_dev")].start()
       end
@@ -666,7 +666,7 @@ function stop_all(sync_receive)
       dev_temp = params:get(i.."midi_dev") 
       midi_device_name = midi_device[dev_temp].name
       nb_check = string.find(midi_device_name,"nb")
-      if(has_value(dev_list_temp,dev_temp) == false and nb_check == nil ) then 
+      if(has_value(dev_list_temp,dev_temp) == false and nb_check == nil and dev_temp ~= params:get("midi_dev_sync") ) then 
         dev_list_temp[i] = dev_temp
         midi_device[params:get(i.."midi_dev")].stop()
       end
@@ -1059,10 +1059,12 @@ function add_midi_devs()
         if dev.port~=nil then
           local connection=midi.connect(dev.port)
           local name=string.lower(dev.name).." "..i
+          local dev_name = string.lower(dev.name)
           print("adding "..name.." as midi device")
           table.insert(midi_device_list,name)
           table.insert(midi_device,{
             name=name,
+            dev_name=dev_name,
             note_on=function(note,vel,ch) connection:note_on(math.floor(note),math.floor(vel),ch) end,
             note_off=function(note,vel,ch) connection:note_off(math.floor(note),math.floor(vel),ch) end,
             start = function() connection:start() end, 
@@ -1071,20 +1073,20 @@ function add_midi_devs()
           })
           connection.event=function(data)
             local msg=midi.to_msg(data)
-            local name = string.lower(connection.device.name).." "..connection.device.port
+            local name = string.lower(connection.device.name)
             local sync_name = params:get("midi_dev_sync")
             if msg.type=="clock" then
               do return end
             end
             if msg.type=='start' or msg.type=='continue' then
-              if(midi_device[sync_name].name == name) then
+              if(midi_device[sync_name].dev_name == name) then
                 play_all(1)
               end
               -- OP-1 fix for transport
               --why reset()? produces error
               --reset() 
             elseif msg.type=="stop" then
-              if(midi_device[params:get("midi_dev_sync")].name == name) then
+              if(midi_device[params:get("midi_dev_sync")].dev_name == name) then
                 stop_all(1)
               end
             elseif msg.type=="note_on" then
