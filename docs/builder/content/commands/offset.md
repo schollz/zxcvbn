@@ -11,6 +11,8 @@ clades:
     - softcut
     - crow
     - midi
+    - oilcan
+    - zassersby
 ---
 
 Offsets are used to shift the notes across the pulses allocated for each line when it is parsed by the [TLI](#tli) parser. Its useful to create off-beats.

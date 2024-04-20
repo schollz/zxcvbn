@@ -10,6 +10,8 @@ clades:
     - mx.synths
     - infinite pad
     - melodic
+    - zassersby
+    - oilcan
 ---
 
 Volume allows you to quickly change the impact of a note. This volume is added in dB, to the main volume that can be controlled in the parameters menu.

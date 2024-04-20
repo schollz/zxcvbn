@@ -11,6 +11,8 @@ clades:
     - infinite pad
     - midi
     - crow
+    - zassersby
+    - oilcan
 ---
 
 This command determines the probability that the note will be emitted each time it is encountered.

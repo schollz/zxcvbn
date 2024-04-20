@@ -14,6 +14,8 @@ clades:
     - softcut
     - crow
     - midi
+    - zassersby
+    - oilcan
 ---
 
 Steps defines the maximum number of steps in a given arpeggio. For every step that is not in the original chord, the note is increased by one octave. If [time](#time) is not defined, then the pulses per step will be equally divided among the available number of pulses. 

@@ -8,6 +8,7 @@ clades:
     - softcut
     - infinite pad
     - mx.synths
+    - zassersby
 ---
 
 This command is just for each individual clade - it works differently depending on which clade you are using.
@@ -21,3 +22,5 @@ For [mx.synths](#mx-synths) this command will change the four mods. Each mod has
 For [infinite pad](#infinite-pad) this command will change the swell. The range is 0 to 100%.
 
 For [MIDI](#midi) this command will send a CC message to the relative MIDI device and channel. The range is 0 to 127.
+
+For [zassersby](#zassersby) this command will adjust the wavefolding amount. The range is 0 to 100.

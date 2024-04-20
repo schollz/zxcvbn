@@ -7,6 +7,7 @@ clades:
     - mx.samples
     - mx.synths
     - melodic
+    - zassersby
     - infinite pad
     - midi
     - crow
