@@ -10,6 +10,8 @@ clades:
     - mx.synths
     - infinite pad
     - crow
+    - zassersby
+    - oilcan
 ---
 
 The release determines the time the envelope takes to close when releasing a note.

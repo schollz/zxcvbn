@@ -12,6 +12,8 @@ clades:
     - mx.synths
     - infinite pad
     - softcut
+    - zassersby
+    - oilcan
 ---
 
 Pan will pan between the left (-100%) and the right (100%) of the stereo field. You can randomize this by including multiple numbers.

@@ -12,6 +12,7 @@ clades:
     - mx.synths
     - infinite pad
     - softcut
+    - oilcan
 ---
 
 The filter will apply a low-pass filter to the emitted notes. This filter is defined in **notes**, i.e. `72` is the frequency of `c5` (523 Hz).

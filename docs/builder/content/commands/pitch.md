@@ -13,6 +13,8 @@ clades:
     - softcut 
     - crow
     - midi
+    - zassersby
+    - oilcan
 ---
 
 This command is similar to [rate](#rate), but changes the rate in a way according to note scales. 

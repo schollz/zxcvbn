@@ -13,6 +13,8 @@ clades:
     - softcut 
     - crow
     - midi
+    - zassersby
+    - oilcan
 ---
 
 This command will further subdivide the current note as many times as it is retriggered. For example if you retrigger a quarter note twice it will play as two eighth notes.

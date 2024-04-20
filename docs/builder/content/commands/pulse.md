@@ -11,6 +11,8 @@ clades:
     - softcut
     - crow
     - midi
+    - zassersby
+    - oilcan
 ---
 
 Pulse is used to redefine the number of pulses allocated to a given line. There is an immutable number of 24 pulses per quarter note, but you can define any number of pulses per line. If no pulses are defined then it will be defined as 96 pulses per line by default (4 quarter notes per line). You can use mathematical expressions with pulses, as long as there are no spaces.
