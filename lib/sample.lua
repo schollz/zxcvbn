@@ -42,6 +42,7 @@ function Sample:load_sample(path,is_melodic,slices)
   self.width=120
   self.debounce_zoom=0
 
+  
   self.slice_num=self.is_melodic and 4 or slices
   self.cursors={}
   self.cursor_durations={}
@@ -146,6 +147,7 @@ end
 
 function Sample:get_onsets()
   show_message("determing onsets",4)
+  print(self.slice_num)
   show_progress(0)
   self.path_to_cursors=_path.data.."/zxcvbn/cursors/"..self.filename.."_"..self.slice_num..".cursors"
   -- try to load the cached cursors
@@ -167,6 +169,7 @@ function Sample:get_onsets()
 
   -- gather the onsets
   print("executing")
+  
   os.execute(_path.code.."zxcvbn/lib/aubiogo/aubiogo --id "..self.id.." --filename '"..self.path.."' --num "..self.slice_num.." &")
   print("executed")
 end
@@ -182,7 +185,7 @@ function Sample:got_onsets(data_s)
     do return end
   end
   if data.result==nil then
-    print("no onset results!")
+    print("no onset results")
     do return end
   end
   self.cursors=data.result
@@ -543,6 +546,11 @@ function Sample:save_cursors()
   io.write(json.encode({cursors=self.cursors}))
   io.close(file)
   show_message("cursors saved!")
+end
+
+function Sample:add_cursor()
+  print("adding a cursor!")
+  show_message("Added cursor!")
 end
 
 function Sample:redraw()
