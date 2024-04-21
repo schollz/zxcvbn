@@ -49,6 +49,7 @@ function Track:new(o)
 end
 
 function Track:init()
+  self.last_note=0
   self.lfos={}
   self.lfo_shape_options={"sine","saw","square","random"}
   self.lfo_shape_chosen={}
@@ -246,7 +247,7 @@ function Track:init()
     {id="probability",name="probability (q)",min=0,max=100,exp=false,div=1,default=100,unit="%"},
     {id="attack",name="attack (k)",min=5,max=2000,exp=true,div=5,default=5,unit="ms"},
     {id="crow_sustain",name="sustain",min=0,max=10,exp=false,div=0.1,default=10,unit="volt"},
-    {id="crow_slew",name="slew",min=0,max=500,exp=false,div=1,default=0,unit="ms"},  --added crow slew
+    {id="crow_slew",name="slew(N)",min=0,max=1000,exp=false,div=1,default=0,unit="ms"},  --added crow slew
 
     {id="wavefold",name="wavefold(j)",min=0,max=3,exp=false,div=0.01,default=0}, --added passersby
     {id="fm_low_ratio",name="fm low ratio",min=0.1,max=1,exp=false,div=0.01,default=0.5}, --added passersby
@@ -258,7 +259,7 @@ function Track:init()
     {id="aux_dest",name="aux destination",min=1,max=4,exp=false,div=1,default=1,formatter=function(param) return string.format(aux_destination[param:get()]) end}, --added passersby
     {id="aux_env",name="aux envelope",min=0,max=1,exp=false,div=0.01,default=0}, --added passersby
     {id="aux_release",name="aux decay",min=5,max=2000,exp=true,div=5,default=200,unit="ms"}, --added passersby
-
+    
     {id="oil_release",name="release macro (l)",min=0,max=5,exp=false,div=0.01,default=1,unit="x"},
 
     
@@ -400,10 +401,10 @@ function Track:init()
   self.params["jf"]={"jf_type"} -- jf options to come
   self.params["wsyn"]={"wsyn_type"} -- wsyn options to come
   self.params["midi"]={"midi_ch","gate_note","midi_dev","midi_cc_number","midi_cc","midi_cc_enable"} 
-  self.params["mx.synths"]={"db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb","send_delay"}
+  self.params["mx.synths"]={"crow_slew","db","monophonic_release","gate_note","filter","db_sub","attack","pan","release","compressing","compressible","mx_synths","mod1","mod2","mod3","mod4","db_sub","send_reverb","send_delay"}
   self.params["dx7"]={"db","monophonic_release","gate_note","filter","attack","pan","release","compressing","compressible","dx7_preset","send_reverb","send_delay"}
   self.params["softcut"]={"sc","sc_sync","get_onsets","gate","pitch","play_through","sample_file","sc_level","sc_pan","sc_rec_level","sc_rate","sc_loop_end"}
-  self.params["zassersby"]={"envelope_type","wavefold","fm_low_ratio","fm_high_ratio","fm_low","fm_high","pb_attack","peak","release","aux_dest","aux_env","aux_release","gate_note","monophonic_release","db","send_reverb","send_delay","pan"}
+  self.params["zassersby"]={"crow_slew","envelope_type","wavefold","fm_low_ratio","fm_high_ratio","fm_low","fm_high","pb_attack","peak","release","aux_dest","aux_env","aux_release","gate_note","monophonic_release","db","send_reverb","send_delay","pan"}
   self.params["oilcan"]={"decimate","target_file","save_kit","save_new","load_kit","monophonic_release","db","send_reverb","send_delay","pan","oil_release","filter"} --define params that are common for all timbers of oilcan, except select timbre.
 
   params:add_option(self.id.."lfo_shape","lfo shape", self.lfo_shape_options,1)
@@ -468,11 +469,7 @@ function Track:init()
     y=function(x,v) if v==nil then self.lfos["y"]:stop() end;params:set(self.id.."transpose",x) end,
     N=function(x,v) 
       if v==nil then self.lfos["N"]:stop() end
-      if params:get(self.id.."track_type")==TYPE_CROW then
-        params:set(self.id.."crow_slew",x) 
-      elseif params:get(self.id.."track_type")==TYPE_ZASSERSBY then
-        --params:set(self.id.."glide",x) 
-      end
+      params:set(self.id.."crow_slew",x) 
     end, 
 }
 -- setup lfos
@@ -630,17 +627,22 @@ self.play_fn[TYPE_MXSYNTHS]={
   note_on=function(d,mods)
     local synth=params:string(self.id.."mx_synths")
     local note=d.note_to_emit+params:get(self.id.."pitch")
+    if self.last_note == 0 then
+      self.last_note = note
+    end
     local db=params:get(self.id.."db")
     local db_add=(mods.v or 0)
     local pan=params:get(self.id.."pan")
     local attack=params:get(self.id.."attack")/1000
     local release=params:get(self.id.."release")/1000
     local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
+    local glide = params:get(self.id.."crow_slew")/1000
     duration=duration>0 and duration or d.duration_scaled
     local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
     engine.mx_synths(synth,note,db,params:get(self.id.."db_sub"),pan,attack,release,
       params:get(self.id.."mod1"),params:get(self.id.."mod2"),params:get(self.id.."mod3"),params:get(self.id.."mod4"),
-    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,db_add,params:get(self.id.."send_delay"))
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,db_add,params:get(self.id.."send_delay"),self.last_note,glide)
+    self.last_note = note
   end,
 }
 
@@ -653,6 +655,9 @@ self.play_fn[TYPE_ZASSERSBY]={
   note_on=function(d,mods)
     local envelope_type=params:get(self.id.."envelope_type")
     local note=d.note_to_emit+params:get(self.id.."pitch")
+    if self.last_note == 0 then
+      self.last_note = note
+    end
     local amp=params:get(self.id.."db") +(mods.v or 0)
     local peak=params:get(self.id.."peak")
     local pan=params:get(self.id.."pan")
@@ -681,14 +686,16 @@ self.play_fn[TYPE_ZASSERSBY]={
     local fm2ratio = params:get(self.id.."fm_high_ratio")
     local fm1amount = params:get(self.id.."fm_low")
     local fm2amount = params:get(self.id.."fm_high")
-    local glide = 0
+    local glide = params:get(self.id.."crow_slew")/1000
     local duration=params:get(self.id.."gate_note")/24*clock.get_beat_sec()
     duration=duration>0 and duration or d.duration_scaled
     local retrig=util.clamp((mods.x or 1)-1,0,30) or 0
     engine.passersby_note_on(envelope_type,note,amp,peak,pan,attack,decay,waveshape,wavefold,fm1ratio,fm2ratio,fm1amount,fm2amount,glide,
-    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,params:get(self.id.."send_delay"),aux_env,aux_release,fold_dest,fm1_dest,fm2_dest,hz_dest)
+    duration,params:get(self.id.."compressible"),params:get(self.id.."compressing"),params:get(self.id.."send_reverb"),params:get(self.id.."filter"),params:get(self.id.."monophonic_release")/1000,self.id,self.loop.send_tape,retrig,params:get(self.id.."send_delay"),aux_env,aux_release,fold_dest,fm1_dest,fm2_dest,hz_dest,self.last_note)
+    self.last_note = note
   end, 
 }
+
 
 -- oilcan
 self.play_fn[TYPE_OILCAN]={
