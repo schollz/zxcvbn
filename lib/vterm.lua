@@ -179,19 +179,32 @@ end
 
 function VTerm:copy()
   -- copy the current line
-  self.copied=""..self.lines[self.cursor.row]
+  vterm_clipboard = ""..self.lines[self.cursor.row]
   show_message("copied")
 end
 
+function VTerm:copy_all()
+  -- copy the current line
+  vterm_clipboard_all = self.lines
+  show_message("copied all")
+end
+
+function VTerm:paste_all()
+  if vterm_clipboard_all==nil then
+    do return end
+  end
+  self.lines = vterm_clipboard_all
+  show_message("pasted all")
+end
 function VTerm:paste()
   -- paste the line after the current
-  if self.copied==nil then
+  if vterm_clipboard==nil then
     do return end
   end
   local lines={}
   for i,v in ipairs(self.lines) do
     if i==self.cursor.row then
-      table.insert(lines,self.copied)
+      table.insert(lines,vterm_clipboard)
     end
     table.insert(lines,v)
   end
@@ -398,6 +411,14 @@ function VTerm:keyboard(k,v)
     if v==1 then
       self:copy()
     end
+  elseif k=="CTRL+SHIFT+C" then
+    if v==1 then
+      self:copy_all()
+    end
+  elseif k=="CTRL+SHIFT+V" then
+    if v==1 then
+      self:paste_all()
+    end
   elseif k=="CTRL+V" then
     if v==1 then
       self:paste()
@@ -411,6 +432,10 @@ function VTerm:keyboard(k,v)
       show_message("saved",2)
       self:save()
     end
+  elseif k=="HOME" then
+    self:move_cursor(0,-self.cursor.col)
+  elseif k=="END" then
+    self:move_cursor(0,#self.lines[self.cursor.row]-self.cursor.col)
   elseif v==1 then
     local unknown=false
     if k=="SPACE" then

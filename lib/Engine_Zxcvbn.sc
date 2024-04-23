@@ -778,7 +778,7 @@ Engine_Zxcvbn : CroneEngine {
             f_cents,freq_a,freq_b,decimation_bits,decimation_rate,
             noise_level,vibrato_rate,vibrato_depth;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
+            //hz=XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
             hz=Lag.kr(hz,0.001);
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
@@ -802,7 +802,6 @@ Engine_Zxcvbn : CroneEngine {
                 ]),
                 PinkNoise.ar(noise_level),
             ]);
-
             snd = Decimator.ar(snd, decimation_rate, decimation_bits);
 
             snd = Pan2.ar(snd,Lag.kr(pan,0.1));
