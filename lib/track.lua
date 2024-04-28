@@ -469,7 +469,7 @@ function Track:init()
     y=function(x,v) if v==nil then self.lfos["y"]:stop() end;params:set(self.id.."transpose",x) end,
     N=function(x,v) 
       if v==nil then self.lfos["N"]:stop() end
-      params:set(self.id.."crow_slew",x) 
+      params:set(self.id.."crow_slew",util.clamp(x,0,1000)) 
     end, 
 }
 -- setup lfos
