@@ -1083,7 +1083,7 @@ function add_midi_devs()
               msg_ch = 1
             end
             local name = string.lower(connection.device.name)
-            local i = util.clamp(msg.ch,1,10)
+            local i = util.clamp(msg_ch,1,10)
             local note = msg.note
             local d = { ["duration"] = 96,["duration_scaled"] = 1.6,["start"] = 193,["mods"] = { } ,["note_to_emit"] = note,["m"] = note,}
             local mods = {}
