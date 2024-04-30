@@ -194,6 +194,7 @@ function VTerm:paste_all()
     do return end
   end
   self.lines = vterm_clipboard_all
+  self.history_dirty=true
   show_message("pasted all")
 end
 function VTerm:paste()
@@ -433,9 +434,21 @@ function VTerm:keyboard(k,v)
       self:save()
     end
   elseif k=="HOME" then
-    self:move_cursor(0,-self.cursor.col)
+    if v==1 then
+      self:move_cursor(0,-self.cursor.col)
+    end
   elseif k=="END" then
-    self:move_cursor(0,#self.lines[self.cursor.row]-self.cursor.col)
+    if v==1 then
+      self:move_cursor(0,#self.lines[self.cursor.row]-self.cursor.col)
+    end
+  elseif k=="PAGEUP" then
+    if v==1 then
+      self:move_cursor(-4,0)
+    end
+  elseif k=="PAGEDOWN" then
+    if v==1 then
+      self:move_cursor(4,0)
+    end
   elseif v==1 then
     local unknown=false
     if k=="SPACE" then

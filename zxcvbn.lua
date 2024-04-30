@@ -54,8 +54,10 @@ softcut_rendering={false,false,false,false,false,false}
 softcut_enabled=false
 local fverb_so="/home/we/.local/share/SuperCollider/Extensions/fverb/Fverb.so"
 engine.name=util.file_exists(fverb_so) and "Zxcvbn" or nil
+
 vterm_clipboard = {} --add general clipboard to enable copy paste between tracks
 vterm_clipboard_all ={} --add clipboard for all of the text for a track
+
 debounce_fn={}
 osc_fun={}
 dx7_names={}
@@ -1076,6 +1078,10 @@ function add_midi_devs()
           })
           connection.event=function(data)
             local msg=midi.to_msg(data)
+            local msg_ch = msg.ch
+            if msg_ch == nil then
+              msg_ch = 1
+            end
             local name = string.lower(connection.device.name)
             local i = util.clamp(msg.ch,1,10)
             local note = msg.note
