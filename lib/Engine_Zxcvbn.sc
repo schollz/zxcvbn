@@ -195,12 +195,13 @@ Engine_Zxcvbn : CroneEngine {
 
         // <mx.synths>
         SynthDef("synthy",{
-            arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+            arg hz=220,amp=1.0,gate=1,sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600,lasthz=220;
             var snd,note,env,detune,stereo,lowcut,chorus,res;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-            note=Lag.kr(hz,portamento).cpsmidi+bend;
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
+            note=Lag.kr(hz,0.001).cpsmidi+bend;
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
             sub=Lag.kr(sub,1);
@@ -227,12 +228,13 @@ Engine_Zxcvbn : CroneEngine {
 
         // https://gist.github.com/audionerd/fe50790b7601cba65ddd855caffb05ad
         SynthDef("supersaw",{
-            arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+            arg hz=220,amp=1.0,gate=1,sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600,lasthz=220;
             var detuneFactor,snd,note,mix,freq,env,detune,stereo,lowcut,chorus,res,detuneCurve,centerGain,sideGain,center,freqs,side;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-            note=Lag.kr(hz,portamento).cpsmidi+bend;
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
+            note=Lag.kr(hz,0.001).cpsmidi+bend;
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
             sub=Lag.kr(sub,1);
@@ -292,12 +294,13 @@ Engine_Zxcvbn : CroneEngine {
         }).add;
 
         SynthDef("bigbass",{
-            arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+            arg hz=220,amp=1.0,gate=1,sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600,lasthz=220;
             var snd,note,freq,oscfreq,env,envFilter,detune,distortion,lowcut,chorus,res;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-            note=Lag.kr(hz,portamento).cpsmidi+bend;
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
+            note=Lag.kr(hz,0.001).cpsmidi+bend;
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
             sub=Lag.kr(sub,1);
@@ -324,12 +327,13 @@ Engine_Zxcvbn : CroneEngine {
         }).add;
 
         SynthDef("casio",{
-            arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+            arg hz=220,amp=1.0,gate=1,sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600,lasthz=220;
             var freq, env, freqBase, freqRes, pdbase, pd, pdres, pdi, snd,res,detuning,artifacts,phasing;
-            hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
+            hz=(Lag.kr(hz,0.001).cpsmidi + bend).midicps;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
             artifacts=LinLin.kr(mod1,-1,1,1,10);
@@ -354,19 +358,19 @@ Engine_Zxcvbn : CroneEngine {
         }).add;
 
         SynthDef("icarus",{
-            arg hz=220,amp=1.0,gate=1,sub=1.0,portamento=1,bend=0,
+            arg hz=220,amp=1.0,gate=1,sub=1.0,glide=1,bend=0,
             attack=0.1,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=1;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=1,lasthz=220;
             var bass,basshz,feedback=0.5,delaytime=0.25, delaytimelag=0.1;
             var ender,snd,local,in,ampcheck,env,detuning=0.1,pwmcenter=0.5,pwmwidth=0.4,pwmfreq=1.5;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
             feedback=LinLin.kr(mod1,-1,1,0.1,2);
             delaytime=LinLin.kr(mod2,-1,1,0.05,0.6);
             pwmwidth=LinLin.kr(mod3,-1,1,0.1,0.9);
             detuning=LinExp.kr(mod4,-1,1,0.01,1);
 
-            hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
+            hz=(Lag.kr(hz,0.001).cpsmidi + bend).midicps;
             snd=Mix.new({VarSaw.ar(
                 hz+(SinOsc.kr(LFNoise0.kr(1),Rand(0,3))*
                     (((hz).cpsmidi+1).midicps-(hz))*detuning),
@@ -420,9 +424,9 @@ Engine_Zxcvbn : CroneEngine {
 
         // port of STK's Rhodey (yamaha DX7-style Fender Rhodes) https://sccode.org/1-522
         SynthDef("epiano",{
-            arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+            arg hz=220,amp=1.0,gate=1,sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600,lasthz=220;
 
             // all of these range from 0 to 1
             var vel = 0.8, modIndex = 0.2, mix = 0.2, lfoSpeed = 0.4, lfoDepth = 0.1;
@@ -432,7 +436,8 @@ Engine_Zxcvbn : CroneEngine {
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-            hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
+            hz=(Lag.kr(hz,0.001).cpsmidi + bend).midicps;
             lfoDepth=LinExp.kr(mod1,-1,1,0.01,1);
             mix=LinLin.kr(mod2,-1,1,0.0,0.4);
             modIndex=LinExp.kr(mod3,-1,1,0.01,4);
@@ -465,17 +470,18 @@ Engine_Zxcvbn : CroneEngine {
 
 
         SynthDef("toshiya",{
-            arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+            arg hz=220,amp=1.0,gate=1,sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600,lasthz=220;
             var snd,note,env,detune,stereo,lowcut,chorus,klanky,klankyvol;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
             detune=LinExp.kr(mod1,-1,1,0.001,0.1);
             klankyvol=LinLin.kr(mod2,-1,1,0,2);
             lowcut=LinExp.kr(mod3,-1,1,25,11000);
             chorus=LinExp.kr(mod4,-1,1,0.2,5);
 
-            note=Lag.kr(hz,portamento).cpsmidi + bend;
+            note=Lag.kr(hz,0.001).cpsmidi + bend;
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
             sub=Lag.kr(sub,1);
@@ -498,17 +504,17 @@ Engine_Zxcvbn : CroneEngine {
         }).add;
 
         SynthDef("malone",{
-            arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+            arg hz=220,amp=1.0,gate=1,sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600,lasthz=220;
             var snd,note,env, basshz,bass, detuning,pw, res,filt,detuningSpeed;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
             detuningSpeed=LinExp.kr(mod1,-1,1,0.1,10);
             filt=LinLin.kr(mod2,-1,1,2,10);
             res=LinExp.kr(mod3,-1,1,0.25,4);
             detuning=LinExp.kr(mod4,-1,1,0.002,0.8);
-            hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
+            hz=(Lag.kr(hz,0.001).cpsmidi + bend).midicps;
             note=hz.cpsmidi;
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
@@ -545,12 +551,13 @@ Engine_Zxcvbn : CroneEngine {
 
         // http://sccode.org/1-51n
         SynthDef("kalimba",{
-            arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+            arg hz=220,amp=1.0,gate=1,sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=0.8,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=0.5;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=0.5,lasthz=220;
             var snd,env,click,mix;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-            hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
+            hz=(Lag.kr(hz,0.001).cpsmidi + bend).midicps;
             env=EnvGen.ar(Env.adsr(attack,0,1.0,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             mix=LinLin.kr(mod4,-1,1,0.01,0.4);
 
@@ -583,12 +590,13 @@ Engine_Zxcvbn : CroneEngine {
         }).add;
 
         SynthDef("mdapiano",{
-            arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+            arg hz=220,amp=1.0,gate=1,sub=0,glide=1,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600,lasthz=220;
             var snd,env,tuning;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-            hz=Lag.kr(hz,portamento);
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
+            hz=Lag.kr(hz,0.001);
             env=EnvGen.ar(Env.adsr(attack,0,1.0,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
 
             tuning=LinLin.kr(Clip.kr(mod4),0,1,0,1);
@@ -616,18 +624,19 @@ Engine_Zxcvbn : CroneEngine {
 
         // https://github.com/monome/dust/blob/master/lib/sc/Engine_PolyPerc.sc
         SynthDef("polyperc",{
-            arg hz=220,amp=1.0,gate=1,sub=0,portamento=1,bend=0,
+            arg hz=220,amp=1.0,gate=1,sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600,lasthz=220;
             var snd,filt,env,pw,co,gain,detune,note;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-            hz=Lag.kr(hz,portamento);
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
+            hz=Lag.kr(hz,0.001);
             pw=LinLin.kr(mod1,-1,1,0.3,0.7);
             co=LinExp.kr(mod2,-1,1,hz,Clip.kr(10*hz,200,18000));
             gain=LinLin.kr(mod3,-1,1,0.25,3);
             detune=LinExp.kr(mod4,-1,1,0.00001,0.3);
             note=hz.cpsmidi + bend;
-            note = Lag.kr(note,portamento);
+            note = Lag.kr(note,glide);
             snd = Pulse.ar([note-detune,note+detune].midicps, pw);
             snd = MoogFF.ar(snd,co,gain);
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
@@ -643,16 +652,16 @@ Engine_Zxcvbn : CroneEngine {
         // https://github.com/catfact/zebra/blob/master/lib/Engine_DreadMoon.sc#L20-L41
         SynthDef("dreadpiano",{
             arg hz=220,amp=1.0,pan=0,gate=1,
-            sub=0,portamento=1,bend=0,
+            sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,duration=600,lasthz=220;
             var snd,note,env, damp;
             var noise, string, delaytime,  noise_env, damp_mul;
             var noise_hz = 4000, noise_attack=0.002, noise_decay=0.06,
             tune_up = 1.0005, tune_down = 0.9996, string_decay=3.0,
             lpf_ratio=2.0, lpf_rq = 4.0, hpf_hz = 40, damp_time=0.1;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
             // mods
             string_decay=LinLin.kr(mod1,-1,1,0.1,6);
             noise_hz=LinExp.kr(mod2,-1,1,200,16000);
@@ -660,7 +669,7 @@ Engine_Zxcvbn : CroneEngine {
             tune_up=1+LinLin.kr(mod4,-1,1,0.0001,0.0005*4);
             tune_down=1-LinLin.kr(mod4,-1,1,0.00005,0.0004*4);
 
-            hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
+            hz=(Lag.kr(hz,0.001).cpsmidi + bend).midicps;
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
 
@@ -686,9 +695,9 @@ Engine_Zxcvbn : CroneEngine {
 
         SynthDef("aaaaaa",{
             arg out=0,hz=220,amp=1.0,pan=0,gate=1,
-            sub=0,portamento=1,bend=0,
+            sub=0,glide=1,bend=0,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,duration=600,lasthz=220;
             var saw, wiggle, snd;
             // frequencies drawn from https://slideplayer.com/slide/15020921/
             var f1a = [290, 420, 580, 720, 690, 550, 400, 280];
@@ -709,6 +718,7 @@ Engine_Zxcvbn : CroneEngine {
             var voice, vowel, tilt, cons, detune, focus, div, reso;
             var env;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
             voice=Select.kr( (mod1 > -0.99), [hz.explin(100, 1000, 0, 2), LinLin.kr(mod1, -1, 1, 0, 2)]);
             vowel=LinLin.kr(mod2, -1, 1, 0, 7);
             tilt=LinLin.kr(mod2, -1, 1, 0.3, 0.6) * LinLin.kr(mod4, -1, 1, 0.6, 1.1);
@@ -731,7 +741,7 @@ Engine_Zxcvbn : CroneEngine {
             q3 = q2/1.5;
             q4 = reso/10;
 
-                hz=(Lag.kr(hz,portamento).cpsmidi + bend).midicps;
+                hz=(Lag.kr(hz,0.001).cpsmidi + bend).midicps;
             saw = VarSaw.ar(hz*(1+ (detune * [-1, 0.7, -0.3, 0, 0.3, -0.7, 1])), width: 0).collect({ |item, index|
             Pan2.ar(item, index.linlin(0, 6, -1, 1)*SinOsc.kr(Rand.new(0.1, 0.3))*focus)
             });
@@ -760,15 +770,16 @@ Engine_Zxcvbn : CroneEngine {
         }).add;
 
         SynthDef("triangles",{
-            arg out=0,hz=220,amp=1.0,gate=1,sub=0,portamento=1,
+            arg out=0,hz=220,amp=1.0,gate=1,sub=0,glide=1,
             attack=0.01,decay=0.2,sustain=0.9,release=5,
-            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600;
+            mod1=0,mod2=0,mod3=0,mod4=0,lpf=18000,pan=0,duration=600,lasthz=220;
             var snd,env,bellow_env,bellow,
             detune_cents,detune_semitones,
             f_cents,freq_a,freq_b,decimation_bits,decimation_rate,
             noise_level,vibrato_rate,vibrato_depth;
             hz=Clip.kr(hz,10,18000);mod1=Lag.kr(mod1);mod2=Lag.kr(mod2);mod3=Lag.kr(mod3);mod4=Lag.kr(mod4);
-            hz=Lag.kr(hz,portamento);
+            //hz=XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
+            hz=Lag.kr(hz,0.001);
             env=EnvGen.ar(Env.adsr(attack,decay,sustain,release),(gate-EnvGen.kr(Env.new([0,0,1],[duration,0]))),doneAction:2);
             env=env*EnvGen.ar(Env.new([1,0],[\gate_release.kr(1)]),Trig.kr(\gate_done.kr(0)),doneAction:2);
 
@@ -791,7 +802,6 @@ Engine_Zxcvbn : CroneEngine {
                 ]),
                 PinkNoise.ar(noise_level),
             ]);
-
             snd = Decimator.ar(snd, decimation_rate, decimation_bits);
 
             snd = Pan2.ar(snd,Lag.kr(pan,0.1));
@@ -810,7 +820,7 @@ Engine_Zxcvbn : CroneEngine {
         //2. it saves some cpu power by not defining and running 3 filters at a time. Instead its 1 filter for lpg and 2 for ASR
         SynthDef("passersby_asr",{
 
-            arg out=0,gate=1, killGate, duration=600, hz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
+           arg out=0,gate=1, killGate, duration=600, hz = 220, lasthz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
             vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0,
             auxEnvAmt=0,auxEnvRel=40,auxEnvFold=0,auxEnvfm1=0,auxEnvfm2=0,auxEnvhz=0;
             
@@ -820,6 +830,7 @@ Engine_Zxcvbn : CroneEngine {
 
 
             // Lag inputs
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
             hz = Lag.kr(hz * pitchBendRatio, 0.007 + glide);
             fm1Ratio = Lag.kr(fm1Ratio, controlLag);
             fm2Ratio = Lag.kr(fm2Ratio, controlLag);
@@ -897,7 +908,7 @@ Engine_Zxcvbn : CroneEngine {
 
         SynthDef("passersby_lpg",{
 
-            arg out=0,gate=1, killGate, duration=600, hz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
+            arg out=0,gate=1, killGate, duration=600, hz = 220, lasthz = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
             vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, peak = 10000, decay=0.2,sustain=0.9,release=5, amp = 1, pan=0,
             auxEnvAmt=0,auxEnvRel=40,auxEnvFold=0,auxEnvfm1=0,auxEnvfm2=0,auxEnvhz=0;
             
@@ -907,6 +918,7 @@ Engine_Zxcvbn : CroneEngine {
 
 
             // Lag inputs
+            hz = XLine.kr(start: lasthz, end: hz, dur: glide + 0.001);
             hz = Lag.kr(hz * pitchBendRatio, 0.007 + glide);
             fm1Ratio = Lag.kr(fm1Ratio, controlLag);
             fm2Ratio = Lag.kr(fm2Ratio, controlLag);
@@ -1758,7 +1770,7 @@ Engine_Zxcvbn : CroneEngine {
         });
 
 
-        this.addCommand("passersby_note_on","ffffffffffffffffffffsfffffffff",{ arg msg;
+        this.addCommand("passersby_note_on","ffffffffffffffffffffsffffffffff",{ arg msg;
             var envType=msg[1]-1;
             var note=msg[2];
             var amp=msg[3];
@@ -1789,9 +1801,12 @@ Engine_Zxcvbn : CroneEngine {
             var aux_fm1=msg[28];
             var aux_fm2=msg[29];
             var aux_hz=msg[30];
+            var lastnote=msg[31];
             var killGate;
             var syn;
             var synth;
+
+
             if (envType==0,
             {
                 synth = "passersby_lpg";
@@ -1811,6 +1826,7 @@ Engine_Zxcvbn : CroneEngine {
             syn=Synth.new(synth,[
                 envType: envType,
                 hz: note.midicps,
+                lasthz: lastnote.midicps,
                 amp: amp.dbamp,
                 peak: peak,
                 pan: pan,
@@ -1843,6 +1859,9 @@ Engine_Zxcvbn : CroneEngine {
                 sendtape: sendTape,
                 outtrack: buses.at("bus"++id),
             ],syns.at("reverb"),\addBefore).onFree({"freed!"});
+            
+            
+
             if (retrig>0,{
                 if ((duration/ (retrig+1))>0.01, {
                     Routine {
@@ -1853,6 +1872,7 @@ Engine_Zxcvbn : CroneEngine {
                             syn=Synth.new(synth, [
                                 envType: envType,
                                 hz: note.midicps,
+                                lasthz: lastnote.midicps,
                                 amp: amp.dbamp,
                                 peak: peak,
                                 pan: pan,
@@ -2099,7 +2119,7 @@ Engine_Zxcvbn : CroneEngine {
             mx.note(folder,note,velocity,amp,pan,attack,release,duration,sendCompressible,sendCompressing,sendReverb,sendTape,sendDelay);
         });
 
-        this.addCommand("mx_synths","sffffffffffffffffsffff", { arg msg;
+        this.addCommand("mx_synths","sffffffffffffffffsffffff", { arg msg;
             var synth=msg[1].asString;
             var note=msg[2];
             var db=msg[3];
@@ -2122,6 +2142,8 @@ Engine_Zxcvbn : CroneEngine {
             var retrig=msg[20];
             var db_add=msg[21];
             var sendDelay=msg[22];
+            var lastnote=msg[23];
+            var glide=msg[24];
             var syn;
             if (monophonic_release>0,{
                 if (syns.at(id).notNil,{
@@ -2133,12 +2155,14 @@ Engine_Zxcvbn : CroneEngine {
             });
             syn=Synth.new(synth,[
                 hz: note.midicps,
+                lasthz: lastnote.midicps,
                 amp: (db+db_add).dbamp,
                 sub: (sub+db_add).dbamp,
                 pan: pan,
                 attack: attack,
                 release: release,
                 gate_release: release,
+                glide: glide,
                 mod1: mod1,
                 mod2: mod2,
                 mod3: mod3,
@@ -2165,12 +2189,14 @@ Engine_Zxcvbn : CroneEngine {
                             syn.set("gate_done",1);
                             syn=Synth.new(synth, [
                                 hz: note.midicps,
+                                lasthz: lastnote.midicps,
                                 amp: (db+(db_add*(i+1))).dbamp,
                                 sub: (sub+(db_add*(i+1))).dbamp,
                                 pan: pan,
                                 attack: attack,
                                 release: release,
                                 gate_release: release,
+                                glide: glide,
                                 mod1: mod1,
                                 mod2: mod2,
                                 mod3: mod3,

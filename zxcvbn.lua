@@ -54,7 +54,8 @@ softcut_rendering={false,false,false,false,false,false}
 softcut_enabled=false
 local fverb_so="/home/we/.local/share/SuperCollider/Extensions/fverb/Fverb.so"
 engine.name=util.file_exists(fverb_so) and "Zxcvbn" or nil
-
+vterm_clipboard = {} --add general clipboard to enable copy paste between tracks
+vterm_clipboard_all ={} --add clipboard for all of the text for a track
 debounce_fn={}
 osc_fun={}
 dx7_names={}
@@ -1046,9 +1047,11 @@ end
 
 
 function params_midi()
-  params:add_group("MIDI",2)
+  params:add_group("MIDI",4)
   params:add_separator("midi_sync_sep","midi start stop receive")
   params:add_option("midi_dev_sync","",midi_device_list,1)
+  params:add_separator("midi_sync_sep2","midi note receive")
+  params:add_option("midi_dev_note","",midi_device_list,1)
 end
 
 function add_midi_devs()
@@ -1074,7 +1077,11 @@ function add_midi_devs()
           connection.event=function(data)
             local msg=midi.to_msg(data)
             local name = string.lower(connection.device.name)
-            local sync_name = params:get("midi_dev_sync")
+            local i = util.clamp(msg.ch,1,10)
+            local note = msg.note
+            local d = { ["duration"] = 96,["duration_scaled"] = 1.6,["start"] = 193,["mods"] = { } ,["note_to_emit"] = note,["m"] = note,}
+            local mods = {}
+            d.duration_scaled=d.duration*(clock.get_beat_sec()/24)
             if msg.type=="clock" then
               do return end
             end
@@ -1090,12 +1097,19 @@ function add_midi_devs()
                 stop_all(1)
               end
             elseif msg.type=="note_on" then
+              if(midi_device[params:get("midi_dev_note")].dev_name == name) then
+                tracks[i].play_fn[params:get(i.."track_type")].note_on(d,mods)
+              end
+            elseif msg.type=="note_off" then
+              if(midi_device[params:get("midi_dev_note")].dev_name == name) then
+                note = note + params:get(i.."pitch")
+                engine.note_off(i,note)
+              end
             end
           end
         end
       end
 end
-
 
 
 function setup_softcut()
