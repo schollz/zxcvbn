@@ -1,4 +1,4 @@
--- zxcvbn v3.0.0
+-- zxcvbn v3.0.1
 --
 --
 -- zxcvbn.norns.online
