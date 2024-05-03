@@ -184,6 +184,7 @@ function VTerm:copy()
 end
 
 function VTerm:copy_all()
+  vterm_clipboard_all = {}
   -- copy the current line
   for i,v in ipairs(self.lines) do
     table.insert(vterm_clipboard_all,v)
