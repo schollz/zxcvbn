@@ -185,7 +185,10 @@ end
 
 function VTerm:copy_all()
   -- copy the current line
-  vterm_clipboard_all = self.lines[1]
+  for i,v in ipairs(self.lines) do
+    table.insert(vterm_clipboard_all,v)
+  end
+  --vterm_clipboard_all = self.lines[1]
   show_message("copied all")
 end
 
@@ -193,7 +196,7 @@ function VTerm:paste_all()
   if vterm_clipboard_all==nil then
     do return end
   end
-  self.lines[1] = vterm_clipboard_all
+  self.lines = vterm_clipboard_all
   self.history_dirty=true
   show_message("pasted all")
 end
