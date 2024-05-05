@@ -1,0 +1,8 @@
+#!/bin/sh
+export GOPATH=$HOME/go
+export PATH=$HOME/bin:$PATH:/usr/local/go/bin/:$HOME/go/bin:$HOME/node/bin:$HOME/.cargo/bin
+# Check if the merge was an update
+if [ "$1" = "0" ]; then  # Ensure this condition works as expected in your context
+    cd /www/zxcvbn/docs/builder && /usr/bin/make build
+fi
+
