@@ -1092,7 +1092,7 @@ function add_midi_devs()
               do return end
             end
             if msg.type=='start' or msg.type=='continue' then
-              if(midi_device[sync_name].dev_name == name) then
+              if(midi_device[params:get("midi_dev_sync")].dev_name == name) then
                 play_all(1)
               end
               -- OP-1 fix for transport
